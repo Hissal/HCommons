@@ -1,0 +1,58 @@
+﻿namespace HCommons.Monads;
+
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+public readonly record struct Optional<T> where T : notnull {
+    [MemberNotNullWhen(true, nameof(Value))]
+        public bool HasValue { get; }
+        public T? Value { get; }
+
+    Optional(bool hasValue, T? value = default) {
+        HasValue = hasValue;
+        Value = value;
+    }
+
+    public static implicit operator Optional<T>(T value) => Some(value);
+    
+    public static Optional<T> Some(T value) => new Optional<T>(true, value);
+    public static Optional<T> None() => new Optional<T>(false);
+
+    public bool TryGetValue([NotNullWhen(true)] out T? value) {
+        value = HasValue ? Value : default;
+        return HasValue;
+    }
+    
+    public T? GetValueOrDefault() => HasValue ? Value : default;
+    public T GetValueOrDefault(T defaultValue) => HasValue ? Value! : defaultValue;
+    
+    public TResult Match<TResult>(Func<T, TResult> onValue, Func<TResult> onNone) => 
+        HasValue ? onValue(Value!) : onNone();
+    
+    public TResult Match<TResult>(Func<T, TResult> onValue, TResult onNone) => 
+        HasValue ? onValue(Value!) : onNone;
+    
+    public TResult Match<TState, TResult>(TState state, Func<TState, T, TResult> onValue, Func<TState, TResult> onNone) => 
+        HasValue ? onValue(state, Value!) : onNone(state);
+    
+    public TResult Match<TState, TResult>(TState state, Func<TState, T, TResult> onValue, TResult onNone) => 
+        HasValue ? onValue(state, Value!) : onNone;
+    
+    public Optional<TResult> Select<TResult>(Func<T, Optional<TResult>> selector) where TResult : notnull =>
+        HasValue ? selector(Value!) : Optional<TResult>.None();
+    
+    public Optional<TResult> Select<TState, TResult>(TState state, Func<TState, T, Optional<TResult>> selector) where TResult : notnull =>
+        HasValue ? selector(state, Value!) : Optional<TResult>.None();
+    
+    public void Switch(Action<T> onValue, Action onNone) {
+        if (HasValue) onValue(Value!);
+        else onNone();
+    }
+    
+    public void Switch<TState>(TState state, Action<TState, T> onValue, Action<TState> onNone) {
+        if (HasValue) onValue(state, Value!);
+        else onNone(state);
+    }
+    
+    public override string ToString() => HasValue ? $"Some: {Value}" : "None";
+}
