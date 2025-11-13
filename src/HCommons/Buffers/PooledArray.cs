@@ -1,6 +1,6 @@
 ﻿using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
-using System.Diagnostics.Contracts;
+using System.Diagnostics.Contracts; // for [Pure]
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
 
@@ -11,13 +11,16 @@ namespace HCommons.Buffers;
 [MustDisposeResource]
 public struct PooledArray<T>(T[] array, int length) : IDisposable {
     T[]? _array = array;
-    public T[] Array => _array ?? throw new ObjectDisposedException(nameof(PooledArray<T>));
-    
+    public T[] Array {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => _array ?? throw new ObjectDisposedException(nameof(PooledArray<T>));
+    }
+
     public int Length { get; } = length;
 
     [MemberNotNullWhen(false, nameof(_array))]
     public bool IsDisposed => _array == null;
-    
+
     public Span<T> Span {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => Array.AsSpan(0, Length);
@@ -48,17 +51,16 @@ public struct PooledArray<T>(T[] array, int length) : IDisposable {
     
     [Pure]
     [MustDisposeResource]
-    public static implicit operator ReadOnlyPooledArray<T>(PooledArray<T> pooledArray) => new (pooledArray.Array, pooledArray.Length);
-
-    [Pure]
-    [MustDisposeResource]
     public static PooledArray<T> Rent(int length) {
         var array = ArrayPool<T>.Shared.Rent(length);
         return new PooledArray<T>(array, length);
     }
 
     public static void Return([HandlesResourceDisposal] ref PooledArray<T> pooledArray) => pooledArray.Dispose();
+    public static void Return([HandlesResourceDisposal] ref PooledArray<T> pooledArray, bool clearArray) => pooledArray.ReturnToPool(clearArray);
+    
     public static void Return([HandlesResourceDisposal] ref ReadOnlyPooledArray<T> pooledArray) => pooledArray.Dispose();
+    public static void Return([HandlesResourceDisposal] ref ReadOnlyPooledArray<T> pooledArray, bool clearArray) => pooledArray.ReturnToPool(clearArray);
 
     [Pure]
     [MustDisposeResource]
@@ -75,22 +77,49 @@ public struct PooledArray<T>(T[] array, int length) : IDisposable {
         return newArr;
     }
     
-    public void Dispose() {
+    [MustDisposeResource]
+    [HandlesResourceDisposal]
+    public ReadOnlyPooledArray<T> AsReadOnly() {
+        if (IsDisposed)
+            throw new ObjectDisposedException(nameof(PooledArray<T>));
+        
+        var array = _array!;
+        _array = null!;
+        return new ReadOnlyPooledArray<T>(array, Length);
+    }
+    
+    public void Dispose() => ReturnToPool(RuntimeHelpers.IsReferenceOrContainsReferences<T>());
+
+    void ReturnToPool(bool clearArray) {
         if (IsDisposed)
             return;
         
-        ArrayPool<T>.Shared.Return(_array, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
+        ArrayPool<T>.Shared.Return(_array, clearArray);
         _array = null!;
     }
     
-    public PooledArrayEnumerator<T> GetEnumerator() => new (this);
+    public Enumerator GetEnumerator() => new (this);
+    
+    public struct Enumerator(PooledArray<T> pooledArray) {
+        int _index = -1;
+
+        public T Current => pooledArray[_index];
+
+        public bool MoveNext() {
+            _index++;
+            return _index < pooledArray.Length;
+        }
+    }
 }
 
 [MustDisposeResource]
 public struct ReadOnlyPooledArray<T>(T[] array, int length) : IDisposable {
     T[]? _array = array;
-    T[] Array => _array ?? throw new ObjectDisposedException(nameof(ReadOnlyPooledArray<T>));
-    
+    T[] Array {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => _array ?? throw new ObjectDisposedException(nameof(ReadOnlyPooledArray<T>));
+    }
+
     public int Length { get; } = length;
     
     [MemberNotNullWhen(false, nameof(_array))]
@@ -126,27 +155,29 @@ public struct ReadOnlyPooledArray<T>(T[] array, int length) : IDisposable {
         var slice = Span.Slice(start, length);
         var newArr = PooledArray<T>.Rent(length);
         slice.CopyTo(newArr.Span);
-        return newArr;
+        return newArr.AsReadOnly();
     }
     
-    public PooledArrayEnumerator<T> GetEnumerator() => new (this);
+    public Enumerator GetEnumerator() => new (this);
     
-    public void Dispose() {
+    public void Dispose() => ReturnToPool(RuntimeHelpers.IsReferenceOrContainsReferences<T>());
+    
+    internal void ReturnToPool(bool clearArray) {
         if (IsDisposed)
             return;
         
-        ArrayPool<T>.Shared.Return(_array, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
+        ArrayPool<T>.Shared.Return(_array, clearArray);
         _array = null!;
-    }
-}
+    }   
+    
+    public struct Enumerator(ReadOnlyPooledArray<T> pooledArray) {
+        int _index = -1;
 
-public struct PooledArrayEnumerator<T>(ReadOnlyPooledArray<T> pooledArray) {
-    int _index = -1;
+        public T Current => pooledArray[_index];
 
-    public T Current => pooledArray[_index];
-
-    public bool MoveNext() {
-        _index++;
-        return _index < pooledArray.Length;
+        public bool MoveNext() {
+            _index++;
+            return _index < pooledArray.Length;
+        }
     }
 }

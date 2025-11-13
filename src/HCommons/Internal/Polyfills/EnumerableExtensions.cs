@@ -3,7 +3,7 @@ using JetBrains.Annotations;
 
 namespace HCommons.Internal;
 
-internal static class EnumerablePolyfills {
+internal static class EnumerableExtensions {
 #if !NET6_0_OR_GREATER
     public static bool TryGetNonEnumeratedCount<TSource>([NoEnumeration] this IEnumerable<TSource> source, out int count) {
         switch (source) {

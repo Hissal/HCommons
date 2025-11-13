@@ -1,8 +1,7 @@
-﻿using System.Diagnostics.Contracts;
-using HCommons.Internal;
+﻿using System.Diagnostics.Contracts; // for [Pure]
+using Pure = System.Diagnostics.Contracts.PureAttribute;
 using JetBrains.Annotations;
 
-using Pure = System.Diagnostics.Contracts.PureAttribute;
 
 namespace HCommons.Buffers;
 
@@ -90,10 +89,10 @@ public static class PooledArrayExtensions {
             }
         }
         
-        using var builder = new PooledArrayBuilder<T>();
+        var builder = new PooledArrayBuilder<T>();
         foreach (var item in source) {
             builder.Add(item);
         }
-        return builder.Build();
+        return builder.BuildAndDispose();
     }
 }
