@@ -1,0 +1,39 @@
+name: Test and Build .NET
+
+on:
+  push:
+    branches: [ "main" ]
+    paths-ignore:
+      - README.md
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-dotnet:
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, windows-latest ]
+    permissions:
+      contents: read
+    runs-on: ${{ matrix.os }}
+    timeout-minutes:  10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            9.0.x
+            8.0.x
+            6.0.x
+            
+      - name: Restore
+        run: dotnet restore HCommons.sln
+        
+      - name: Build
+        run: dotnet build HCommons.sln -c Release --no-restore
+        
+      - name: Test
+        run: dotnet test HCommons.sln -c Release --no-build --verbosity normal
