@@ -44,18 +44,18 @@ public readonly record struct Result<TValue> where TValue : notnull {
     public TValue GetValueOrDefault(TValue defaultValue) => IsSuccess ? Value! : defaultValue;
     
     [Pure]
-    public TMatch Match<TMatch>(
-        Func<TValue, TMatch> onSuccess, 
-        Func<Error, TMatch> onFailure) 
+    public TResult Match<TResult>(
+        Func<TValue, TResult> onSuccess, 
+        Func<Error, TResult> onFailure) 
     {
         return IsSuccess ? onSuccess(Value!) : onFailure(Error);
     }
     
     [Pure]
-    public TMatch Match<TState, TMatch>(
+    public TResult Match<TState, TResult>(
         TState state,
-        Func<TState, TValue, TMatch> onSuccess, 
-        Func<TState, Error, TMatch> onFailure) 
+        Func<TState, TValue, TResult> onSuccess, 
+        Func<TState, Error, TResult> onFailure) 
     {
         return IsSuccess ? onSuccess(state, Value!) : onFailure(state, Error);
     }

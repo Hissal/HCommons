@@ -55,10 +55,10 @@ public readonly record struct OperationResult<TSuccess, TFailure, TCancelled>(
     public TSuccess GetSuccessOrDefault(TSuccess defaultValue) => IsSuccess ? SuccessValue : defaultValue;
 
     [Pure]
-    public TMatch Match<TMatch>(
-        Func<TSuccess, TMatch> onSuccess, 
-        Func<TFailure, TMatch> onFailure, 
-        Func<TCancelled, TMatch> onCancelled) 
+    public TResult Match<TResult>(
+        Func<TSuccess, TResult> onSuccess, 
+        Func<TFailure, TResult> onFailure, 
+        Func<TCancelled, TResult> onCancelled) 
     {
         return Type switch {
             OperationResultType.Success => onSuccess(SuccessValue!),
@@ -69,11 +69,11 @@ public readonly record struct OperationResult<TSuccess, TFailure, TCancelled>(
     }
     
     [Pure]
-    public TMatch Match<TState, TMatch>(
+    public TResult Match<TState, TResult>(
         TState state,
-        Func<TState, TSuccess, TMatch> onSuccess, 
-        Func<TState, TFailure, TMatch> onFailure, 
-        Func<TState, TCancelled, TMatch> onCancelled) 
+        Func<TState, TSuccess, TResult> onSuccess, 
+        Func<TState, TFailure, TResult> onFailure, 
+        Func<TState, TCancelled, TResult> onCancelled) 
     {
         return Type switch {
             OperationResultType.Success => onSuccess(state, SuccessValue!),

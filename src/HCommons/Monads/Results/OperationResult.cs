@@ -26,10 +26,10 @@ public readonly record struct OperationResult(OperationResultType Type, Error Er
     public static implicit operator OperationResult(Cancelled cancelled) => Cancelled(cancelled);
 
     [Pure]
-    public TMatch Match<TMatch>(
-        Func<TMatch> onSuccess, 
-        Func<Error, TMatch> onFailure,
-        Func<Cancelled, TMatch> onCancelled) 
+    public TResult Match<TResult>(
+        Func<TResult> onSuccess, 
+        Func<Error, TResult> onFailure,
+        Func<Cancelled, TResult> onCancelled) 
     {
         return Type switch {
             OperationResultType.Success => onSuccess(),
@@ -40,11 +40,11 @@ public readonly record struct OperationResult(OperationResultType Type, Error Er
     }
 
     [Pure]
-    public TMatch Match<TState, TMatch>(
+    public TResult Match<TState, TResult>(
         TState state,
-        Func<TState, TMatch> onSuccess,
-        Func<TState, Error, TMatch> onFailure,
-        Func<TState, Cancelled, TMatch> onCancelled) 
+        Func<TState, TResult> onSuccess,
+        Func<TState, Error, TResult> onFailure,
+        Func<TState, Cancelled, TResult> onCancelled) 
     {
         return Type switch {
             OperationResultType.Success => onSuccess(state),

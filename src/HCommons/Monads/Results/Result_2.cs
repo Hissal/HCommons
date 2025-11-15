@@ -46,18 +46,18 @@ public readonly record struct Result<TSuccess, TFailure> where TSuccess : notnul
     public TSuccess GetSuccessOrDefault(TSuccess defaultValue) => IsSuccess ? Value : defaultValue;
 
     [Pure]
-    public TMatch Match<TMatch>(
-        Func<TSuccess, TMatch> onSuccess, 
-        Func<TFailure, TMatch> onFailure) 
+    public TResult Match<TResult>(
+        Func<TSuccess, TResult> onSuccess, 
+        Func<TFailure, TResult> onFailure) 
     {
         return IsSuccess ? onSuccess(Value!) : onFailure(FailureValue!);
     }
     
     [Pure]
-    public TMatch Match<TState, TMatch>(
+    public TResult Match<TState, TResult>(
         TState state,
-        Func<TState, TSuccess, TMatch> onSuccess, 
-        Func<TState, TFailure, TMatch> onFailure) 
+        Func<TState, TSuccess, TResult> onSuccess, 
+        Func<TState, TFailure, TResult> onFailure) 
     {
         return IsSuccess ? onSuccess(state, Value!) : onFailure(state, FailureValue!);
     }
