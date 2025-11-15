@@ -1,3 +1,5 @@
+using System.Diagnostics.Contracts;
+
 namespace HCommons.Monads;
 
 public enum OperationResultType : byte {
@@ -11,15 +13,19 @@ public readonly record struct OperationResult(OperationResultType Type, Error Er
     public bool IsFailure => Type == OperationResultType.Failure;
     public bool IsCancelled => Type == OperationResultType.Cancelled;
 
+    [Pure]
     public static OperationResult Success() => new OperationResult(OperationResultType.Success, Error.Empty, Monads.Cancelled.Empty);
 
+    [Pure]
     public static OperationResult Failure(Error error) => new OperationResult(OperationResultType.Failure, error, Monads.Cancelled.Empty);
 
+    [Pure]
     public static OperationResult Cancelled(Cancelled cancelled) => new OperationResult(OperationResultType.Cancelled, Error.Empty, cancelled);
 
     public static implicit operator OperationResult(Error error) => Failure(error);
     public static implicit operator OperationResult(Cancelled cancelled) => Cancelled(cancelled);
 
+    [Pure]
     public TMatch Match<TMatch>(
         Func<TMatch> onSuccess, 
         Func<Error, TMatch> onFailure,
@@ -33,6 +39,7 @@ public readonly record struct OperationResult(OperationResultType Type, Error Er
         };
     }
 
+    [Pure]
     public TMatch Match<TState, TMatch>(
         TState state,
         Func<TState, TMatch> onSuccess,
@@ -64,6 +71,7 @@ public readonly record struct OperationResult(OperationResultType Type, Error Er
         else onCancelled(state, Cancellation);
     }
 
+    [Pure]
     public override string ToString() => Type switch {
         OperationResultType.Success => "Success",
         OperationResultType.Failure => $"Failure: {Error}",
