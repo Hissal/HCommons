@@ -64,7 +64,7 @@ public readonly record struct OperationResult<TSuccess, TFailure, TCancelled>(
             OperationResultType.Success => onSuccess(SuccessValue!),
             OperationResultType.Failure => onFailure(FailureValue!),
             OperationResultType.Cancelled => onCancelled(CancelledValue!),
-            _ => throw new ArgumentOutOfRangeException()
+            _ => throw new ArgumentOutOfRangeException(nameof(Type), Type, "Unknown OperationResultType")
         };
     }
     
