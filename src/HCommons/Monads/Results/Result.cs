@@ -13,12 +13,12 @@ public readonly record struct Result(bool IsSuccess, Error Error) {
     public static implicit operator Result(Error error) => Failure(error);
 
     [Pure]
-    public TMatch Match<TMatch>(Func<TMatch> onSuccess, Func<Error, TMatch> onFailure) =>
+    public TResult Match<TResult>(Func<TResult> onSuccess, Func<Error, TResult> onFailure) =>
         IsSuccess ? onSuccess() : onFailure(Error);
 
     [Pure]
-    public TMatch Match<TState, TMatch>(TState state, Func<TState, TMatch> onSuccess,
-        Func<TState, Error, TMatch> onFailure) =>
+    public TResult Match<TState, TResult>(TState state, Func<TState, TResult> onSuccess,
+        Func<TState, Error, TResult> onFailure) =>
         IsSuccess ? onSuccess(state) : onFailure(state, Error);
 
     public void Switch(Action onSuccess, Action<Error> onFailure) {
