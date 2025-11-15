@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.Contracts;
 
 namespace HCommons.Monads;
 
@@ -17,25 +18,32 @@ public readonly record struct Result<TValue> where TValue : notnull {
         Error = error;
     }
         
+    [Pure]
     public static Result<TValue> Success(TValue value) => new (true, value, Error.Empty);
+    [Pure]
     public static Result<TValue> Failure(Error error) => new (false, default, error);
         
     public static implicit operator Result<TValue>(TValue value) => Success(value);
     public static implicit operator Result<TValue>(Error error) => Failure(error);
     
+    [Pure]
     public bool TryGetValue([NotNullWhen(true)] out TValue? value) {
         value = Value;
         return IsSuccess;
     }
     
+    [Pure]
     public bool TryGetError(out Error error) {
         error = Error;
         return !IsSuccess;
     }
     
+    [Pure]
     public TValue? GetValueOrDefault() => IsSuccess ? Value : default;
+    [Pure]
     public TValue GetValueOrDefault(TValue defaultValue) => IsSuccess ? Value! : defaultValue;
     
+    [Pure]
     public TMatch Match<TMatch>(
         Func<TValue, TMatch> onSuccess, 
         Func<Error, TMatch> onFailure) 
@@ -43,6 +51,7 @@ public readonly record struct Result<TValue> where TValue : notnull {
         return IsSuccess ? onSuccess(Value!) : onFailure(Error);
     }
     
+    [Pure]
     public TMatch Match<TState, TMatch>(
         TState state,
         Func<TState, TValue, TMatch> onSuccess, 
@@ -68,5 +77,6 @@ public readonly record struct Result<TValue> where TValue : notnull {
         else onFailure(state, Error);
     }
     
+    [Pure]
     public override string ToString() => IsSuccess ? $"Success: {Value}" : $"Failure: {Error}";
 }

@@ -1,25 +1,33 @@
+using System.Diagnostics.Contracts;
+
 namespace HCommons.Monads;
 
 public readonly record struct Cancelled(string Reason) {
+    [Pure]
     public static Cancelled Empty => new Cancelled(string.Empty);
     
+    [Pure]
     public static Cancelled Because(string reason) => new Cancelled(reason);
     
     public static implicit operator Cancelled(string reason) => new Cancelled(reason);
-    public static implicit operator string(Cancelled cancelled) => cancelled.Reason;
-    
+    [Pure]
     public override string ToString() => $"[Cancelled]: {Reason}";
 }
 
-public readonly record struct Cancelled<T>(T Value, string Reason) {
-    public static Cancelled<T> ValueOnly(T value) => new Cancelled<T>(value, string.Empty); 
-    public static Cancelled<T> Because(T value, string reason) => new Cancelled<T>(value, reason);
+public readonly record struct Cancelled<TValue>(TValue Value, string Reason) {
+    [Pure]
+    public static Cancelled<TValue> ValueOnly(TValue value) => new Cancelled<TValue>(value, string.Empty); 
+    [Pure]
+    public static Cancelled<TValue> Because(TValue value, string reason) => new Cancelled<TValue>(value, reason);
     
-    public static implicit operator Cancelled(Cancelled<T> cancelled) => new Cancelled(cancelled.Reason);
-    
+    public static implicit operator Cancelled(Cancelled<TValue> cancelled) => new Cancelled(cancelled.Reason);
+    [Pure]
     public override string ToString() => $"[Cancelled]: {Reason}, [Value]: {Value}";
 }
 
 public static class CancelledExtensions {
-    public static Cancelled<T> WithValue<T>(this Cancelled cancelled, T value) => new Cancelled<T>(value, cancelled.Reason);
+    [Pure]
+    public static Cancelled<TValue> WithValue<TValue>(this Cancelled cancelled, TValue value) => new Cancelled<TValue>(value, cancelled.Reason);
+    [Pure]
+    public static Cancelled WithoutValue<TValue>(this Cancelled<TValue> cancelled) => new Cancelled(cancelled.Reason);
 }

@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.Contracts;
 
 namespace HCommons.Monads;
 
@@ -14,21 +15,28 @@ public readonly record struct OperationResult<TValue>(
     public bool IsFailure => Type == OperationResultType.Failure;
     public bool IsCancelled => Type == OperationResultType.Cancelled;
 
+    [Pure]
     public static OperationResult<TValue> Success(TValue value) => new OperationResult<TValue>(OperationResultType.Success, value, Error.Empty, Monads.Cancelled.Empty);
+    [Pure]
     public static OperationResult<TValue> Failure(Error error) => new OperationResult<TValue>(OperationResultType.Failure, default, error, Monads.Cancelled.Empty);
+    [Pure]
     public static OperationResult<TValue> Cancelled(Cancelled cancelled) => new OperationResult<TValue>(OperationResultType.Cancelled, default, Error.Empty, cancelled);
 
     public static implicit operator OperationResult<TValue>(Error error) => Failure(error);
     public static implicit operator OperationResult<TValue>(Cancelled cancelled) => Cancelled(cancelled);
     
+    [Pure]
     public bool TryGetValue([NotNullWhen(true)] out TValue? value) {
         value = Value;
         return IsSuccess;
     }
     
+    [Pure]
     public TValue? GetValueOrDefault() => IsSuccess ? Value : default;
+    [Pure]
     public TValue GetValueOrDefault(TValue defaultValue) => IsSuccess ? Value : defaultValue;
     
+    [Pure]
     public TMatch Match<TMatch>(
         Func<TValue, TMatch> onSuccess, 
         Func<Error, TMatch> onFailure,
@@ -42,6 +50,7 @@ public readonly record struct OperationResult<TValue>(
         };
     }
     
+    [Pure]
     public TMatch Match<TState, TMatch>(
         TState state,
         Func<TState, TValue, TMatch> onSuccess,
@@ -73,6 +82,7 @@ public readonly record struct OperationResult<TValue>(
         else onCancelled(state, Cancellation);
     }
 
+    [Pure]
     public override string ToString() => Type switch {
         OperationResultType.Success => $"Success: {Value}",
         OperationResultType.Failure => $"Failure: {Error}",

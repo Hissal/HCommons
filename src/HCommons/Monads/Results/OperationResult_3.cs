@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.Contracts;
 
 namespace HCommons.Monads;
 
@@ -23,28 +24,37 @@ public readonly record struct OperationResult<TSuccess, TFailure, TCancelled>(
     public static implicit operator OperationResult<TSuccess, TFailure, TCancelled>(TFailure failure) => Failure(failure);
     public static implicit operator OperationResult<TSuccess, TFailure, TCancelled>(TCancelled cancelled) => Cancelled(cancelled);
     
+    [Pure]
     public static OperationResult<TSuccess, TFailure, TCancelled> Success(TSuccess value) => new (OperationResultType.Success, SuccessValue: value);
+    [Pure]
     public static OperationResult<TSuccess, TFailure, TCancelled> Failure(TFailure value) => new (OperationResultType.Failure, FailureValue: value);
+    [Pure]
     public static OperationResult<TSuccess, TFailure, TCancelled> Cancelled(TCancelled value) => new (OperationResultType.Cancelled, CancelledValue: value);
         
+    [Pure]
     public bool TryGetSuccess([NotNullWhen(true)] out TSuccess? value) {
         value = SuccessValue;
         return IsSuccess;
     }
     
+    [Pure]
     public bool TryGetFailure([NotNullWhen(true)] out TFailure? value) {
         value = FailureValue;
         return IsFailure;
     }
     
+    [Pure]
     public bool TryGetCancelled([NotNullWhen(true)] out TCancelled? value) {
         value = CancelledValue;
         return IsCancelled;
     }
 
+    [Pure]
     public TSuccess? GetSuccessOrDefault() => IsSuccess ? SuccessValue : default;
+    [Pure]
     public TSuccess GetSuccessOrDefault(TSuccess defaultValue) => IsSuccess ? SuccessValue : defaultValue;
 
+    [Pure]
     public TMatch Match<TMatch>(
         Func<TSuccess, TMatch> onSuccess, 
         Func<TFailure, TMatch> onFailure, 
@@ -58,6 +68,7 @@ public readonly record struct OperationResult<TSuccess, TFailure, TCancelled>(
         };
     }
     
+    [Pure]
     public TMatch Match<TState, TMatch>(
         TState state,
         Func<TState, TSuccess, TMatch> onSuccess, 
@@ -113,6 +124,7 @@ public readonly record struct OperationResult<TSuccess, TFailure, TCancelled>(
         }
     }
     
+    [Pure]
     public override string ToString() => Type switch {
         OperationResultType.Success => $"Success: {SuccessValue}",
         OperationResultType.Failure => $"Failure: {FailureValue}",

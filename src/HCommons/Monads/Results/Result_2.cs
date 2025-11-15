@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.Contracts;
 
 namespace HCommons.Monads;
 
@@ -19,25 +20,32 @@ public readonly record struct Result<TSuccess, TFailure> where TSuccess : notnul
         FailureValue = failureValue;
     }
         
+    [Pure]
     public static Result<TSuccess, TFailure> Success(TSuccess value) => new (true, value);
+    [Pure]
     public static Result<TSuccess, TFailure> Failure(TFailure value) => new (false, default, value);
         
     public static implicit operator Result<TSuccess, TFailure>(TSuccess value) => Success(value);
     public static implicit operator Result<TSuccess, TFailure>(TFailure value) => Failure(value);
     
+    [Pure]
     public bool TryGetSuccess([NotNullWhen(true)] out TSuccess? value) {
         value = Value;
         return IsSuccess;
     }
     
+    [Pure]
     public bool TryGetFailure([NotNullWhen(true)] out TFailure? value) {
         value = FailureValue;
         return IsFailure;
     }
     
+    [Pure]
     public TSuccess? GetSuccessOrDefault() => IsSuccess ? Value : default;
+    [Pure]
     public TSuccess GetSuccessOrDefault(TSuccess defaultValue) => IsSuccess ? Value : defaultValue;
 
+    [Pure]
     public TMatch Match<TMatch>(
         Func<TSuccess, TMatch> onSuccess, 
         Func<TFailure, TMatch> onFailure) 
@@ -45,6 +53,7 @@ public readonly record struct Result<TSuccess, TFailure> where TSuccess : notnul
         return IsSuccess ? onSuccess(Value!) : onFailure(FailureValue!);
     }
     
+    [Pure]
     public TMatch Match<TState, TMatch>(
         TState state,
         Func<TState, TSuccess, TMatch> onSuccess, 
@@ -70,5 +79,6 @@ public readonly record struct Result<TSuccess, TFailure> where TSuccess : notnul
         else onFailure(state, FailureValue!);
     }
     
+    [Pure]
     public override string ToString() => IsSuccess ? $"Success: {Value}" : $"Failure: {FailureValue}";
 }
