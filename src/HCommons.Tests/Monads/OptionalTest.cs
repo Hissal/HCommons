@@ -474,7 +474,7 @@ public class OptionalTest {
     }
 
     [Fact]
-    public void LinqQuery_WhenWhereFiltersFails_ReturnsNone() {
+    public void LinqQuery_WhenWhereFilterFails_ReturnsNone() {
         var optional1 = Optional<int>.Some(10);
         var optional2 = Optional<int>.Some(20);
         
