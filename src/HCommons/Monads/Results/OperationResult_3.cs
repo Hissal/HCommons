@@ -99,7 +99,7 @@ public readonly record struct OperationResult<TSuccess, TFailure, TCancelled>(
                 onCancelled(CancelledValue!);
                 break;
             default:
-                throw new ArgumentOutOfRangeException();
+                throw new ArgumentOutOfRangeException(nameof(Type), Type, "Unknown OperationResultType");
         }
     }
     
