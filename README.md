@@ -353,9 +353,12 @@ try {
     Console.WriteLine(error3.Message);
     Console.WriteLine(error3.HasException); // true
 }
+
+// Error with value
+Error<int> error5 = Error<int>.WithMessage(42, "Partial result available");
 ```
 
-### Cancelled and Cancelled<TValue>
+### Cancelled
 
 Represents a cancellation with a reason and optional associated value.
 
