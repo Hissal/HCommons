@@ -4,6 +4,60 @@ namespace HCommons.Tests.Monads.Results;
 
 public class ResultExtensionsTest {
     [Fact]
+    public void MapError_OnSuccess_ReturnsOriginalResult() {
+        // Arrange
+        var result = Result.Success();
+
+        // Act
+        var actual = result.MapError(e => new Error($"mapped: {e.Message}"));
+
+        // Assert
+        actual.IsSuccess.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void MapError_OnFailure_TransformsError() {
+        // Arrange
+        var error = new Error("original error");
+        var result = Result.Failure(error);
+
+        // Act
+        var actual = result.MapError(e => new Error($"mapped: {e.Message}"));
+
+        // Assert
+        actual.IsFailure.ShouldBeTrue();
+        actual.Error.Message.ShouldBe("mapped: original error");
+    }
+
+    [Fact]
+    public void MapError_WithState_OnSuccess_ReturnsOriginalResult() {
+        // Arrange
+        var result = Result.Success();
+        var state = "my state";
+
+        // Act
+        var actual = result.MapError(state, (s, e) => new Error($"{s}: {e.Message}"));
+
+        // Assert
+        actual.IsSuccess.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void MapError_WithState_OnFailure_TransformsErrorWithState() {
+        // Arrange
+        var error = new Error("original error");
+        var result = Result.Failure(error);
+        var state = "my state";
+
+        // Act
+        var actual = result.MapError(state, (s, e) => new Error($"{s}: {e.Message}"));
+
+        // Assert
+        actual.IsFailure.ShouldBeTrue();
+        actual.Error.Message.ShouldBe("my state: original error");
+    }
+
+    [Fact]
     public void Match_OnSuccess_ExecutesSuccessFunction() {
         // Arrange
         var result = Result.Success();
