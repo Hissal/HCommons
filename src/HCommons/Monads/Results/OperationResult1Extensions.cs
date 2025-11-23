@@ -17,13 +17,17 @@ public static class OperationResult1Extensions {
     [Pure]
     public static OperationResult<TResult> Select<TValue, TResult>(
         this OperationResult<TValue> result, 
-        Func<TValue, TResult> selector) =>
-        result.Type switch {
+        Func<TValue, TResult> selector) 
+        where TValue : notnull
+        where TResult : notnull
+    {
+        return result.Type switch {
             OperationResultType.Success => OperationResult<TResult>.Success(selector(result.Value!)),
             OperationResultType.Failure => OperationResult<TResult>.Failure(result.Error),
             OperationResultType.Cancelled => OperationResult<TResult>.Cancelled(result.Cancellation),
             _ => throw new InvalidOperationException($"Unknown OperationResultType: {result.Type}")
         };
+    }
 
     /// <summary>
     /// Maps an operation result value to a new value using the specified selector function with additional state.
@@ -39,13 +43,17 @@ public static class OperationResult1Extensions {
     public static OperationResult<TResult> Select<TState, TValue, TResult>(
         this OperationResult<TValue> result, 
         TState state,
-        Func<TState, TValue, TResult> selector) =>
-        result.Type switch {
+        Func<TState, TValue, TResult> selector) 
+        where TValue : notnull
+        where TResult : notnull
+    {
+        return result.Type switch {
             OperationResultType.Success => OperationResult<TResult>.Success(selector(state, result.Value!)),
             OperationResultType.Failure => OperationResult<TResult>.Failure(result.Error),
             OperationResultType.Cancelled => OperationResult<TResult>.Cancelled(result.Cancellation),
             _ => throw new InvalidOperationException($"Unknown OperationResultType: {result.Type}")
         };
+    }
 
     /// <summary>
     /// Binds an operation result to a function that returns a new operation result, flattening nested results.
@@ -58,13 +66,17 @@ public static class OperationResult1Extensions {
     [Pure]
     public static OperationResult<TResult> Bind<TValue, TResult>(
         this OperationResult<TValue> result, 
-        Func<TValue, OperationResult<TResult>> binder) =>
-        result.Type switch {
+        Func<TValue, OperationResult<TResult>> binder)
+        where TValue : notnull
+        where TResult : notnull
+    {
+        return result.Type switch {
             OperationResultType.Success => binder(result.Value!),
             OperationResultType.Failure => OperationResult<TResult>.Failure(result.Error),
             OperationResultType.Cancelled => OperationResult<TResult>.Cancelled(result.Cancellation),
             _ => throw new InvalidOperationException($"Unknown OperationResultType: {result.Type}")
         };
+    }
 
     /// <summary>
     /// Binds an operation result to a function that returns a new operation result with additional state, flattening nested results.
@@ -80,13 +92,17 @@ public static class OperationResult1Extensions {
     public static OperationResult<TResult> Bind<TState, TValue, TResult>(
         this OperationResult<TValue> result, 
         TState state,
-        Func<TState, TValue, OperationResult<TResult>> binder) =>
-        result.Type switch {
+        Func<TState, TValue, OperationResult<TResult>> binder) 
+        where TValue : notnull
+        where TResult : notnull
+    {
+        return result.Type switch {
             OperationResultType.Success => binder(state, result.Value!),
             OperationResultType.Failure => OperationResult<TResult>.Failure(result.Error),
             OperationResultType.Cancelled => OperationResult<TResult>.Cancelled(result.Cancellation),
             _ => throw new InvalidOperationException($"Unknown OperationResultType: {result.Type}")
         };
+    }
 
     /// <summary>
     /// Transforms the error of a failed operation result using the specified mapping function.
@@ -98,8 +114,11 @@ public static class OperationResult1Extensions {
     [Pure]
     public static OperationResult<TValue> MapError<TValue>(
         this OperationResult<TValue> result, 
-        Func<Error, Error> mapError) =>
-        result.IsFailure ? OperationResult<TValue>.Failure(mapError(result.Error)) : result;
+        Func<Error, Error> mapError)
+        where TValue : notnull
+    {
+        return result.IsFailure ? OperationResult<TValue>.Failure(mapError(result.Error)) : result;
+    }
 
     /// <summary>
     /// Transforms the error of a failed operation result using the specified mapping function with additional state.
@@ -114,8 +133,11 @@ public static class OperationResult1Extensions {
     public static OperationResult<TValue> MapError<TState, TValue>(
         this OperationResult<TValue> result, 
         TState state,
-        Func<TState, Error, Error> mapError) =>
-        result.IsFailure ? OperationResult<TValue>.Failure(mapError(state, result.Error)) : result;
+        Func<TState, Error, Error> mapError) 
+        where TValue : notnull
+    {
+        return result.IsFailure ? OperationResult<TValue>.Failure(mapError(state, result.Error)) : result;
+    }
 
     /// <summary>
     /// Transforms the cancellation of a cancelled operation result using the specified mapping function.
@@ -127,8 +149,11 @@ public static class OperationResult1Extensions {
     [Pure]
     public static OperationResult<TValue> MapCancellation<TValue>(
         this OperationResult<TValue> result, 
-        Func<Cancelled, Cancelled> mapCancellation) =>
-        result.IsCancelled ? OperationResult<TValue>.Cancelled(mapCancellation(result.Cancellation)) : result;
+        Func<Cancelled, Cancelled> mapCancellation)
+        where TValue : notnull
+    {
+        return result.IsCancelled ? OperationResult<TValue>.Cancelled(mapCancellation(result.Cancellation)) : result;
+    }
 
     /// <summary>
     /// Transforms the cancellation of a cancelled operation result using the specified mapping function with additional state.
@@ -143,8 +168,13 @@ public static class OperationResult1Extensions {
     public static OperationResult<TValue> MapCancellation<TState, TValue>(
         this OperationResult<TValue> result, 
         TState state,
-        Func<TState, Cancelled, Cancelled> mapCancellation) =>
-        result.IsCancelled ? OperationResult<TValue>.Cancelled(mapCancellation(state, result.Cancellation)) : result;
+        Func<TState, Cancelled, Cancelled> mapCancellation) 
+        where TValue : notnull
+    {
+        return result.IsCancelled
+            ? OperationResult<TValue>.Cancelled(mapCancellation(state, result.Cancellation))
+            : result;
+    }
 
     /// <summary>
     /// Matches on the operation result and returns a value.
@@ -162,6 +192,7 @@ public static class OperationResult1Extensions {
         Func<TValue, TResult> onSuccess, 
         Func<Error, TResult> onFailure,
         Func<Cancelled, TResult> onCancelled) 
+        where TValue : notnull
     {
         return result.Type switch {
             OperationResultType.Success => onSuccess(result.Value!),
@@ -190,6 +221,7 @@ public static class OperationResult1Extensions {
         Func<TState, TValue, TResult> onSuccess,
         Func<TState, Error, TResult> onFailure,
         Func<TState, Cancelled, TResult> onCancelled) 
+        where TValue : notnull
     {
         return result.Type switch {
             OperationResultType.Success => onSuccess(state, result.Value!),
@@ -212,10 +244,21 @@ public static class OperationResult1Extensions {
         Action<TValue> onSuccess, 
         Action<Error> onFailure, 
         Action<Cancelled> onCancelled) 
+        where TValue : notnull
     {
-        if (result.IsSuccess) onSuccess(result.Value);
-        else if (result.IsFailure) onFailure(result.Error);
-        else onCancelled(result.Cancellation);
+        switch (result.Type) {
+            case OperationResultType.Success:
+                onSuccess(result.Value!);
+                break;
+            case OperationResultType.Failure:
+                onFailure(result.Error);
+                break;
+            case OperationResultType.Cancelled:
+                onCancelled(result.Cancellation);
+                break;
+            default:
+                throw new InvalidOperationException($"Unknown OperationResultType: {result.Type}");
+        }
     }
 
     /// <summary>
@@ -234,9 +277,20 @@ public static class OperationResult1Extensions {
         Action<TState, TValue> onSuccess, 
         Action<TState, Error> onFailure,
         Action<TState, Cancelled> onCancelled) 
+        where TValue : notnull
     {
-        if (result.IsSuccess) onSuccess(state, result.Value);
-        else if (result.IsFailure) onFailure(state, result.Error);
-        else onCancelled(state, result.Cancellation);
+        switch (result.Type) {
+            case OperationResultType.Success:
+                onSuccess(state, result.Value!);
+                break;
+            case OperationResultType.Failure:
+                onFailure(state, result.Error);
+                break;
+            case OperationResultType.Cancelled:
+                onCancelled(state, result.Cancellation);
+                break;
+            default:
+                throw new InvalidOperationException($"Unknown OperationResultType: {result.Type}");
+        }
     }
 }

@@ -12,6 +12,7 @@ public readonly record struct OperationResult<TValue>(
     TValue? Value,
     Error Error,
     Cancelled Cancellation) 
+    where TValue : notnull
 {
     /// <summary>
     /// Gets a value indicating whether the operation succeeded.

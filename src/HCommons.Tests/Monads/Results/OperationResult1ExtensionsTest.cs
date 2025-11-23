@@ -46,6 +46,30 @@ public class OperationResult1ExtensionsTest {
         actual.IsSuccess.ShouldBeTrue();
         actual.Value.ShouldBe(50);
     }
+    
+    [Fact]
+    public void Select_WithState_OnFailure_ReturnsFailure() {
+        var error = new Error("test error");
+        var result = OperationResult<int>.Failure(error);
+        var state = 5;
+
+        var actual = result.Select(state, (s, x) => x * s);
+
+        actual.IsFailure.ShouldBeTrue();
+        actual.Error.ShouldBe(error);
+    }
+    
+    [Fact]
+    public void Select_WithState_OnCancelled_ReturnsCancelled() {
+        var cancelled = new Cancelled("user cancelled");
+        var result = OperationResult<int>.Cancelled(cancelled);
+        var state = 5;
+        
+        var actual = result.Select(state, (s, x) => x * s);
+        
+        actual.IsCancelled.ShouldBeTrue();
+        actual.Cancellation.ShouldBe(cancelled);
+    }
 
     [Fact]
     public void Bind_OnSuccess_ReturnsBinderResult() {
@@ -88,6 +112,30 @@ public class OperationResult1ExtensionsTest {
 
         actual.IsSuccess.ShouldBeTrue();
         actual.Value.ShouldBe("prefix10");
+    }
+    
+    [Fact]
+    public void Bind_WithState_OnFailure_ReturnsFailure() {
+        var error = new Error("test error");
+        var result = OperationResult<int>.Failure(error);
+        var state = "prefix";
+        
+        var actual = result.Bind(state, (s, x) => OperationResult<string>.Success($"{s}{x}"));
+        
+        actual.IsFailure.ShouldBeTrue();
+        actual.Error.ShouldBe(error);
+    }
+    
+    [Fact]
+    public void Bind_WithState_OnCancelled_ReturnsCancelled() {
+        var cancelled = new Cancelled("user cancelled");
+        var result = OperationResult<int>.Cancelled(cancelled);
+        var state = "prefix";
+        
+        var actual = result.Bind(state, (s, x) => OperationResult<string>.Success($"{s}{x}"));
+        
+        actual.IsCancelled.ShouldBeTrue();
+        actual.Cancellation.ShouldBe(cancelled);
     }
 
     [Fact]
@@ -133,6 +181,29 @@ public class OperationResult1ExtensionsTest {
         actual.IsFailure.ShouldBeTrue();
         actual.Error.Message.ShouldBe("transformed: original error, state: 42");
     }
+    
+    [Fact]
+    public void MapError_WithState_OnSuccess_ReturnsOriginal() {
+        var result = OperationResult<int>.Success(10);
+        var state = 42;
+        
+        var actual = result.MapError(state, (s, e) => new Error($"transformed: {e.Message}, state: {s}"));
+        
+        actual.IsSuccess.ShouldBeTrue();
+        actual.Value.ShouldBe(10);
+    }
+    
+    [Fact]
+    public void MapError_WithState_OnCancelled_ReturnsOriginal() {
+        var cancelled = new Cancelled("user cancelled");
+        var result = OperationResult<int>.Cancelled(cancelled);
+        var state = 42;
+        
+        var actual = result.MapError(state, (s, e) => new Error($"transformed: {e.Message}, state: {s}"));
+        
+        actual.IsCancelled.ShouldBeTrue();
+        actual.Cancellation.ShouldBe(cancelled);
+    }
 
     [Fact]
     public void MapCancellation_OnCancelled_TransformsCancellation() {
@@ -176,6 +247,29 @@ public class OperationResult1ExtensionsTest {
 
         actual.IsCancelled.ShouldBeTrue();
         actual.Cancellation.Reason.ShouldBe("transformed: original reason, state: 42");
+    }
+    
+    [Fact]
+    public void MapCancellation_WithState_OnSuccess_ReturnsOriginal() {
+        var result = OperationResult<int>.Success(10);
+        var state = 42;
+        
+        var actual = result.MapCancellation(state, (s, c) => new Cancelled($"transformed: {c.Reason}, state: {s}"));
+        
+        actual.IsSuccess.ShouldBeTrue();
+        actual.Value.ShouldBe(10);
+    }
+    
+    [Fact]
+    public void MapCancellation_WithState_OnFailure_ReturnsOriginal() {
+        var error = new Error("test error");
+        var result = OperationResult<int>.Failure(error);
+        var state = 42;
+        
+        var actual = result.MapCancellation(state, (s, c) => new Cancelled($"transformed: {c.Reason}, state: {s}"));
+        
+        actual.IsFailure.ShouldBeTrue();
+        actual.Error.ShouldBe(error);
     }
 
     [Fact]

@@ -18,9 +18,7 @@ public class OperationResultExtensionsTest {
     [Fact]
     public void MapError_OnSuccess_ReturnsOriginal() {
         var result = OperationResult.Success();
-
         var actual = result.MapError(e => new Error($"transformed: {e.Message}"));
-
         actual.IsSuccess.ShouldBeTrue();
     }
 
@@ -45,6 +43,28 @@ public class OperationResultExtensionsTest {
 
         actual.IsFailure.ShouldBeTrue();
         actual.Error.Message.ShouldBe("transformed: original error, state: 42");
+    }
+
+    [Fact]
+    public void MapError_WithState_OnSuccess_ReturnsOriginal() {
+        var result = OperationResult.Success();
+        var state = 42;
+
+        var actual = result.MapError(state, (s, e) => new Error($"transformed: {e.Message}, state: {s}"));
+
+        actual.IsSuccess.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void MapError_WithState_OnCancelled_ReturnsOriginal() {
+        var cancelled = new Cancelled("user cancelled");
+        var result = OperationResult.Cancelled(cancelled);
+        var state = 42;
+
+        var actual = result.MapError(state, (s, e) => new Error($"transformed: {e.Message}, state: {s}"));
+
+        actual.IsCancelled.ShouldBeTrue();
+        actual.Cancellation.ShouldBe(cancelled);
     }
 
     [Fact]
@@ -88,6 +108,28 @@ public class OperationResultExtensionsTest {
 
         actual.IsCancelled.ShouldBeTrue();
         actual.Cancellation.Reason.ShouldBe("transformed: original reason, state: 42");
+    }
+
+    [Fact]
+    public void MapCancellation_WithState_OnSuccess_ReturnsOriginal() {
+        var result = OperationResult.Success();
+        var state = 42;
+
+        var actual = result.MapCancellation(state, (s, c) => new Cancelled($"transformed: {c.Reason}, state: {s}"));
+
+        actual.IsSuccess.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void MapCancellation_WithState_OnFailure_ReturnsOriginal() {
+        var error = new Error("test error");
+        var result = OperationResult.Failure(error);
+        var state = 42;
+
+        var actual = result.MapCancellation(state, (s, c) => new Cancelled($"transformed: {c.Reason}, state: {s}"));
+
+        actual.IsFailure.ShouldBeTrue();
+        actual.Error.ShouldBe(error);
     }
 
     [Fact]

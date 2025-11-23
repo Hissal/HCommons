@@ -46,6 +46,28 @@ public class OperationResult3ExtensionsTest {
     }
 
     [Fact]
+    public void Select_WithState_OnFailure_ReturnsFailure() {
+        var result = OperationResult<int, string, bool>.Failure("test error");
+        var state = 5;
+
+        var actual = result.Select(state, (s, x) => x * s);
+
+        actual.IsFailure.ShouldBeTrue();
+        actual.FailureValue.ShouldBe("test error");
+    }
+
+    [Fact]
+    public void Select_WithState_OnCancelled_ReturnsCancelled() {
+        var result = OperationResult<int, string, bool>.Cancelled(true);
+        var state = 5;
+
+        var actual = result.Select(state, (s, x) => x * s);
+
+        actual.IsCancelled.ShouldBeTrue();
+        actual.CancelledValue.ShouldBe(true);
+    }
+
+    [Fact]
     public void Bind_OnSuccess_ReturnsBinderResult() {
         var result = OperationResult<int, string, bool>.Success(10);
 
@@ -84,6 +106,28 @@ public class OperationResult3ExtensionsTest {
 
         actual.IsSuccess.ShouldBeTrue();
         actual.SuccessValue.ShouldBe(10.0);
+    }
+
+    [Fact]
+    public void Bind_WithState_OnFailure_ReturnsFailure() {
+        var result = OperationResult<int, string, bool>.Failure("test error");
+        var state = 2;
+
+        var actual = result.Bind(state, (s, x) => OperationResult<double, string, bool>.Success((x * s) / 2.0));
+
+        actual.IsFailure.ShouldBeTrue();
+        actual.FailureValue.ShouldBe("test error");
+    }
+
+    [Fact]
+    public void Bind_WithState_OnCancelled_ReturnsCancelled() {
+        var result = OperationResult<int, string, bool>.Cancelled(true);
+        var state = 2;
+
+        var actual = result.Bind(state, (s, x) => OperationResult<double, string, bool>.Success((x * s) / 2.0));
+
+        actual.IsCancelled.ShouldBeTrue();
+        actual.CancelledValue.ShouldBe(true);
     }
 
     [Fact]
@@ -128,6 +172,28 @@ public class OperationResult3ExtensionsTest {
     }
 
     [Fact]
+    public void MapError_WithState_OnSuccess_ReturnsOriginal() {
+        var result = OperationResult<int, string, bool>.Success(10);
+        var state = 42;
+
+        var actual = result.MapError(state, (s, f) => $"transformed: {f}, state: {s}");
+
+        actual.IsSuccess.ShouldBeTrue();
+        actual.SuccessValue.ShouldBe(10);
+    }
+
+    [Fact]
+    public void MapError_WithState_OnCancelled_ReturnsOriginal() {
+        var result = OperationResult<int, string, bool>.Cancelled(true);
+        var state = 42;
+
+        var actual = result.MapError(state, (s, f) => $"transformed: {f}, state: {s}");
+
+        actual.IsCancelled.ShouldBeTrue();
+        actual.CancelledValue.ShouldBe(true);
+    }
+
+    [Fact]
     public void MapCancellation_OnCancelled_TransformsCancellationValue() {
         var result = OperationResult<int, string, bool>.Cancelled(true);
 
@@ -166,6 +232,28 @@ public class OperationResult3ExtensionsTest {
 
         actual.IsCancelled.ShouldBeTrue();
         actual.CancelledValue.ShouldBe("prefixTrue");
+    }
+
+    [Fact]
+    public void MapCancellation_WithState_OnSuccess_ReturnsOriginal() {
+        var result = OperationResult<int, string, bool>.Success(10);
+        var state = "prefix";
+
+        var actual = result.MapCancellation(state, (s, c) => $"{s}{c}");
+
+        actual.IsSuccess.ShouldBeTrue();
+        actual.SuccessValue.ShouldBe(10);
+    }
+
+    [Fact]
+    public void MapCancellation_WithState_OnFailure_ReturnsOriginal() {
+        var result = OperationResult<int, string, bool>.Failure("test error");
+        var state = "prefix";
+
+        var actual = result.MapCancellation(state, (s, c) => $"{s}{c}");
+
+        actual.IsFailure.ShouldBeTrue();
+        actual.FailureValue.ShouldBe("test error");
     }
 
     [Fact]
