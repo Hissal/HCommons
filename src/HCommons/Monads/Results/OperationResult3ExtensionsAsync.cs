@@ -435,4 +435,68 @@ public static class OperationResult3ExtensionsAsync {
     {
         return await (await resultTask).MatchAsync(onSuccessAsync, onFailureAsync, onCancelledAsync);
     }
+
+    #region Additional Match Overloads
+
+    [Pure]
+    public static async Task<TResult> MatchAsync<TSuccess, TFailure, TCancelled, TResult>(this OperationResult<TSuccess, TFailure, TCancelled> result, Func<TSuccess, Task<TResult>> onSuccessAsync, Func<TFailure, Task<TResult>> onFailureAsync, Func<TCancelled, TResult> onCancelled) where TSuccess : notnull where TFailure : notnull where TCancelled : notnull
+    {
+        if (result.IsSuccess) return await onSuccessAsync(result.SuccessValue!);
+        if (result.IsFailure) return await onFailureAsync(result.FailureValue!);
+        return onCancelled(result.CancelledValue!);
+    }
+
+    [Pure]
+    public static async Task<TResult> MatchAsync<TSuccess, TFailure, TCancelled, TResult>(this OperationResult<TSuccess, TFailure, TCancelled> result, Func<TSuccess, Task<TResult>> onSuccessAsync, Func<TFailure, TResult> onFailure, Func<TCancelled, Task<TResult>> onCancelledAsync) where TSuccess : notnull where TFailure : notnull where TCancelled : notnull
+    {
+        if (result.IsSuccess) return await onSuccessAsync(result.SuccessValue!);
+        if (result.IsFailure) return onFailure(result.FailureValue!);
+        return await onCancelledAsync(result.CancelledValue!);
+    }
+
+    [Pure]
+    public static async Task<TResult> MatchAsync<TSuccess, TFailure, TCancelled, TResult>(this OperationResult<TSuccess, TFailure, TCancelled> result, Func<TSuccess, TResult> onSuccess, Func<TFailure, Task<TResult>> onFailureAsync, Func<TCancelled, Task<TResult>> onCancelledAsync) where TSuccess : notnull where TFailure : notnull where TCancelled : notnull
+    {
+        if (result.IsSuccess) return onSuccess(result.SuccessValue!);
+        if (result.IsFailure) return await onFailureAsync(result.FailureValue!);
+        return await onCancelledAsync(result.CancelledValue!);
+    }
+
+    [Pure]
+    public static async Task<TResult> MatchAsync<TSuccess, TFailure, TCancelled, TResult>(this Task<OperationResult<TSuccess, TFailure, TCancelled>> resultTask, Func<TSuccess, Task<TResult>> onSuccessAsync, Func<TFailure, TResult> onFailure, Func<TCancelled, TResult> onCancelled) where TSuccess : notnull where TFailure : notnull where TCancelled : notnull
+    {
+        return await (await resultTask).MatchAsync(onSuccessAsync, onFailure, onCancelled);
+    }
+
+    [Pure]
+    public static async Task<TResult> MatchAsync<TSuccess, TFailure, TCancelled, TResult>(this Task<OperationResult<TSuccess, TFailure, TCancelled>> resultTask, Func<TSuccess, TResult> onSuccess, Func<TFailure, Task<TResult>> onFailureAsync, Func<TCancelled, TResult> onCancelled) where TSuccess : notnull where TFailure : notnull where TCancelled : notnull
+    {
+        return await (await resultTask).MatchAsync(onSuccess, onFailureAsync, onCancelled);
+    }
+
+    [Pure]
+    public static async Task<TResult> MatchAsync<TSuccess, TFailure, TCancelled, TResult>(this Task<OperationResult<TSuccess, TFailure, TCancelled>> resultTask, Func<TSuccess, TResult> onSuccess, Func<TFailure, TResult> onFailure, Func<TCancelled, Task<TResult>> onCancelledAsync) where TSuccess : notnull where TFailure : notnull where TCancelled : notnull
+    {
+        return await (await resultTask).MatchAsync(onSuccess, onFailure, onCancelledAsync);
+    }
+
+    [Pure]
+    public static async Task<TResult> MatchAsync<TSuccess, TFailure, TCancelled, TResult>(this Task<OperationResult<TSuccess, TFailure, TCancelled>> resultTask, Func<TSuccess, Task<TResult>> onSuccessAsync, Func<TFailure, Task<TResult>> onFailureAsync, Func<TCancelled, TResult> onCancelled) where TSuccess : notnull where TFailure : notnull where TCancelled : notnull
+    {
+        return await (await resultTask).MatchAsync(onSuccessAsync, onFailureAsync, onCancelled);
+    }
+
+    [Pure]
+    public static async Task<TResult> MatchAsync<TSuccess, TFailure, TCancelled, TResult>(this Task<OperationResult<TSuccess, TFailure, TCancelled>> resultTask, Func<TSuccess, Task<TResult>> onSuccessAsync, Func<TFailure, TResult> onFailure, Func<TCancelled, Task<TResult>> onCancelledAsync) where TSuccess : notnull where TFailure : notnull where TCancelled : notnull
+    {
+        return await (await resultTask).MatchAsync(onSuccessAsync, onFailure, onCancelledAsync);
+    }
+
+    [Pure]
+    public static async Task<TResult> MatchAsync<TSuccess, TFailure, TCancelled, TResult>(this Task<OperationResult<TSuccess, TFailure, TCancelled>> resultTask, Func<TSuccess, TResult> onSuccess, Func<TFailure, Task<TResult>> onFailureAsync, Func<TCancelled, Task<TResult>> onCancelledAsync) where TSuccess : notnull where TFailure : notnull where TCancelled : notnull
+    {
+        return await (await resultTask).MatchAsync(onSuccess, onFailureAsync, onCancelledAsync);
+    }
+
+    #endregion
 }

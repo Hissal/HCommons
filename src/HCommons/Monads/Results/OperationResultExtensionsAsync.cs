@@ -185,4 +185,68 @@ public static class OperationResultExtensionsAsync {
     {
         return await (await resultTask).MatchAsync(onSuccessAsync, onFailureAsync, onCancelledAsync);
     }
+
+    #region Additional Match Overloads
+
+    [Pure]
+    public static async Task<TResult> MatchAsync<TResult>(this OperationResult result, Func<Task<TResult>> onSuccessAsync, Func<Error, Task<TResult>> onFailureAsync, Func<Cancelled, TResult> onCancelled)
+    {
+        if (result.IsSuccess) return await onSuccessAsync();
+        if (result.IsFailure) return await onFailureAsync(result.Error);
+        return onCancelled(result.Cancellation);
+    }
+
+    [Pure]
+    public static async Task<TResult> MatchAsync<TResult>(this OperationResult result, Func<Task<TResult>> onSuccessAsync, Func<Error, TResult> onFailure, Func<Cancelled, Task<TResult>> onCancelledAsync)
+    {
+        if (result.IsSuccess) return await onSuccessAsync();
+        if (result.IsFailure) return onFailure(result.Error);
+        return await onCancelledAsync(result.Cancellation);
+    }
+
+    [Pure]
+    public static async Task<TResult> MatchAsync<TResult>(this OperationResult result, Func<TResult> onSuccess, Func<Error, Task<TResult>> onFailureAsync, Func<Cancelled, Task<TResult>> onCancelledAsync)
+    {
+        if (result.IsSuccess) return onSuccess();
+        if (result.IsFailure) return await onFailureAsync(result.Error);
+        return await onCancelledAsync(result.Cancellation);
+    }
+
+    [Pure]
+    public static async Task<TResult> MatchAsync<TResult>(this Task<OperationResult> resultTask, Func<Task<TResult>> onSuccessAsync, Func<Error, TResult> onFailure, Func<Cancelled, TResult> onCancelled)
+    {
+        return await (await resultTask).MatchAsync(onSuccessAsync, onFailure, onCancelled);
+    }
+
+    [Pure]
+    public static async Task<TResult> MatchAsync<TResult>(this Task<OperationResult> resultTask, Func<TResult> onSuccess, Func<Error, Task<TResult>> onFailureAsync, Func<Cancelled, TResult> onCancelled)
+    {
+        return await (await resultTask).MatchAsync(onSuccess, onFailureAsync, onCancelled);
+    }
+
+    [Pure]
+    public static async Task<TResult> MatchAsync<TResult>(this Task<OperationResult> resultTask, Func<TResult> onSuccess, Func<Error, TResult> onFailure, Func<Cancelled, Task<TResult>> onCancelledAsync)
+    {
+        return await (await resultTask).MatchAsync(onSuccess, onFailure, onCancelledAsync);
+    }
+
+    [Pure]
+    public static async Task<TResult> MatchAsync<TResult>(this Task<OperationResult> resultTask, Func<Task<TResult>> onSuccessAsync, Func<Error, Task<TResult>> onFailureAsync, Func<Cancelled, TResult> onCancelled)
+    {
+        return await (await resultTask).MatchAsync(onSuccessAsync, onFailureAsync, onCancelled);
+    }
+
+    [Pure]
+    public static async Task<TResult> MatchAsync<TResult>(this Task<OperationResult> resultTask, Func<Task<TResult>> onSuccessAsync, Func<Error, TResult> onFailure, Func<Cancelled, Task<TResult>> onCancelledAsync)
+    {
+        return await (await resultTask).MatchAsync(onSuccessAsync, onFailure, onCancelledAsync);
+    }
+
+    [Pure]
+    public static async Task<TResult> MatchAsync<TResult>(this Task<OperationResult> resultTask, Func<TResult> onSuccess, Func<Error, Task<TResult>> onFailureAsync, Func<Cancelled, Task<TResult>> onCancelledAsync)
+    {
+        return await (await resultTask).MatchAsync(onSuccess, onFailureAsync, onCancelledAsync);
+    }
+
+    #endregion
 }
