@@ -47,6 +47,36 @@ public class HMathExtensionsTest {
         result.ShouldBe(expected);
     }
 
+    [Fact]
+    public void ClampToFloat_WhenValueIsNaN_ReturnsMin() {
+        var result = double.NaN.ClampToFloat(-100f, 100f);
+        result.ShouldBe(-100f);
+    }
+
+    [Fact]
+    public void ClampToFloat_WhenValueIsPositiveInfinity_ReturnsMax() {
+        var result = double.PositiveInfinity.ClampToFloat(-100f, 100f);
+        result.ShouldBe(100f);
+    }
+
+    [Fact]
+    public void ClampToFloat_WhenValueIsNegativeInfinity_ReturnsMin() {
+        var result = double.NegativeInfinity.ClampToFloat(-100f, 100f);
+        result.ShouldBe(-100f);
+    }
+
+    [Fact]
+    public void ClampToFloat_WhenValueIsDoubleMaxValue_ReturnsFloatMaxValue() {
+        var result = double.MaxValue.ClampToFloat();
+        result.ShouldBe(float.MaxValue);
+    }
+
+    [Fact]
+    public void ClampToFloat_WhenValueIsDoubleMinValue_ReturnsFloatMinValue() {
+        var result = double.MinValue.ClampToFloat();
+        result.ShouldBe(float.MinValue);
+    }
+
     [Theory]
     [InlineData(50, 0, 100, 0, 10, 5)]
     [InlineData(0, 0, 100, 0, 10, 0)]
