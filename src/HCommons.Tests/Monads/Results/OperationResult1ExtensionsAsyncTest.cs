@@ -353,6 +353,101 @@ public class OperationResult1ExtensionsAsyncTest {
     }
 
     [Fact]
+    public async Task MatchAsync_TaskResultAsyncSuccess_OnSuccess_ExecutesSuccessHandler() {
+        var resultTask = Task.FromResult(OperationResult<int>.Success(10));
+
+        var actual = await resultTask.MatchAsync(x => Task.FromResult($"success: {x}"), _ => "failure", _ => "cancelled");
+
+        actual.ShouldBe("success: 10");
+    }
+
+    [Fact]
+    public async Task MatchAsync_TaskResultAsyncSuccess_OnFailure_DoesNotCallAsyncSuccess() {
+        var error = new Error("test error");
+        var resultTask = Task.FromResult(OperationResult<int>.Failure(error));
+
+        var actual = await resultTask.MatchAsync(x => Task.FromResult($"success: {x}"), e => $"failure: {e.Message}", _ => "cancelled");
+
+        actual.ShouldBe("failure: test error");
+    }
+
+    [Fact]
+    public async Task MatchAsync_TaskResultAsyncFailure_OnFailure_ExecutesFailureHandler() {
+        var error = new Error("test error");
+        var resultTask = Task.FromResult(OperationResult<int>.Failure(error));
+
+        var actual = await resultTask.MatchAsync(x => $"success: {x}", e => Task.FromResult($"failure: {e.Message}"), _ => "cancelled");
+
+        actual.ShouldBe("failure: test error");
+    }
+
+    [Fact]
+    public async Task MatchAsync_TaskResultAsyncFailure_OnSuccess_DoesNotCallAsyncFailure() {
+        var resultTask = Task.FromResult(OperationResult<int>.Success(10));
+
+        var actual = await resultTask.MatchAsync(x => $"success: {x}", e => Task.FromResult($"failure: {e.Message}"), _ => "cancelled");
+
+        actual.ShouldBe("success: 10");
+    }
+
+    [Fact]
+    public async Task MatchAsync_TaskResultAsyncCancelled_OnCancelled_ExecutesCancelledHandler() {
+        var cancelled = new Cancelled("user cancelled");
+        var resultTask = Task.FromResult(OperationResult<int>.Cancelled(cancelled));
+
+        var actual = await resultTask.MatchAsync(x => $"success: {x}", _ => "failure", c => Task.FromResult($"cancelled: {c.Reason}"));
+
+        actual.ShouldBe("cancelled: user cancelled");
+    }
+
+    [Fact]
+    public async Task MatchAsync_TaskResultAsyncCancelled_OnSuccess_DoesNotCallAsyncCancelled() {
+        var resultTask = Task.FromResult(OperationResult<int>.Success(10));
+
+        var actual = await resultTask.MatchAsync(x => $"success: {x}", _ => "failure", c => Task.FromResult($"cancelled: {c.Reason}"));
+
+        actual.ShouldBe("success: 10");
+    }
+
+    [Fact]
+    public async Task MatchAsync_AsyncSuccessAndCancelled_OnSuccess_ExecutesSuccessHandler() {
+        var result = OperationResult<int>.Success(10);
+
+        var actual = await result.MatchAsync(x => Task.FromResult($"success: {x}"), _ => "failure", _ => Task.FromResult("cancelled"));
+
+        actual.ShouldBe("success: 10");
+    }
+
+    [Fact]
+    public async Task MatchAsync_AsyncSuccessAndCancelled_OnCancelled_ExecutesCancelledHandler() {
+        var cancelled = new Cancelled("user cancelled");
+        var result = OperationResult<int>.Cancelled(cancelled);
+
+        var actual = await result.MatchAsync(x => Task.FromResult($"success: {x}"), _ => "failure", c => Task.FromResult($"cancelled: {c.Reason}"));
+
+        actual.ShouldBe("cancelled: user cancelled");
+    }
+
+    [Fact]
+    public async Task MatchAsync_TaskResultAsyncSuccessAndFailure_OnSuccess_ExecutesSuccessHandler() {
+        var resultTask = Task.FromResult(OperationResult<int>.Success(10));
+
+        var actual = await resultTask.MatchAsync(x => Task.FromResult($"success: {x}"), _ => Task.FromResult("failure"), _ => "cancelled");
+
+        actual.ShouldBe("success: 10");
+    }
+
+    [Fact]
+    public async Task MatchAsync_TaskResultAsyncSuccessAndFailure_OnFailure_ExecutesFailureHandler() {
+        var error = new Error("test error");
+        var resultTask = Task.FromResult(OperationResult<int>.Failure(error));
+
+        var actual = await resultTask.MatchAsync(x => Task.FromResult($"success: {x}"), e => Task.FromResult($"failure: {e.Message}"), _ => "cancelled");
+
+        actual.ShouldBe("failure: test error");
+    }
+
+    [Fact]
     public async Task MatchAsync_TaskResultAllAsync_OnSuccess_ExecutesSuccessHandler() {
         var resultTask = Task.FromResult(OperationResult<int>.Success(10));
 

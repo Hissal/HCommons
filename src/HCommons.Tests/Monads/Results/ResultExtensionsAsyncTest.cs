@@ -4,6 +4,84 @@ namespace HCommons.Tests.Monads.Results;
 
 public class ResultExtensionsAsyncTest {
     [Fact]
+    public async Task MapErrorAsync_TaskResult_OnSuccess_ReturnsOriginalResult() {
+        // Arrange
+        var resultTask = Task.FromResult(Result.Success());
+
+        // Act
+        var actual = await resultTask.MapErrorAsync(e => new Error($"mapped: {e.Message}"));
+
+        // Assert
+        actual.IsSuccess.ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task MapErrorAsync_TaskResult_OnFailure_TransformsError() {
+        // Arrange
+        var error = new Error("original error");
+        var resultTask = Task.FromResult(Result.Failure(error));
+
+        // Act
+        var actual = await resultTask.MapErrorAsync(e => new Error($"mapped: {e.Message}"));
+
+        // Assert
+        actual.IsFailure.ShouldBeTrue();
+        actual.Error.Message.ShouldBe("mapped: original error");
+    }
+
+    [Fact]
+    public async Task MapErrorAsync_AsyncMapper_OnSuccess_ReturnsOriginalResult() {
+        // Arrange
+        var result = Result.Success();
+
+        // Act
+        var actual = await result.MapErrorAsync(e => Task.FromResult(new Error($"mapped: {e.Message}")));
+
+        // Assert
+        actual.IsSuccess.ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task MapErrorAsync_AsyncMapper_OnFailure_TransformsError() {
+        // Arrange
+        var error = new Error("original error");
+        var result = Result.Failure(error);
+
+        // Act
+        var actual = await result.MapErrorAsync(e => Task.FromResult(new Error($"mapped: {e.Message}")));
+
+        // Assert
+        actual.IsFailure.ShouldBeTrue();
+        actual.Error.Message.ShouldBe("mapped: original error");
+    }
+
+    [Fact]
+    public async Task MapErrorAsync_TaskResultAsyncMapper_OnSuccess_ReturnsOriginalResult() {
+        // Arrange
+        var resultTask = Task.FromResult(Result.Success());
+
+        // Act
+        var actual = await resultTask.MapErrorAsync(e => Task.FromResult(new Error($"mapped: {e.Message}")));
+
+        // Assert
+        actual.IsSuccess.ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task MapErrorAsync_TaskResultAsyncMapper_OnFailure_TransformsError() {
+        // Arrange
+        var error = new Error("original error");
+        var resultTask = Task.FromResult(Result.Failure(error));
+
+        // Act
+        var actual = await resultTask.MapErrorAsync(e => Task.FromResult(new Error($"mapped: {e.Message}")));
+
+        // Assert
+        actual.IsFailure.ShouldBeTrue();
+        actual.Error.Message.ShouldBe("mapped: original error");
+    }
+
+    [Fact]
     public async Task MatchAsync_TaskResult_OnSuccess_ExecutesSuccessFunction() {
         // Arrange
         var resultTask = Task.FromResult(Result.Success());
