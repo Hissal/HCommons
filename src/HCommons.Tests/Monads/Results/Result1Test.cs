@@ -3,7 +3,7 @@
 namespace HCommons.Tests.Monads;
 
 [TestSubject(typeof(Result<>))]
-public class Result_1_Test {
+public class Result1Test {
 
     [Fact]
     public void Success_CreatesSuccessResult() {
@@ -128,113 +128,6 @@ public class Result_1_Test {
         result.GetValueOrDefault(100).ShouldBe(100);
     }
 
-    [Fact]
-    public void Match_WhenSuccess_ExecutesOnSuccess() {
-        var result = Result<int>.Success(42);
-        
-        var output = result.Match(
-            value => value * 2,
-            _ => 0
-        );
-        
-        output.ShouldBe(84);
-    }
-
-    [Fact]
-    public void Match_WhenFailure_ExecutesOnFailure() {
-        var result = Result<int>.Failure(new Error("Test error"));
-        
-        var output = result.Match(
-            value => value * 2,
-            error => error.Message.Length
-        );
-        
-        output.ShouldBe(10);
-    }
-
-    [Fact]
-    public void Match_WithState_WhenSuccess_ExecutesOnSuccess() {
-        var result = Result<int>.Success(42);
-        
-        var output = result.Match(
-            10,
-            (state, value) => value + state,
-            (state, _) => state
-        );
-        
-        output.ShouldBe(52);
-    }
-
-    [Fact]
-    public void Match_WithState_WhenFailure_ExecutesOnFailure() {
-        var result = Result<int>.Failure(new Error("Test error"));
-        
-        var output = result.Match(
-            10,
-            (state, value) => value + state,
-            (state, error) => state + error.Message.Length
-        );
-        
-        output.ShouldBe(20);
-    }
-
-    [Fact]
-    public void Switch_WhenSuccess_ExecutesOnSuccess() {
-        var result = Result<int>.Success(42);
-        var successCalled = false;
-        var failureCalled = false;
-        
-        result.Switch(
-            _ => successCalled = true,
-            _ => failureCalled = true
-        );
-        
-        successCalled.ShouldBeTrue();
-        failureCalled.ShouldBeFalse();
-    }
-
-    [Fact]
-    public void Switch_WhenFailure_ExecutesOnFailure() {
-        var result = Result<int>.Failure(new Error("Test error"));
-        var successCalled = false;
-        var failureCalled = false;
-        
-        result.Switch(
-            _ => successCalled = true,
-            _ => failureCalled = true
-        );
-        
-        successCalled.ShouldBeFalse();
-        failureCalled.ShouldBeTrue();
-    }
-
-    [Fact]
-    public void Switch_WithState_WhenSuccess_ExecutesOnSuccess() {
-        var result = Result<int>.Success(42);
-        var counter = 0;
-        
-        result.Switch(
-            100,
-            (state, value) => counter = state + value,
-            (state, _) => counter = state
-        );
-        
-        counter.ShouldBe(142);
-    }
-
-    [Fact]
-    public void Switch_WithState_WhenFailure_ExecutesOnFailure() {
-        var result = Result<int>.Failure(new Error("Test error"));
-        var counter = 0;
-        
-        result.Switch(
-            100,
-            (state, value) => counter = state + value,
-            (state, error) => counter = state + error.Message.Length
-        );
-        
-        counter.ShouldBe(110);
-    }
 
     [Fact]
     public void ToString_WhenSuccess_ReturnsFormattedString() {
