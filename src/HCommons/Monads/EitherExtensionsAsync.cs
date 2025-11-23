@@ -2,6 +2,13 @@
 
 public static class EitherExtensionsAsync {
     
+    /// <summary>
+    /// Asynchronously swaps the left and right sides of an either task.
+    /// </summary>
+    /// <typeparam name="TLeft">The type of the left value.</typeparam>
+    /// <typeparam name="TRight">The type of the right value.</typeparam>
+    /// <param name="eitherTask">The either task to swap.</param>
+    /// <returns>A task representing the asynchronous operation with an either with the left and right sides swapped.</returns>
     public static async Task<Either<TRight, TLeft>> SwapAsync<TLeft, TRight>(
         this Task<Either<TLeft, TRight>> eitherTask) 
         where TLeft : notnull where TRight : notnull 
@@ -9,6 +16,13 @@ public static class EitherExtensionsAsync {
         return (await eitherTask).Swap();
     }
     
+    /// <summary>
+    /// Asynchronously swaps the left and right sides of an either.
+    /// </summary>
+    /// <typeparam name="TLeft">The type of the left value.</typeparam>
+    /// <typeparam name="TRight">The type of the right value.</typeparam>
+    /// <param name="either">The either to swap.</param>
+    /// <returns>A task representing the asynchronous operation with an either with the left and right sides swapped.</returns>
     public static async Task<Either<TRight, TLeft>> SwapAsync<TLeft, TRight>(
         this Either<TLeft, TRight> either) 
         where TLeft : notnull where TRight : notnull 
@@ -16,6 +30,13 @@ public static class EitherExtensionsAsync {
         return await Task.FromResult(either.Swap());
     }
     
+    /// <summary>
+    /// Asynchronously converts the left side of an either task to an optional.
+    /// </summary>
+    /// <typeparam name="TLeft">The type of the left value.</typeparam>
+    /// <typeparam name="TRight">The type of the right value.</typeparam>
+    /// <param name="eitherTask">The either task to convert.</param>
+    /// <returns>A task representing the asynchronous operation with an optional containing the left value if present, otherwise none.</returns>
     public static async Task<Optional<TLeft>> AsLeftOptionalAsync<TLeft, TRight>(
         this Task<Either<TLeft, TRight>> eitherTask) 
         where TLeft : notnull where TRight : notnull 
@@ -23,11 +44,46 @@ public static class EitherExtensionsAsync {
         return (await eitherTask).AsLeftOptional();
     }
     
+    /// <summary>
+    /// Asynchronously converts the left side of an either to an optional.
+    /// </summary>
+    /// <typeparam name="TLeft">The type of the left value.</typeparam>
+    /// <typeparam name="TRight">The type of the right value.</typeparam>
+    /// <param name="either">The either to convert.</param>
+    /// <returns>A task representing the asynchronous operation with an optional containing the left value if present, otherwise none.</returns>
+    public static async Task<Optional<TLeft>> AsLeftOptionalAsync<TLeft, TRight>(
+        this Either<TLeft, TRight> either) 
+        where TLeft : notnull where TRight : notnull 
+    {
+        return await Task.FromResult(either.AsLeftOptional());
+    }
+    
+    /// <summary>
+    /// Asynchronously converts the right side of an either task to an optional.
+    /// </summary>
+    /// <typeparam name="TLeft">The type of the left value.</typeparam>
+    /// <typeparam name="TRight">The type of the right value.</typeparam>
+    /// <param name="eitherTask">The either task to convert.</param>
+    /// <returns>A task representing the asynchronous operation with an optional containing the right value if present, otherwise none.</returns>
     public static async Task<Optional<TRight>> AsRightOptionalAsync<TLeft, TRight>(
         this Task<Either<TLeft, TRight>> eitherTask) 
         where TLeft : notnull where TRight : notnull 
     {
         return (await eitherTask).AsRightOptional();
+    }
+    
+    /// <summary>
+    /// Asynchronously converts the right side of an either to an optional.
+    /// </summary>
+    /// <typeparam name="TLeft">The type of the left value.</typeparam>
+    /// <typeparam name="TRight">The type of the right value.</typeparam>
+    /// <param name="either">The either to convert.</param>
+    /// <returns>A task representing the asynchronous operation with an optional containing the right value if present, otherwise none.</returns>
+    public static async Task<Optional<TRight>> AsRightOptionalAsync<TLeft, TRight>(
+        this Either<TLeft, TRight> either) 
+        where TLeft : notnull where TRight : notnull 
+    {
+        return await Task.FromResult(either.AsRightOptional());
     }
     
     // ===== Map Async ===== //
