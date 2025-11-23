@@ -237,7 +237,9 @@ public static class OperationResult1ExtensionsAsync {
         Func<Error, TResult> onFailure,
         Func<Cancelled, TResult> onCancelled)
     {
-        return result.IsSuccess ? await onSuccessAsync(result.Value!) : result.IsFailure ? onFailure(result.Error) : onCancelled(result.Cancellation);
+        if (result.IsSuccess) return await onSuccessAsync(result.Value!);
+        if (result.IsFailure) return onFailure(result.Error);
+        return onCancelled(result.Cancellation);
     }
 
     /// <summary>
@@ -257,7 +259,9 @@ public static class OperationResult1ExtensionsAsync {
         Func<Error, Task<TResult>> onFailureAsync,
         Func<Cancelled, TResult> onCancelled)
     {
-        return result.IsSuccess ? onSuccess(result.Value!) : result.IsFailure ? await onFailureAsync(result.Error) : onCancelled(result.Cancellation);
+        if (result.IsSuccess) return onSuccess(result.Value!);
+        if (result.IsFailure) return await onFailureAsync(result.Error);
+        return onCancelled(result.Cancellation);
     }
 
     /// <summary>
@@ -277,7 +281,9 @@ public static class OperationResult1ExtensionsAsync {
         Func<Error, TResult> onFailure,
         Func<Cancelled, Task<TResult>> onCancelledAsync)
     {
-        return result.IsSuccess ? onSuccess(result.Value!) : result.IsFailure ? onFailure(result.Error) : await onCancelledAsync(result.Cancellation);
+        if (result.IsSuccess) return onSuccess(result.Value!);
+        if (result.IsFailure) return onFailure(result.Error);
+        return await onCancelledAsync(result.Cancellation);
     }
 
     /// <summary>
@@ -297,7 +303,9 @@ public static class OperationResult1ExtensionsAsync {
         Func<Error, Task<TResult>> onFailureAsync,
         Func<Cancelled, Task<TResult>> onCancelledAsync)
     {
-        return result.IsSuccess ? await onSuccessAsync(result.Value!) : result.IsFailure ? await onFailureAsync(result.Error) : await onCancelledAsync(result.Cancellation);
+        if (result.IsSuccess) return await onSuccessAsync(result.Value!);
+        if (result.IsFailure) return await onFailureAsync(result.Error);
+        return await onCancelledAsync(result.Cancellation);
     }
 
     /// <summary>
