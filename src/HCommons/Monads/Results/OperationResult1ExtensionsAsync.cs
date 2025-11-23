@@ -102,7 +102,7 @@ public static class OperationResult1ExtensionsAsync {
             OperationResultType.Success => await binder(result.Value!),
             OperationResultType.Failure => OperationResult<TResult>.Failure(result.Error),
             OperationResultType.Cancelled => OperationResult<TResult>.Cancelled(result.Cancellation),
-            _ => throw new InvalidOperationException("Unknown OperationResultType.")
+            _ => throw new InvalidOperationException($"Unknown OperationResultType: {result.Type}")
         };
     }
 
@@ -265,7 +265,7 @@ public static class OperationResult1ExtensionsAsync {
             OperationResultType.Success => await onSuccess(result.Value!),
             OperationResultType.Failure => onFailure(result.Error),
             OperationResultType.Cancelled => onCancelled(result.Cancellation),
-            _ => throw new InvalidOperationException("Unknown OperationResultType.")
+            _ => throw new InvalidOperationException($"Unknown OperationResultType: {result.Type}")
         };
     }
 
@@ -291,7 +291,7 @@ public static class OperationResult1ExtensionsAsync {
             OperationResultType.Success => onSuccess(result.Value!),
             OperationResultType.Failure => await onFailure(result.Error),
             OperationResultType.Cancelled => onCancelled(result.Cancellation),
-            _ => throw new InvalidOperationException("Unknown OperationResultType.")
+            _ => throw new InvalidOperationException($"Unknown OperationResultType: {result.Type}")
         };
     }
 
@@ -317,7 +317,7 @@ public static class OperationResult1ExtensionsAsync {
             OperationResultType.Success => onSuccess(result.Value!),
             OperationResultType.Failure => onFailure(result.Error),
             OperationResultType.Cancelled => await onCancelled(result.Cancellation),
-            _ => throw new InvalidOperationException("Unknown OperationResultType.")
+            _ => throw new InvalidOperationException($"Unknown OperationResultType: {result.Type}")
         };
     }
     
@@ -406,7 +406,7 @@ public static class OperationResult1ExtensionsAsync {
             OperationResultType.Success => await onSuccess(result.Value!),
             OperationResultType.Failure => await onFailure(result.Error),
             OperationResultType.Cancelled => onCancelled(result.Cancellation),
-            _ => throw new InvalidOperationException("Unknown OperationResultType.")
+            _ => throw new InvalidOperationException($"Unknown OperationResultType: {result.Type}")
         };
     }
 
@@ -432,7 +432,7 @@ public static class OperationResult1ExtensionsAsync {
             OperationResultType.Success => await onSuccess(result.Value!),
             OperationResultType.Failure => onFailure(result.Error),
             OperationResultType.Cancelled => await onCancelled(result.Cancellation),
-            _ => throw new InvalidOperationException("Unknown OperationResultType.")
+            _ => throw new InvalidOperationException($"Unknown OperationResultType: {result.Type}")
         };
     }
 
@@ -458,7 +458,7 @@ public static class OperationResult1ExtensionsAsync {
             OperationResultType.Success => onSuccess(result.Value!),
             OperationResultType.Failure => await onFailure(result.Error),
             OperationResultType.Cancelled => await onCancelled(result.Cancellation),
-            _ => throw new InvalidOperationException("Unknown OperationResultType.")
+            _ => throw new InvalidOperationException($"Unknown OperationResultType: {result.Type}")
         };
     }
 
@@ -547,7 +547,7 @@ public static class OperationResult1ExtensionsAsync {
             OperationResultType.Success => await onSuccess(result.Value!),
             OperationResultType.Failure => await onFailure(result.Error),
             OperationResultType.Cancelled => await onCancelled(result.Cancellation),
-            _ => throw new InvalidOperationException("Unknown OperationResultType.")
+            _ => throw new InvalidOperationException($"Unknown OperationResultType: {result.Type}")
         };  
     }
 

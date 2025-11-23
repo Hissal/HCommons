@@ -102,7 +102,7 @@ public class OperationResult3ExtensionsTest {
         var result = OperationResult<int, string, bool>.Success(10);
         var state = 2;
 
-        var actual = result.Bind(state, (s, x) => OperationResult<double, string, bool>.Success((x * s) / 2.0));
+        var actual = result.Bind(state, (s, x) => OperationResult<double, string, bool>.Success(((double)x * s) / 2.0));
 
         actual.IsSuccess.ShouldBeTrue();
         actual.SuccessValue.ShouldBe(10.0);
@@ -113,7 +113,7 @@ public class OperationResult3ExtensionsTest {
         var result = OperationResult<int, string, bool>.Failure("test error");
         var state = 2;
 
-        var actual = result.Bind(state, (s, x) => OperationResult<double, string, bool>.Success((x * s) / 2.0));
+        var actual = result.Bind(state, (s, x) => OperationResult<double, string, bool>.Success(((double)x * s) / 2.0));
 
         actual.IsFailure.ShouldBeTrue();
         actual.FailureValue.ShouldBe("test error");
@@ -124,7 +124,7 @@ public class OperationResult3ExtensionsTest {
         var result = OperationResult<int, string, bool>.Cancelled(true);
         var state = 2;
 
-        var actual = result.Bind(state, (s, x) => OperationResult<double, string, bool>.Success((x * s) / 2.0));
+        var actual = result.Bind(state, (s, x) => OperationResult<double, string, bool>.Success(((double)x * s) / 2.0));
 
         actual.IsCancelled.ShouldBeTrue();
         actual.CancelledValue.ShouldBe(true);

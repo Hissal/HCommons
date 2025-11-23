@@ -51,10 +51,7 @@ public static class OperationResult3ExtensionsAsync {
             OperationResultType.Success => OperationResult<TResult, TFailure, TCancelled>.Success(await selector(result.SuccessValue!)),
             OperationResultType.Failure => OperationResult<TResult, TFailure, TCancelled>.Failure(result.FailureValue!),
             OperationResultType.Cancelled => OperationResult<TResult, TFailure, TCancelled>.Cancelled(result.CancelledValue!),
-                        _ => throw new ArgumentOutOfRangeException(
-                paramName: nameof(result.Type),
-                actualValue: result.Type,
-                message: $"Unexpected OperationResultType value: {result.Type}")
+            _ => throw new InvalidOperationException($"Unknown OperationResultType: {result.Type}")
         };
     }
 
@@ -125,7 +122,7 @@ public static class OperationResult3ExtensionsAsync {
             OperationResultType.Success => await binder(result.SuccessValue!),
             OperationResultType.Failure => OperationResult<TResult, TFailure, TCancelled>.Failure(result.FailureValue!),
             OperationResultType.Cancelled => OperationResult<TResult, TFailure, TCancelled>.Cancelled(result.CancelledValue!),
-            _ => throw new ArgumentOutOfRangeException()
+            _ => throw new InvalidOperationException($"Unknown OperationResultType: {result.Type}")
         };
     }
 
@@ -195,7 +192,7 @@ public static class OperationResult3ExtensionsAsync {
             OperationResultType.Success => OperationResult<TSuccess, TNewFailure, TCancelled>.Success(result.SuccessValue!),
             OperationResultType.Failure => OperationResult<TSuccess, TNewFailure, TCancelled>.Failure(await mapFailure(result.FailureValue!)),
             OperationResultType.Cancelled => OperationResult<TSuccess, TNewFailure, TCancelled>.Cancelled(result.CancelledValue!),
-            _ => throw new ArgumentOutOfRangeException()
+            _ => throw new InvalidOperationException($"Unknown OperationResultType: {result.Type}")
         };
     }
 
@@ -266,7 +263,7 @@ public static class OperationResult3ExtensionsAsync {
             OperationResultType.Success => OperationResult<TSuccess, TFailure, TNewCancelled>.Success(result.SuccessValue!),
             OperationResultType.Failure => OperationResult<TSuccess, TFailure, TNewCancelled>.Failure(result.FailureValue!),
             OperationResultType.Cancelled => OperationResult<TSuccess, TFailure, TNewCancelled>.Cancelled(await mapCancellation(result.CancelledValue!)),
-            _ => throw new ArgumentOutOfRangeException()
+            _ => throw new InvalidOperationException($"Unknown OperationResultType: {result.Type}")
         };
     }
 
@@ -345,7 +342,7 @@ public static class OperationResult3ExtensionsAsync {
             OperationResultType.Success => await onSuccess(result.SuccessValue!),
             OperationResultType.Failure => onFailure(result.FailureValue!),
             OperationResultType.Cancelled => onCancelled(result.CancelledValue!),
-            _ => throw new InvalidOperationException("Unknown OperationResultType.")
+            _ => throw new InvalidOperationException($"Unknown OperationResultType: {result.Type}")
         };
     }
 
@@ -375,7 +372,7 @@ public static class OperationResult3ExtensionsAsync {
             OperationResultType.Success => onSuccess(result.SuccessValue!),
             OperationResultType.Failure => await onFailure(result.FailureValue!),
             OperationResultType.Cancelled => onCancelled(result.CancelledValue!),
-            _ => throw new InvalidOperationException("Unknown OperationResultType.")
+            _ => throw new InvalidOperationException($"Unknown OperationResultType: {result.Type}")
         };
     }
 
@@ -405,7 +402,7 @@ public static class OperationResult3ExtensionsAsync {
             OperationResultType.Success => onSuccess(result.SuccessValue!),
             OperationResultType.Failure => onFailure(result.FailureValue!),
             OperationResultType.Cancelled => await onCancelled(result.CancelledValue!),
-            _ => throw new InvalidOperationException("Unknown OperationResultType.")
+            _ => throw new InvalidOperationException($"Unknown OperationResultType: {result.Type}")
         };
     }
     
@@ -510,7 +507,7 @@ public static class OperationResult3ExtensionsAsync {
             OperationResultType.Success => await onSuccess(result.SuccessValue!),
             OperationResultType.Failure => await onFailure(result.FailureValue!),
             OperationResultType.Cancelled => onCancelled(result.CancelledValue!),
-            _ => throw new InvalidOperationException("Unknown OperationResultType.")
+            _ => throw new InvalidOperationException($"Unknown OperationResultType: {result.Type}")
         };
     }
 
@@ -540,7 +537,7 @@ public static class OperationResult3ExtensionsAsync {
             OperationResultType.Success => await onSuccess(result.SuccessValue!),
             OperationResultType.Failure => onFailure(result.FailureValue!),
             OperationResultType.Cancelled => await onCancelled(result.CancelledValue!),
-            _ => throw new InvalidOperationException("Unknown OperationResultType.")
+            _ => throw new InvalidOperationException($"Unknown OperationResultType: {result.Type}")
         };
     }
 
@@ -570,7 +567,7 @@ public static class OperationResult3ExtensionsAsync {
             OperationResultType.Success => onSuccess(result.SuccessValue!),
             OperationResultType.Failure => await onFailure(result.FailureValue!),
             OperationResultType.Cancelled => await onCancelled(result.CancelledValue!),
-            _ => throw new InvalidOperationException("Unknown OperationResultType.")
+            _ => throw new InvalidOperationException($"Unknown OperationResultType: {result.Type}")
         };
     }
 
@@ -675,7 +672,7 @@ public static class OperationResult3ExtensionsAsync {
             OperationResultType.Success => await onSuccess(result.SuccessValue!),
             OperationResultType.Failure => await onFailure(result.FailureValue!),
             OperationResultType.Cancelled => await onCancelled(result.CancelledValue!),
-            _ => throw new InvalidOperationException("Unknown OperationResultType.")
+            _ => throw new InvalidOperationException($"Unknown OperationResultType: {result.Type}")
         };  
     }
 
