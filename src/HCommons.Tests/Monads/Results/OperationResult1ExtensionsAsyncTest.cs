@@ -353,6 +353,131 @@ public class OperationResult1ExtensionsAsyncTest {
     }
 
     [Fact]
+    public async Task MatchAsync_TaskResultAsyncSuccess_OnSuccess_ExecutesSuccessHandler() {
+        // Arrange
+        var resultTask = Task.FromResult(OperationResult<int>.Success(10));
+
+        // Act
+        var actual = await resultTask.MatchAsync(x => Task.FromResult($"success: {x}"), _ => "failure", _ => "cancelled");
+
+        // Assert
+        actual.ShouldBe("success: 10");
+    }
+
+    [Fact]
+    public async Task MatchAsync_TaskResultAsyncSuccess_OnFailure_DoesNotCallAsyncSuccess() {
+        // Arrange
+        var error = new Error("test error");
+        var resultTask = Task.FromResult(OperationResult<int>.Failure(error));
+
+        // Act
+        var actual = await resultTask.MatchAsync(x => Task.FromResult($"success: {x}"), e => $"failure: {e.Message}", _ => "cancelled");
+
+        // Assert
+        actual.ShouldBe("failure: test error");
+    }
+
+    [Fact]
+    public async Task MatchAsync_TaskResultAsyncFailure_OnFailure_ExecutesFailureHandler() {
+        // Arrange
+        var error = new Error("test error");
+        var resultTask = Task.FromResult(OperationResult<int>.Failure(error));
+
+        // Act
+        var actual = await resultTask.MatchAsync(x => $"success: {x}", e => Task.FromResult($"failure: {e.Message}"), _ => "cancelled");
+
+        // Assert
+        actual.ShouldBe("failure: test error");
+    }
+
+    [Fact]
+    public async Task MatchAsync_TaskResultAsyncFailure_OnSuccess_DoesNotCallAsyncFailure() {
+        // Arrange
+        var resultTask = Task.FromResult(OperationResult<int>.Success(10));
+
+        // Act
+        var actual = await resultTask.MatchAsync(x => $"success: {x}", e => Task.FromResult($"failure: {e.Message}"), _ => "cancelled");
+
+        // Assert
+        actual.ShouldBe("success: 10");
+    }
+
+    [Fact]
+    public async Task MatchAsync_TaskResultAsyncCancelled_OnCancelled_ExecutesCancelledHandler() {
+        // Arrange
+        var cancelled = new Cancelled("user cancelled");
+        var resultTask = Task.FromResult(OperationResult<int>.Cancelled(cancelled));
+
+        // Act
+        var actual = await resultTask.MatchAsync(x => $"success: {x}", _ => "failure", c => Task.FromResult($"cancelled: {c.Reason}"));
+
+        // Assert
+        actual.ShouldBe("cancelled: user cancelled");
+    }
+
+    [Fact]
+    public async Task MatchAsync_TaskResultAsyncCancelled_OnSuccess_DoesNotCallAsyncCancelled() {
+        // Arrange
+        var resultTask = Task.FromResult(OperationResult<int>.Success(10));
+
+        // Act
+        var actual = await resultTask.MatchAsync(x => $"success: {x}", _ => "failure", c => Task.FromResult($"cancelled: {c.Reason}"));
+
+        // Assert
+        actual.ShouldBe("success: 10");
+    }
+
+    [Fact]
+    public async Task MatchAsync_AsyncSuccessAndCancelled_OnSuccess_ExecutesSuccessHandler() {
+        // Arrange
+        var result = OperationResult<int>.Success(10);
+
+        // Act
+        var actual = await result.MatchAsync(x => Task.FromResult($"success: {x}"), _ => "failure", _ => Task.FromResult("cancelled"));
+
+        // Assert
+        actual.ShouldBe("success: 10");
+    }
+
+    [Fact]
+    public async Task MatchAsync_AsyncSuccessAndCancelled_OnCancelled_ExecutesCancelledHandler() {
+        // Arrange
+        var cancelled = new Cancelled("user cancelled");
+        var result = OperationResult<int>.Cancelled(cancelled);
+
+        // Act
+        var actual = await result.MatchAsync(x => Task.FromResult($"success: {x}"), _ => "failure", c => Task.FromResult($"cancelled: {c.Reason}"));
+
+        // Assert
+        actual.ShouldBe("cancelled: user cancelled");
+    }
+
+    [Fact]
+    public async Task MatchAsync_TaskResultAsyncSuccessAndFailure_OnSuccess_ExecutesSuccessHandler() {
+        // Arrange
+        var resultTask = Task.FromResult(OperationResult<int>.Success(10));
+
+        // Act
+        var actual = await resultTask.MatchAsync(x => Task.FromResult($"success: {x}"), _ => Task.FromResult("failure"), _ => "cancelled");
+
+        // Assert
+        actual.ShouldBe("success: 10");
+    }
+
+    [Fact]
+    public async Task MatchAsync_TaskResultAsyncSuccessAndFailure_OnFailure_ExecutesFailureHandler() {
+        // Arrange
+        var error = new Error("test error");
+        var resultTask = Task.FromResult(OperationResult<int>.Failure(error));
+
+        // Act
+        var actual = await resultTask.MatchAsync(x => Task.FromResult($"success: {x}"), e => Task.FromResult($"failure: {e.Message}"), _ => "cancelled");
+
+        // Assert
+        actual.ShouldBe("failure: test error");
+    }
+
+    [Fact]
     public async Task MatchAsync_TaskResultAllAsync_OnSuccess_ExecutesSuccessHandler() {
         var resultTask = Task.FromResult(OperationResult<int>.Success(10));
 
