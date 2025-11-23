@@ -12,7 +12,7 @@ public readonly record struct Result<TValue> where TValue : notnull {
     /// Gets a value indicating whether the operation succeeded.
     /// </summary>
     [MemberNotNullWhen(true, nameof(Value))]
-    public bool IsSuccess { get; init; }
+    public bool IsSuccess { get; }
     /// <summary>
     /// Gets a value indicating whether the operation failed.
     /// </summary>
@@ -22,11 +22,11 @@ public readonly record struct Result<TValue> where TValue : notnull {
     /// <summary>
     /// Gets the value if the operation succeeded, otherwise null.
     /// </summary>
-    public TValue? Value { get; init; }
+    public TValue? Value { get; }
     /// <summary>
     /// Gets the error if the operation failed.
     /// </summary>
-    public Error Error { get; init; }
+    public Error Error { get; }
         
     Result(bool isSuccess, TValue? value, Error error) {
         IsSuccess = isSuccess;
@@ -93,68 +93,6 @@ public readonly record struct Result<TValue> where TValue : notnull {
     /// <returns>The value if the operation succeeded, otherwise the specified default value.</returns>
     [Pure]
     public TValue GetValueOrDefault(TValue defaultValue) => IsSuccess ? Value! : defaultValue;
-    
-    /// <summary>
-    /// Matches on the result and returns a value.
-    /// </summary>
-    /// <typeparam name="TResult">The type of the result.</typeparam>
-    /// <param name="onSuccess">The function to execute if the operation succeeded.</param>
-    /// <param name="onFailure">The function to execute if the operation failed.</param>
-    /// <returns>The result of the executed function.</returns>
-    [Pure]
-    public TResult Match<TResult>(
-        Func<TValue, TResult> onSuccess, 
-        Func<Error, TResult> onFailure) 
-    {
-        return IsSuccess ? onSuccess(Value!) : onFailure(Error);
-    }
-    
-    /// <summary>
-    /// Matches on the result with state and returns a value.
-    /// </summary>
-    /// <typeparam name="TState">The type of the state.</typeparam>
-    /// <typeparam name="TResult">The type of the result.</typeparam>
-    /// <param name="state">The state to pass to the functions.</param>
-    /// <param name="onSuccess">The function to execute if the operation succeeded.</param>
-    /// <param name="onFailure">The function to execute if the operation failed.</param>
-    /// <returns>The result of the executed function.</returns>
-    [Pure]
-    public TResult Match<TState, TResult>(
-        TState state,
-        Func<TState, TValue, TResult> onSuccess, 
-        Func<TState, Error, TResult> onFailure) 
-    {
-        return IsSuccess ? onSuccess(state, Value!) : onFailure(state, Error);
-    }
-    
-    /// <summary>
-    /// Executes an action based on whether the operation succeeded or failed.
-    /// </summary>
-    /// <param name="onSuccess">The action to execute if the operation succeeded.</param>
-    /// <param name="onFailure">The action to execute if the operation failed.</param>
-    public void Switch(
-        Action<TValue> onSuccess, 
-        Action<Error> onFailure) 
-    {
-        if (IsSuccess) onSuccess(Value!);
-        else onFailure(Error);
-    }
-    
-    /// <summary>
-    /// Executes an action with state based on whether the operation succeeded or failed.
-    /// </summary>
-    /// <typeparam name="TState">The type of the state.</typeparam>
-    /// <param name="state">The state to pass to the actions.</param>
-    /// <param name="onSuccess">The action to execute if the operation succeeded.</param>
-    /// <param name="onFailure">The action to execute if the operation failed.</param>
-    public void Switch<TState>(
-        TState state,
-        Action<TState, TValue> onSuccess, 
-        Action<TState, Error> onFailure) 
-    {
-        if (IsSuccess) onSuccess(state, Value!);
-        else onFailure(state, Error);
-    }
     
     /// <summary>
     /// Returns a string representation of the result.
