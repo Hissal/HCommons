@@ -18,11 +18,12 @@ public static class OperationResult1Extensions {
     public static OperationResult<TResult> Select<TValue, TResult>(
         this OperationResult<TValue> result, 
         Func<TValue, TResult> selector) =>
-        result.IsSuccess 
-            ? OperationResult<TResult>.Success(selector(result.Value!)) 
-            : result.IsFailure 
-                ? OperationResult<TResult>.Failure(result.Error) 
-                : OperationResult<TResult>.Cancelled(result.Cancellation);
+        result.Type switch {
+            OperationResultType.Success => OperationResult<TResult>.Success(selector(result.Value!)),
+            OperationResultType.Failure => OperationResult<TResult>.Failure(result.Error),
+            OperationResultType.Cancelled => OperationResult<TResult>.Cancelled(result.Cancellation),
+            _ => throw new InvalidOperationException($"Unknown OperationResultType: {result.Type}")
+        };
 
     /// <summary>
     /// Maps an operation result value to a new value using the specified selector function with additional state.
@@ -39,11 +40,12 @@ public static class OperationResult1Extensions {
         this OperationResult<TValue> result, 
         TState state,
         Func<TState, TValue, TResult> selector) =>
-        result.IsSuccess 
-            ? OperationResult<TResult>.Success(selector(state, result.Value!)) 
-            : result.IsFailure 
-                ? OperationResult<TResult>.Failure(result.Error) 
-                : OperationResult<TResult>.Cancelled(result.Cancellation);
+        result.Type switch {
+            OperationResultType.Success => OperationResult<TResult>.Success(selector(state, result.Value!)),
+            OperationResultType.Failure => OperationResult<TResult>.Failure(result.Error),
+            OperationResultType.Cancelled => OperationResult<TResult>.Cancelled(result.Cancellation),
+            _ => throw new InvalidOperationException($"Unknown OperationResultType: {result.Type}")
+        };
 
     /// <summary>
     /// Binds an operation result to a function that returns a new operation result, flattening nested results.
@@ -57,11 +59,12 @@ public static class OperationResult1Extensions {
     public static OperationResult<TResult> Bind<TValue, TResult>(
         this OperationResult<TValue> result, 
         Func<TValue, OperationResult<TResult>> binder) =>
-        result.IsSuccess 
-            ? binder(result.Value!) 
-            : result.IsFailure 
-                ? OperationResult<TResult>.Failure(result.Error) 
-                : OperationResult<TResult>.Cancelled(result.Cancellation);
+        result.Type switch {
+            OperationResultType.Success => binder(result.Value!),
+            OperationResultType.Failure => OperationResult<TResult>.Failure(result.Error),
+            OperationResultType.Cancelled => OperationResult<TResult>.Cancelled(result.Cancellation),
+            _ => throw new InvalidOperationException($"Unknown OperationResultType: {result.Type}")
+        };
 
     /// <summary>
     /// Binds an operation result to a function that returns a new operation result with additional state, flattening nested results.
@@ -78,11 +81,12 @@ public static class OperationResult1Extensions {
         this OperationResult<TValue> result, 
         TState state,
         Func<TState, TValue, OperationResult<TResult>> binder) =>
-        result.IsSuccess 
-            ? binder(state, result.Value!) 
-            : result.IsFailure 
-                ? OperationResult<TResult>.Failure(result.Error) 
-                : OperationResult<TResult>.Cancelled(result.Cancellation);
+        result.Type switch {
+            OperationResultType.Success => binder(state, result.Value!),
+            OperationResultType.Failure => OperationResult<TResult>.Failure(result.Error),
+            OperationResultType.Cancelled => OperationResult<TResult>.Cancelled(result.Cancellation),
+            _ => throw new InvalidOperationException($"Unknown OperationResultType: {result.Type}")
+        };
 
     /// <summary>
     /// Transforms the error of a failed operation result using the specified mapping function.

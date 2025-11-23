@@ -333,9 +333,7 @@ public static class OperationResult3ExtensionsAsync {
         where TFailure : notnull
         where TCancelled : notnull
     {
-        if (result.IsSuccess) return await onSuccessAsync(result.SuccessValue!);
-        if (result.IsFailure) return onFailure(result.FailureValue!);
-        return onCancelled(result.CancelledValue!);
+        return result.IsSuccess ? await onSuccessAsync(result.SuccessValue!) : result.IsFailure ? onFailure(result.FailureValue!) : onCancelled(result.CancelledValue!);
     }
 
     /// <summary>
@@ -360,9 +358,7 @@ public static class OperationResult3ExtensionsAsync {
         where TFailure : notnull
         where TCancelled : notnull
     {
-        if (result.IsSuccess) return onSuccess(result.SuccessValue!);
-        if (result.IsFailure) return await onFailureAsync(result.FailureValue!);
-        return onCancelled(result.CancelledValue!);
+        return result.IsSuccess ? onSuccess(result.SuccessValue!) : result.IsFailure ? await onFailureAsync(result.FailureValue!) : onCancelled(result.CancelledValue!);
     }
 
     /// <summary>
@@ -387,9 +383,7 @@ public static class OperationResult3ExtensionsAsync {
         where TFailure : notnull
         where TCancelled : notnull
     {
-        if (result.IsSuccess) return onSuccess(result.SuccessValue!);
-        if (result.IsFailure) return onFailure(result.FailureValue!);
-        return await onCancelledAsync(result.CancelledValue!);
+        return result.IsSuccess ? onSuccess(result.SuccessValue!) : result.IsFailure ? onFailure(result.FailureValue!) : await onCancelledAsync(result.CancelledValue!);
     }
 
     /// <summary>
@@ -414,9 +408,7 @@ public static class OperationResult3ExtensionsAsync {
         where TFailure : notnull
         where TCancelled : notnull
     {
-        if (result.IsSuccess) return await onSuccessAsync(result.SuccessValue!);
-        if (result.IsFailure) return await onFailureAsync(result.FailureValue!);
-        return await onCancelledAsync(result.CancelledValue!);
+        return result.IsSuccess ? await onSuccessAsync(result.SuccessValue!) : result.IsFailure ? await onFailureAsync(result.FailureValue!) : await onCancelledAsync(result.CancelledValue!);
     }
 
     /// <summary>

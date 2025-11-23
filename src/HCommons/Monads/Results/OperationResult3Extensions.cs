@@ -24,11 +24,12 @@ public static class OperationResult3Extensions {
         where TFailure : notnull
         where TCancelled : notnull
         where TResult : notnull =>
-        result.IsSuccess 
-            ? OperationResult<TResult, TFailure, TCancelled>.Success(selector(result.SuccessValue!)) 
-            : result.IsFailure 
-                ? OperationResult<TResult, TFailure, TCancelled>.Failure(result.FailureValue!) 
-                : OperationResult<TResult, TFailure, TCancelled>.Cancelled(result.CancelledValue!);
+        result.Type switch {
+            OperationResultType.Success => OperationResult<TResult, TFailure, TCancelled>.Success(selector(result.SuccessValue!)),
+            OperationResultType.Failure => OperationResult<TResult, TFailure, TCancelled>.Failure(result.FailureValue!),
+            OperationResultType.Cancelled => OperationResult<TResult, TFailure, TCancelled>.Cancelled(result.CancelledValue!),
+            _ => throw new ArgumentOutOfRangeException(nameof(result.Type), result.Type, "Unknown OperationResultType")
+        };
 
     /// <summary>
     /// Maps an operation result success value to a new value using the specified selector function with additional state.
@@ -51,11 +52,12 @@ public static class OperationResult3Extensions {
         where TFailure : notnull
         where TCancelled : notnull
         where TResult : notnull =>
-        result.IsSuccess 
-            ? OperationResult<TResult, TFailure, TCancelled>.Success(selector(state, result.SuccessValue!)) 
-            : result.IsFailure 
-                ? OperationResult<TResult, TFailure, TCancelled>.Failure(result.FailureValue!) 
-                : OperationResult<TResult, TFailure, TCancelled>.Cancelled(result.CancelledValue!);
+        result.Type switch {
+            OperationResultType.Success => OperationResult<TResult, TFailure, TCancelled>.Success(selector(state, result.SuccessValue!)),
+            OperationResultType.Failure => OperationResult<TResult, TFailure, TCancelled>.Failure(result.FailureValue!),
+            OperationResultType.Cancelled => OperationResult<TResult, TFailure, TCancelled>.Cancelled(result.CancelledValue!),
+            _ => throw new ArgumentOutOfRangeException(nameof(result.Type), result.Type, "Unknown OperationResultType")
+        };
 
     /// <summary>
     /// Binds an operation result to a function that returns a new operation result, flattening nested results.
@@ -75,11 +77,12 @@ public static class OperationResult3Extensions {
         where TFailure : notnull
         where TCancelled : notnull
         where TResult : notnull =>
-        result.IsSuccess 
-            ? binder(result.SuccessValue!) 
-            : result.IsFailure 
-                ? OperationResult<TResult, TFailure, TCancelled>.Failure(result.FailureValue!) 
-                : OperationResult<TResult, TFailure, TCancelled>.Cancelled(result.CancelledValue!);
+        result.Type switch {
+            OperationResultType.Success => binder(result.SuccessValue!),
+            OperationResultType.Failure => OperationResult<TResult, TFailure, TCancelled>.Failure(result.FailureValue!),
+            OperationResultType.Cancelled => OperationResult<TResult, TFailure, TCancelled>.Cancelled(result.CancelledValue!),
+            _ => throw new ArgumentOutOfRangeException(nameof(result.Type), result.Type, "Unknown OperationResultType")
+        };
 
     /// <summary>
     /// Binds an operation result to a function that returns a new operation result with additional state, flattening nested results.
@@ -102,11 +105,12 @@ public static class OperationResult3Extensions {
         where TFailure : notnull
         where TCancelled : notnull
         where TResult : notnull =>
-        result.IsSuccess 
-            ? binder(state, result.SuccessValue!) 
-            : result.IsFailure 
-                ? OperationResult<TResult, TFailure, TCancelled>.Failure(result.FailureValue!) 
-                : OperationResult<TResult, TFailure, TCancelled>.Cancelled(result.CancelledValue!);
+        result.Type switch {
+            OperationResultType.Success => binder(state, result.SuccessValue!),
+            OperationResultType.Failure => OperationResult<TResult, TFailure, TCancelled>.Failure(result.FailureValue!),
+            OperationResultType.Cancelled => OperationResult<TResult, TFailure, TCancelled>.Cancelled(result.CancelledValue!),
+            _ => throw new ArgumentOutOfRangeException(nameof(result.Type), result.Type, "Unknown OperationResultType")
+        };
 
     /// <summary>
     /// Transforms the failure value of a failed operation result using the specified mapping function.
@@ -126,11 +130,12 @@ public static class OperationResult3Extensions {
         where TFailure : notnull
         where TCancelled : notnull
         where TNewFailure : notnull =>
-        result.IsFailure 
-            ? OperationResult<TSuccess, TNewFailure, TCancelled>.Failure(mapFailure(result.FailureValue!)) 
-            : result.IsSuccess
-                ? OperationResult<TSuccess, TNewFailure, TCancelled>.Success(result.SuccessValue!)
-                : OperationResult<TSuccess, TNewFailure, TCancelled>.Cancelled(result.CancelledValue!);
+        result.Type switch {
+            OperationResultType.Success => OperationResult<TSuccess, TNewFailure, TCancelled>.Success(result.SuccessValue!),
+            OperationResultType.Failure => OperationResult<TSuccess, TNewFailure, TCancelled>.Failure(mapFailure(result.FailureValue!)),
+            OperationResultType.Cancelled => OperationResult<TSuccess, TNewFailure, TCancelled>.Cancelled(result.CancelledValue!),
+            _ => throw new ArgumentOutOfRangeException(nameof(result.Type), result.Type, "Unknown OperationResultType")
+        };
 
     /// <summary>
     /// Transforms the failure value of a failed operation result using the specified mapping function with additional state.
@@ -153,11 +158,12 @@ public static class OperationResult3Extensions {
         where TFailure : notnull
         where TCancelled : notnull
         where TNewFailure : notnull =>
-        result.IsFailure 
-            ? OperationResult<TSuccess, TNewFailure, TCancelled>.Failure(mapFailure(state, result.FailureValue!)) 
-            : result.IsSuccess
-                ? OperationResult<TSuccess, TNewFailure, TCancelled>.Success(result.SuccessValue!)
-                : OperationResult<TSuccess, TNewFailure, TCancelled>.Cancelled(result.CancelledValue!);
+        result.Type switch {
+            OperationResultType.Success => OperationResult<TSuccess, TNewFailure, TCancelled>.Success(result.SuccessValue!),
+            OperationResultType.Failure => OperationResult<TSuccess, TNewFailure, TCancelled>.Failure(mapFailure(state, result.FailureValue!)),
+            OperationResultType.Cancelled => OperationResult<TSuccess, TNewFailure, TCancelled>.Cancelled(result.CancelledValue!),
+            _ => throw new ArgumentOutOfRangeException(nameof(result.Type), result.Type, "Unknown OperationResultType")
+        };
 
     /// <summary>
     /// Transforms the cancellation value of a cancelled operation result using the specified mapping function.
@@ -177,11 +183,12 @@ public static class OperationResult3Extensions {
         where TFailure : notnull
         where TCancelled : notnull
         where TNewCancelled : notnull =>
-        result.IsCancelled 
-            ? OperationResult<TSuccess, TFailure, TNewCancelled>.Cancelled(mapCancellation(result.CancelledValue!)) 
-            : result.IsSuccess
-                ? OperationResult<TSuccess, TFailure, TNewCancelled>.Success(result.SuccessValue!)
-                : OperationResult<TSuccess, TFailure, TNewCancelled>.Failure(result.FailureValue!);
+        result.Type switch {
+            OperationResultType.Success => OperationResult<TSuccess, TFailure, TNewCancelled>.Success(result.SuccessValue!),
+            OperationResultType.Failure => OperationResult<TSuccess, TFailure, TNewCancelled>.Failure(result.FailureValue!),
+            OperationResultType.Cancelled => OperationResult<TSuccess, TFailure, TNewCancelled>.Cancelled(mapCancellation(result.CancelledValue!)),
+            _ => throw new ArgumentOutOfRangeException(nameof(result.Type), result.Type, "Unknown OperationResultType")
+        };
 
     /// <summary>
     /// Transforms the cancellation value of a cancelled operation result using the specified mapping function with additional state.
@@ -204,11 +211,12 @@ public static class OperationResult3Extensions {
         where TFailure : notnull
         where TCancelled : notnull
         where TNewCancelled : notnull =>
-        result.IsCancelled 
-            ? OperationResult<TSuccess, TFailure, TNewCancelled>.Cancelled(mapCancellation(state, result.CancelledValue!)) 
-            : result.IsSuccess
-                ? OperationResult<TSuccess, TFailure, TNewCancelled>.Success(result.SuccessValue!)
-                : OperationResult<TSuccess, TFailure, TNewCancelled>.Failure(result.FailureValue!);
+        result.Type switch {
+            OperationResultType.Success => OperationResult<TSuccess, TFailure, TNewCancelled>.Success(result.SuccessValue!),
+            OperationResultType.Failure => OperationResult<TSuccess, TFailure, TNewCancelled>.Failure(result.FailureValue!),
+            OperationResultType.Cancelled => OperationResult<TSuccess, TFailure, TNewCancelled>.Cancelled(mapCancellation(state, result.CancelledValue!)),
+            _ => throw new ArgumentOutOfRangeException(nameof(result.Type), result.Type, "Unknown OperationResultType")
+        };
 
     /// <summary>
     /// Matches on the operation result and returns a value.
