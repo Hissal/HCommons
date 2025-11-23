@@ -3,7 +3,7 @@ using System.Diagnostics.Contracts;
 namespace HCommons.Monads;
 
 /// <summary>
-/// Provides asynchronous extension methods for Result{TSuccess, TFailure} types.
+/// Provides asynchronous extension methods for Result&lt;TSuccess, TFailure&gt; types.
 /// </summary>
 public static class Result2ExtensionsAsync {
     /// <summary>

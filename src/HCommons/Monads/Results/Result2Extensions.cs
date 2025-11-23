@@ -3,7 +3,7 @@ using System.Diagnostics.Contracts;
 namespace HCommons.Monads;
 
 /// <summary>
-/// Provides extension methods for Result{TSuccess, TFailure} types.
+/// Provides extension methods for Result&lt;TSuccess, TFailure&gt; types.
 /// </summary>
 public static class Result2Extensions {
     /// <summary>
