@@ -8,7 +8,6 @@ public class OperationResult_1_Test {
     [Fact]
     public void Success_CreatesSuccessResult() {
         var result = OperationResult<int>.Success(42);
-        
         result.IsSuccess.ShouldBeTrue();
     }
 
@@ -23,7 +22,6 @@ public class OperationResult_1_Test {
     [Fact]
     public void Success_StoresValue() {
         var result = OperationResult<int>.Success(42);
-        
         result.Value.ShouldBe(42);
     }
 
