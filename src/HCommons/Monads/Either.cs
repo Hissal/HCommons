@@ -117,53 +117,6 @@ public readonly record struct Either<TLeft, TRight>(EitherType Type, TLeft? Left
     public TRight GetRightOrDefault(TRight defaultValue) => IsRight ? Right : defaultValue;
 
     /// <summary>
-    /// Matches on the either value and returns a result.
-    /// </summary>
-    /// <typeparam name="TResult">The type of the result.</typeparam>
-    /// <param name="leftFunc">The function to execute if a left value is present.</param>
-    /// <param name="rightFunc">The function to execute if a right value is present.</param>
-    /// <returns>The result of the executed function.</returns>
-    [Pure]
-    public TResult Match<TResult>(Func<TLeft, TResult> leftFunc, Func<TRight, TResult> rightFunc) =>
-        IsLeft ? leftFunc(Left) : rightFunc(Right);
-
-    /// <summary>
-    /// Matches on the either value with state and returns a result.
-    /// </summary>
-    /// <typeparam name="TState">The type of the state.</typeparam>
-    /// <typeparam name="TResult">The type of the result.</typeparam>
-    /// <param name="state">The state to pass to the functions.</param>
-    /// <param name="leftFunc">The function to execute if a left value is present.</param>
-    /// <param name="rightFunc">The function to execute if a right value is present.</param>
-    /// <returns>The result of the executed function.</returns>
-    [Pure]
-    public TResult Match<TState, TResult>(TState state, Func<TState, TLeft, TResult> leftFunc,
-        Func<TState, TRight, TResult> rightFunc) =>
-        IsLeft ? leftFunc(state, Left) : rightFunc(state, Right);
-
-    /// <summary>
-    /// Executes an action based on which side contains a value.
-    /// </summary>
-    /// <param name="leftAction">The action to execute if a left value is present.</param>
-    /// <param name="rightAction">The action to execute if a right value is present.</param>
-    public void Switch(Action<TLeft> leftAction, Action<TRight> rightAction) {
-        if (IsLeft) leftAction(Left);
-        else rightAction(Right);
-    }
-
-    /// <summary>
-    /// Executes an action with state based on which side contains a value.
-    /// </summary>
-    /// <typeparam name="TState">The type of the state.</typeparam>
-    /// <param name="state">The state to pass to the actions.</param>
-    /// <param name="leftAction">The action to execute if a left value is present.</param>
-    /// <param name="rightAction">The action to execute if a right value is present.</param>
-    public void Switch<TState>(TState state, Action<TState, TLeft> leftAction, Action<TState, TRight> rightAction) {
-        if (IsLeft) leftAction(state, Left);
-        else rightAction(state, Right);
-    }
-
-    /// <summary>
     /// Returns a string representation of the either.
     /// </summary>
     /// <returns>A string indicating which side contains a value and what that value is.</returns>
