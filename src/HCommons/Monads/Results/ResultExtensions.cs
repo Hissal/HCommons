@@ -7,6 +7,28 @@ namespace HCommons.Monads;
 /// </summary>
 public static class ResultExtensions {
     /// <summary>
+    /// Transforms the error of a failed result using the specified mapping function.
+    /// </summary>
+    /// <param name="result">The result whose error to transform.</param>
+    /// <param name="mapError">The function to apply to the error if the result is failed.</param>
+    /// <returns>A result with the transformed error if failed, or the original result if successful.</returns>
+    [Pure]
+    public static Result MapError(this Result result, Func<Error, Error> mapError) =>
+        result.IsFailure ? Result.Failure(mapError(result.Error)) : result;
+
+    /// <summary>
+    /// Transforms the error of a failed result using the specified mapping function with additional state.
+    /// </summary>
+    /// <typeparam name="TState">The type of the state.</typeparam>
+    /// <param name="result">The result whose error to transform.</param>
+    /// <param name="state">The state to pass to the mapError function.</param>
+    /// <param name="mapError">The function to apply to the state and error if the result is failed.</param>
+    /// <returns>A result with the transformed error if failed, or the original result if successful.</returns>
+    [Pure]
+    public static Result MapError<TState>(this Result result, TState state, Func<TState, Error, Error> mapError) =>
+        result.IsFailure ? Result.Failure(mapError(state, result.Error)) : result;
+
+    /// <summary>
     /// Matches on the result and returns a value.
     /// </summary>
     /// <typeparam name="TResult">The type of the result.</typeparam>

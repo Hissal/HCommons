@@ -7,6 +7,39 @@ namespace HCommons.Monads;
 /// </summary>
 public static class ResultExtensionsAsync {
     /// <summary>
+    /// Transforms the error of a failed result using the specified mapping function, awaiting the result task.
+    /// </summary>
+    /// <param name="resultTask">The task containing the result whose error to transform.</param>
+    /// <param name="mapError">The function to apply to the error if the result is failed.</param>
+    /// <returns>A task containing a result with the transformed error if failed, or the original result if successful.</returns>
+    [Pure]
+    public static async Task<Result> MapErrorAsync(this Task<Result> resultTask, Func<Error, Error> mapError) {
+        return (await resultTask).MapError(mapError);
+    }
+
+    /// <summary>
+    /// Transforms the error of a failed result using the specified asynchronous mapping function.
+    /// </summary>
+    /// <param name="result">The result whose error to transform.</param>
+    /// <param name="mapErrorAsync">The asynchronous function to apply to the error if the result is failed.</param>
+    /// <returns>A task containing a result with the transformed error if failed, or the original result if successful.</returns>
+    [Pure]
+    public static async Task<Result> MapErrorAsync(this Result result, Func<Error, Task<Error>> mapErrorAsync) {
+        return result.IsFailure ? Result.Failure(await mapErrorAsync(result.Error)) : result;
+    }
+
+    /// <summary>
+    /// Transforms the error of a failed result using the specified asynchronous mapping function, awaiting the result task.
+    /// </summary>
+    /// <param name="resultTask">The task containing the result whose error to transform.</param>
+    /// <param name="mapErrorAsync">The asynchronous function to apply to the error if the result is failed.</param>
+    /// <returns>A task containing a result with the transformed error if failed, or the original result if successful.</returns>
+    [Pure]
+    public static async Task<Result> MapErrorAsync(this Task<Result> resultTask, Func<Error, Task<Error>> mapErrorAsync) {
+        return await (await resultTask).MapErrorAsync(mapErrorAsync);
+    }
+
+    /// <summary>
     /// Matches on the result, applying one of two functions depending on success or failure, awaiting the result task.
     /// </summary>
     /// <typeparam name="TResult">The type of the match result.</typeparam>
