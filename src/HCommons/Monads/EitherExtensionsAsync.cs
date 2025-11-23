@@ -1,4 +1,6 @@
-﻿namespace HCommons.Monads;
+﻿using System.Diagnostics.Contracts;
+
+namespace HCommons.Monads;
 
 public static class EitherExtensionsAsync {
     
@@ -9,6 +11,7 @@ public static class EitherExtensionsAsync {
     /// <typeparam name="TRight">The type of the right value.</typeparam>
     /// <param name="eitherTask">The either task to swap.</param>
     /// <returns>A task representing the asynchronous operation with an either with the left and right sides swapped.</returns>
+    [Pure]
     public static async Task<Either<TRight, TLeft>> SwapAsync<TLeft, TRight>(
         this Task<Either<TLeft, TRight>> eitherTask) 
         where TLeft : notnull where TRight : notnull 
@@ -23,6 +26,7 @@ public static class EitherExtensionsAsync {
     /// <typeparam name="TRight">The type of the right value.</typeparam>
     /// <param name="either">The either to swap.</param>
     /// <returns>A task representing the asynchronous operation with an either with the left and right sides swapped.</returns>
+    [Pure]
     public static async Task<Either<TRight, TLeft>> SwapAsync<TLeft, TRight>(
         this Either<TLeft, TRight> either) 
         where TLeft : notnull where TRight : notnull 
@@ -37,6 +41,7 @@ public static class EitherExtensionsAsync {
     /// <typeparam name="TRight">The type of the right value.</typeparam>
     /// <param name="eitherTask">The either task to convert.</param>
     /// <returns>A task representing the asynchronous operation with an optional containing the left value if present, otherwise none.</returns>
+    [Pure]
     public static async Task<Optional<TLeft>> AsLeftOptionalAsync<TLeft, TRight>(
         this Task<Either<TLeft, TRight>> eitherTask) 
         where TLeft : notnull where TRight : notnull 
@@ -51,6 +56,7 @@ public static class EitherExtensionsAsync {
     /// <typeparam name="TRight">The type of the right value.</typeparam>
     /// <param name="either">The either to convert.</param>
     /// <returns>A task representing the asynchronous operation with an optional containing the left value if present, otherwise none.</returns>
+    [Pure]
     public static async Task<Optional<TLeft>> AsLeftOptionalAsync<TLeft, TRight>(
         this Either<TLeft, TRight> either) 
         where TLeft : notnull where TRight : notnull 
@@ -65,6 +71,7 @@ public static class EitherExtensionsAsync {
     /// <typeparam name="TRight">The type of the right value.</typeparam>
     /// <param name="eitherTask">The either task to convert.</param>
     /// <returns>A task representing the asynchronous operation with an optional containing the right value if present, otherwise none.</returns>
+    [Pure]
     public static async Task<Optional<TRight>> AsRightOptionalAsync<TLeft, TRight>(
         this Task<Either<TLeft, TRight>> eitherTask) 
         where TLeft : notnull where TRight : notnull 
@@ -79,6 +86,7 @@ public static class EitherExtensionsAsync {
     /// <typeparam name="TRight">The type of the right value.</typeparam>
     /// <param name="either">The either to convert.</param>
     /// <returns>A task representing the asynchronous operation with an optional containing the right value if present, otherwise none.</returns>
+    [Pure]
     public static async Task<Optional<TRight>> AsRightOptionalAsync<TLeft, TRight>(
         this Either<TLeft, TRight> either) 
         where TLeft : notnull where TRight : notnull 
@@ -99,6 +107,7 @@ public static class EitherExtensionsAsync {
     /// <param name="leftMapper">The function to apply to the left value.</param>
     /// <param name="rightMapper">The function to apply to the right value.</param>
     /// <returns>A task representing the asynchronous operation with the transformed either.</returns>
+    [Pure]
     public static async Task<Either<TLeftResult, TRightResult>> MapAsync<TLeft, TRight, TLeftResult, TRightResult>(
         this Task<Either<TLeft, TRight>> eitherTask,
         Func<TLeft, TLeftResult> leftMapper,
@@ -120,6 +129,7 @@ public static class EitherExtensionsAsync {
     /// <param name="leftMapperAsync">The async function to apply to the left value.</param>
     /// <param name="rightMapper">The function to apply to the right value.</param>
     /// <returns>A task representing the asynchronous operation with the transformed either.</returns>
+    [Pure]
     public static async Task<Either<TLeftResult, TRightResult>> MapAsync<TLeft, TRight, TLeftResult, TRightResult>(
         this Either<TLeft, TRight> either,
         Func<TLeft, Task<TLeftResult>> leftMapperAsync,
@@ -143,6 +153,7 @@ public static class EitherExtensionsAsync {
     /// <param name="leftMapper">The function to apply to the left value.</param>
     /// <param name="rightMapperAsync">The async function to apply to the right value.</param>
     /// <returns>A task representing the asynchronous operation with the transformed either.</returns>
+    [Pure]
     public static async Task<Either<TLeftResult, TRightResult>> MapAsync<TLeft, TRight, TLeftResult, TRightResult>(
         this Either<TLeft, TRight> either,
         Func<TLeft, TLeftResult> leftMapper,
@@ -166,6 +177,7 @@ public static class EitherExtensionsAsync {
     /// <param name="leftMapperAsync">The async function to apply to the left value.</param>
     /// <param name="rightMapper">The function to apply to the right value.</param>
     /// <returns>A task representing the asynchronous operation with the transformed either.</returns>
+    [Pure]
     public static async Task<Either<TLeftResult, TRightResult>> MapAsync<TLeft, TRight, TLeftResult, TRightResult>(
         this Task<Either<TLeft, TRight>> eitherTask,
         Func<TLeft, Task<TLeftResult>> leftMapperAsync,
@@ -187,6 +199,7 @@ public static class EitherExtensionsAsync {
     /// <param name="leftMapper">The function to apply to the left value.</param>
     /// <param name="rightMapperAsync">The async function to apply to the right value.</param>
     /// <returns>A task representing the asynchronous operation with the transformed either.</returns>
+    [Pure]
     public static async Task<Either<TLeftResult, TRightResult>> MapAsync<TLeft, TRight, TLeftResult, TRightResult>(
         this Task<Either<TLeft, TRight>> eitherTask,
         Func<TLeft, TLeftResult> leftMapper,
@@ -208,6 +221,7 @@ public static class EitherExtensionsAsync {
     /// <param name="leftMapperAsync">The async function to apply to the left value.</param>
     /// <param name="rightMapperAsync">The async function to apply to the right value.</param>
     /// <returns>A task representing the asynchronous operation with the transformed either.</returns>
+    [Pure]
     public static async Task<Either<TLeftResult, TRightResult>> MapAsync<TLeft, TRight, TLeftResult, TRightResult>(
         this Either<TLeft, TRight> either,
         Func<TLeft, Task<TLeftResult>> leftMapperAsync,
@@ -231,6 +245,7 @@ public static class EitherExtensionsAsync {
     /// <param name="leftMapperAsync">The async function to apply to the left value.</param>
     /// <param name="rightMapperAsync">The async function to apply to the right value.</param>
     /// <returns>A task representing the asynchronous operation with the transformed either.</returns>
+    [Pure]
     public static async Task<Either<TLeftResult, TRightResult>> MapAsync<TLeft, TRight, TLeftResult, TRightResult>(
         this Task<Either<TLeft, TRight>> eitherTask,
         Func<TLeft, Task<TLeftResult>> leftMapperAsync,
@@ -252,6 +267,7 @@ public static class EitherExtensionsAsync {
     /// <param name="eitherTask">The either task to map.</param>
     /// <param name="leftMapper">The function to apply to the left value.</param>
     /// <returns>A task representing the asynchronous operation with the transformed left value, or the original right value.</returns>
+    [Pure]
     public static async Task<Either<TLeftResult, TRight>> MapLeftAsync<TLeft, TRight, TLeftResult>(
         this Task<Either<TLeft, TRight>> eitherTask,
         Func<TLeft, TLeftResult> leftMapper) 
@@ -270,6 +286,7 @@ public static class EitherExtensionsAsync {
     /// <param name="either">The either to map.</param>
     /// <param name="leftMapperAsync">The async function to apply to the left value.</param>
     /// <returns>A task representing the asynchronous operation with the transformed left value, or the original right value.</returns>
+    [Pure]
     public static async Task<Either<TLeftResult, TRight>> MapLeftAsync<TLeft, TRight, TLeftResult>(
         this Either<TLeft, TRight> either,
         Func<TLeft, Task<TLeftResult>> leftMapperAsync) 
@@ -290,6 +307,7 @@ public static class EitherExtensionsAsync {
     /// <param name="eitherTask">The either task to map.</param>
     /// <param name="leftMapperAsync">The async function to apply to the left value.</param>
     /// <returns>A task representing the asynchronous operation with the transformed left value, or the original right value.</returns>
+    [Pure]
     public static async Task<Either<TLeftResult, TRight>> MapLeftAsync<TLeft, TRight, TLeftResult>(
         this Task<Either<TLeft, TRight>> eitherTask,
         Func<TLeft, Task<TLeftResult>> leftMapperAsync) 
@@ -310,6 +328,7 @@ public static class EitherExtensionsAsync {
     /// <param name="eitherTask">The either task to map.</param>
     /// <param name="rightMapper">The function to apply to the right value.</param>
     /// <returns>A task representing the asynchronous operation with the transformed right value, or the original left value.</returns>
+    [Pure]
     public static async Task<Either<TLeft, TRightResult>> MapRightAsync<TLeft, TRight, TRightResult>(
         this Task<Either<TLeft, TRight>> eitherTask,
         Func<TRight, TRightResult> rightMapper) 
@@ -328,6 +347,7 @@ public static class EitherExtensionsAsync {
     /// <param name="either">The either to map.</param>
     /// <param name="rightMapperAsync">The async function to apply to the right value.</param>
     /// <returns>A task representing the asynchronous operation with the transformed right value, or the original left value.</returns>
+    [Pure]
     public static async Task<Either<TLeft, TRightResult>> MapRightAsync<TLeft, TRight, TRightResult>(
         this Either<TLeft, TRight> either,
         Func<TRight, Task<TRightResult>> rightMapperAsync) 
@@ -348,6 +368,7 @@ public static class EitherExtensionsAsync {
     /// <param name="eitherTask">The either task to map.</param>
     /// <param name="rightMapperAsync">The async function to apply to the right value.</param>
     /// <returns>A task representing the asynchronous operation with the transformed right value, or the original left value.</returns>
+    [Pure]
     public static async Task<Either<TLeft, TRightResult>> MapRightAsync<TLeft, TRight, TRightResult>(
         this Task<Either<TLeft, TRight>> eitherTask,
         Func<TRight, Task<TRightResult>> rightMapperAsync) 
@@ -369,6 +390,7 @@ public static class EitherExtensionsAsync {
     /// <param name="leftFunc">The function to apply if the either contains a left value.</param>
     /// <param name="rightFunc">The function to apply if the either contains a right value.</param>
     /// <returns>A task representing the asynchronous operation with the result of the matching function.</returns>
+    [Pure]
     public static async Task<TResult> MatchAsync<TLeft, TRight, TResult>(
         this Task<Either<TLeft, TRight>> eitherTask,
         Func<TLeft, TResult> leftFunc,
@@ -388,6 +410,7 @@ public static class EitherExtensionsAsync {
     /// <param name="leftFuncAsync">The async function to apply if the either contains a left value.</param>
     /// <param name="rightFunc">The function to apply if the either contains a right value.</param>
     /// <returns>A task representing the asynchronous operation with the result of the matching function.</returns>
+    [Pure]
     public static async Task<TResult> MatchAsync<TLeft, TRight, TResult>(
         this Either<TLeft, TRight> either,
         Func<TLeft, Task<TResult>> leftFuncAsync,
@@ -409,6 +432,7 @@ public static class EitherExtensionsAsync {
     /// <param name="leftFunc">The function to apply if the either contains a left value.</param>
     /// <param name="rightFuncAsync">The async function to apply if the either contains a right value.</param>
     /// <returns>A task representing the asynchronous operation with the result of the matching function.</returns>
+    [Pure]
     public static async Task<TResult> MatchAsync<TLeft, TRight, TResult>(
         this Either<TLeft, TRight> either,
         Func<TLeft, TResult> leftFunc,
@@ -430,6 +454,7 @@ public static class EitherExtensionsAsync {
     /// <param name="leftFuncAsync">The async function to apply if the either contains a left value.</param>
     /// <param name="rightFunc">The function to apply if the either contains a right value.</param>
     /// <returns>A task representing the asynchronous operation with the result of the matching function.</returns>
+    [Pure]
     public static async Task<TResult> MatchAsync<TLeft, TRight, TResult>(
         this Task<Either<TLeft, TRight>> eitherTask,
         Func<TLeft, Task<TResult>> leftFuncAsync,
@@ -449,6 +474,7 @@ public static class EitherExtensionsAsync {
     /// <param name="leftFunc">The function to apply if the either contains a left value.</param>
     /// <param name="rightFuncAsync">The async function to apply if the either contains a right value.</param>
     /// <returns>A task representing the asynchronous operation with the result of the matching function.</returns>
+    [Pure]
     public static async Task<TResult> MatchAsync<TLeft, TRight, TResult>(
         this Task<Either<TLeft, TRight>> eitherTask,
         Func<TLeft, TResult> leftFunc,
@@ -468,6 +494,7 @@ public static class EitherExtensionsAsync {
     /// <param name="leftFuncAsync">The async function to apply if the either contains a left value.</param>
     /// <param name="rightFuncAsync">The async function to apply if the either contains a right value.</param>
     /// <returns>A task representing the asynchronous operation with the result of the matching function.</returns>
+    [Pure]
     public static async Task<TResult> MatchAsync<TLeft, TRight, TResult>(
         this Either<TLeft, TRight> either,
         Func<TLeft, Task<TResult>> leftFuncAsync,
@@ -489,6 +516,7 @@ public static class EitherExtensionsAsync {
     /// <param name="leftFuncAsync">The async function to apply if the either contains a left value.</param>
     /// <param name="rightFuncAsync">The async function to apply if the either contains a right value.</param>
     /// <returns>A task representing the asynchronous operation with the result of the matching function.</returns>
+    [Pure]
     public static async Task<TResult> MatchAsync<TLeft, TRight, TResult>(
         this Task<Either<TLeft, TRight>> eitherTask,
         Func<TLeft, Task<TResult>> leftFuncAsync,
