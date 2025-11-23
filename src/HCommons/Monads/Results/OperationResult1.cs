@@ -12,6 +12,7 @@ public readonly record struct OperationResult<TValue>(
     TValue? Value,
     Error Error,
     Cancelled Cancellation) 
+    where TValue : notnull
 {
     /// <summary>
     /// Gets a value indicating whether the operation succeeded.
@@ -83,84 +84,6 @@ public readonly record struct OperationResult<TValue>(
     /// <returns>The value if the operation succeeded, otherwise the specified default value.</returns>
     [Pure]
     public TValue GetValueOrDefault(TValue defaultValue) => IsSuccess ? Value : defaultValue;
-    
-    /// <summary>
-    /// Matches on the operation result and returns a value.
-    /// </summary>
-    /// <typeparam name="TResult">The type of the result.</typeparam>
-    /// <param name="onSuccess">The function to execute if the operation succeeded.</param>
-    /// <param name="onFailure">The function to execute if the operation failed.</param>
-    /// <param name="onCancelled">The function to execute if the operation was cancelled.</param>
-    /// <returns>The result of the executed function.</returns>
-    [Pure]
-    public TResult Match<TResult>(
-        Func<TValue, TResult> onSuccess, 
-        Func<Error, TResult> onFailure,
-        Func<Cancelled, TResult> onCancelled) 
-    {
-        return Type switch {
-            OperationResultType.Success => onSuccess(Value!),
-            OperationResultType.Failure => onFailure(Error),
-            OperationResultType.Cancelled => onCancelled(Cancellation),
-            _ => throw new InvalidOperationException($"Unknown OperationResultType: {Type}")
-        };
-    }
-    
-    /// <summary>
-    /// Matches on the operation result with state and returns a value.
-    /// </summary>
-    /// <typeparam name="TState">The type of the state.</typeparam>
-    /// <typeparam name="TResult">The type of the result.</typeparam>
-    /// <param name="state">The state to pass to the functions.</param>
-    /// <param name="onSuccess">The function to execute if the operation succeeded.</param>
-    /// <param name="onFailure">The function to execute if the operation failed.</param>
-    /// <param name="onCancelled">The function to execute if the operation was cancelled.</param>
-    /// <returns>The result of the executed function.</returns>
-    [Pure]
-    public TResult Match<TState, TResult>(
-        TState state,
-        Func<TState, TValue, TResult> onSuccess,
-        Func<TState, Error, TResult> onFailure,
-        Func<TState, Cancelled, TResult> onCancelled) 
-    {
-        return Type switch {
-            OperationResultType.Success => onSuccess(state, Value!),
-            OperationResultType.Failure => onFailure(state, Error),
-            OperationResultType.Cancelled => onCancelled(state, Cancellation),
-            _ => throw new InvalidOperationException($"Unknown OperationResultType: {Type}")
-        };
-    }
-    
-    /// <summary>
-    /// Executes an action based on whether the operation succeeded, failed, or was cancelled.
-    /// </summary>
-    /// <param name="onSuccess">The action to execute if the operation succeeded.</param>
-    /// <param name="onFailure">The action to execute if the operation failed.</param>
-    /// <param name="onCancelled">The action to execute if the operation was cancelled.</param>
-    public void Switch(Action<TValue> onSuccess, Action<Error> onFailure, Action<Cancelled> onCancelled) {
-        if (IsSuccess) onSuccess(Value);
-        else if (IsFailure) onFailure(Error);
-        else onCancelled(Cancellation);
-    }
-    
-    /// <summary>
-    /// Executes an action with state based on whether the operation succeeded, failed, or was cancelled.
-    /// </summary>
-    /// <typeparam name="TState">The type of the state.</typeparam>
-    /// <param name="state">The state to pass to the actions.</param>
-    /// <param name="onSuccess">The action to execute if the operation succeeded.</param>
-    /// <param name="onFailure">The action to execute if the operation failed.</param>
-    /// <param name="onCancelled">The action to execute if the operation was cancelled.</param>
-    public void Switch<TState>(
-        TState state, 
-        Action<TState, TValue> onSuccess, 
-        Action<TState, Error> onFailure,
-        Action<TState, Cancelled> onCancelled) 
-    {
-        if (IsSuccess) onSuccess(state, Value);
-        else if (IsFailure) onFailure(state, Error);
-        else onCancelled(state, Cancellation);
-    }
 
     /// <summary>
     /// Returns a string representation of the operation result.
