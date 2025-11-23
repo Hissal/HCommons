@@ -152,27 +152,6 @@ public struct PooledArray<T>(T[] array, int length) : IDisposable {
     public static void Return([HandlesResourceDisposal] ref PooledArray<T> pooledArray, bool clearArray) => pooledArray.ReturnToPool(clearArray);
     
     /// <summary>
-    /// Returns a read-only pooled array to the pool.
-    /// </summary>
-    /// <param name="pooledArray">The read-only pooled array to return.</param>
-    /// <remarks>
-    /// After calling this method, the pooled array is disposed and should not be used again.
-    /// Do not call this method multiple times on the same array or copies of it.
-    /// </remarks>
-    public static void Return([HandlesResourceDisposal] ref ReadOnlyPooledArray<T> pooledArray) => pooledArray.Dispose();
-    
-    /// <summary>
-    /// Returns a read-only pooled array to the pool, optionally clearing its contents.
-    /// </summary>
-    /// <param name="pooledArray">The read-only pooled array to return.</param>
-    /// <param name="clearArray">Whether to clear the array contents before returning to the pool.</param>
-    /// <remarks>
-    /// After calling this method, the pooled array is disposed and should not be used again.
-    /// Do not call this method multiple times on the same array or copies of it.
-    /// </remarks>
-    public static void Return([HandlesResourceDisposal] ref ReadOnlyPooledArray<T> pooledArray, bool clearArray) => pooledArray.ReturnToPool(clearArray);
-
-    /// <summary>
     /// Creates an independent copy of the current pooled array with its own backing storage.
     /// </summary>
     /// <returns>A new <see cref="PooledArray{T}"/> containing a copy of the elements.</returns>
@@ -234,27 +213,6 @@ public struct PooledArray<T>(T[] array, int length) : IDisposable {
         var newArr = Rent(length);
         slice.CopyTo(newArr.Span);
         return newArr;
-    }
-    
-    /// <summary>
-    /// Converts the current pooled array to a read-only pooled array, transferring ownership.
-    /// </summary>
-    /// <returns>A new <see cref="ReadOnlyPooledArray{T}"/> instance.</returns>
-    /// <remarks>
-    /// This method transfers ownership of the underlying array. After calling this method,
-    /// the current instance is disposed and should not be used. Only the returned read-only
-    /// array should be disposed.
-    /// </remarks>
-    /// <exception cref="ObjectDisposedException">Thrown if the object is disposed.</exception>
-    [MustDisposeResource]
-    [HandlesResourceDisposal]
-    public ReadOnlyPooledArray<T> AsReadOnly() {
-        if (IsDisposed)
-            throw new ObjectDisposedException(nameof(PooledArray<T>));
-        
-        var array = _array!;
-        _array = null!;
-        return new ReadOnlyPooledArray<T>(array, Length);
     }
     
     /// <summary>
