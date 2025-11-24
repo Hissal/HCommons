@@ -5,6 +5,7 @@ A C# commons library providing utility types and helper functions for .NET appli
 ## Features
 
 - **Buffers**: Memory-efficient pooled array types for high-performance scenarios
+- **Math**: Mathematical helper methods and extensions for common operations
 - **Monads**: Functional programming utilities for safe and expressive error handling
 
 ## Installation
@@ -100,25 +101,6 @@ var pooled = PooledArray<int>.Rent(100);
 PooledArray<int>.Return(ref pooled); // Explicitly return and dispose
 ```
 
-### ReadOnlyPooledArray<T>
-
-A read-only version of `PooledArray<T>` for immutable data scenarios.
-
-```csharp
-using HCommons.Buffers;
-
-// Convert from PooledArray
-using var mutable = PooledArray<int>.Rent(10);
-mutable.Span.Fill(42);
-
-using var readOnly = mutable.AsReadOnly(); // Transfers ownership
-
-// Read-only operations
-int value = readOnly[0];
-ReadOnlySpan<int> span = readOnly.Span;
-ReadOnlyMemory<int> memory = readOnly.Memory;
-```
-
 ### PooledArrayBuilder<T>
 
 A builder for constructing pooled arrays incrementally, similar to `List<T>` but using pooled memory.
@@ -143,6 +125,71 @@ using var builder2 = new PooledArrayBuilder<int>();
 builder2.Add(1);
 using var copy = builder2.BuildCopy();
 builder2.Add(2); // Builder still valid
+```
+
+## Math
+
+The `HCommons.Math` namespace provides mathematical helper methods and extensions for common operations.
+
+### HMath
+
+Static utility methods for mathematical operations.
+
+#### ClampToFloat
+
+Clamps a double value to the float range and converts it to a float.
+
+```csharp
+using HCommons.Math;
+
+double largeValue = 1e100;
+float clamped = HMath.ClampToFloat(largeValue); // Returns float.MaxValue
+
+double smallValue = -1e100;
+float clampedSmall = HMath.ClampToFloat(smallValue); // Returns float.MinValue
+
+// With custom range
+double value = 150.0;
+float inRange = HMath.ClampToFloat(value, 0.0f, 100.0f); // Returns 100.0f
+```
+
+#### Map
+
+Maps values from one range to another range. Available for `int`, `float`, and `double` types.
+
+```csharp
+using HCommons.Math;
+
+// Map integer from 0-100 to 0-255
+int brightness = 75;
+int byteValue = HMath.Map(brightness, 0, 100, 0, 255); // 191
+
+// Map float from 0-1 to -1 to 1
+float normalized = 0.75f;
+float scaled = HMath.Map(normalized, 0f, 1f, -1f, 1f); // 0.5
+
+// Map double for precise calculations
+double temperature = 20.0;
+double fahrenheit = HMath.Map(temperature, 0.0, 100.0, 32.0, 212.0);
+```
+
+### HMathExtensions
+
+Extension methods that provide the same functionality as `HMath` but in a fluent style.
+
+```csharp
+using HCommons.Math;
+
+// ClampToFloat as extension
+double value = 1e100;
+float clamped = value.ClampToFloat(); // Returns float.MaxValue
+
+// Map as extension
+int brightness = 75;
+int byteValue = brightness.Map(0, 100, 0, 255); // 191
+
+float normalized = 0.75f;
+float scaled = normalized.Map(0f, 1f, -1f, 1f); // 0.5
 ```
 
 ## Monads
@@ -219,6 +266,39 @@ var result = from x in opt
              select x + y;
 ```
 
+#### Stateful Transformations
+
+All transformation methods (`Select`, `Bind`, `Where`, `Match`, `Switch`, and `SelectMany`) have overloads that accept a state parameter, allowing you to pass additional context without closures:
+
+```csharp
+Optional<int> opt = 42;
+
+// Select with state
+var multiplier = 2;
+Optional<int> doubled = opt.Select(multiplier, (state, x) => x * state);
+
+// Bind with state
+var options = new Dictionary<int, string>();
+Optional<string> lookup = opt.Bind(options, (dict, key) => 
+    dict.TryGetValue(key, out var val) ? Optional<string>.Some(val) : Optional<string>.None());
+
+// Where with state
+var threshold = 10;
+Optional<int> filtered = opt.Where(threshold, (limit, x) => x > limit);
+
+// Match with state
+var context = "Result";
+string message = opt.Match(context, 
+    (ctx, v) => $"{ctx}: {v}", 
+    ctx => $"{ctx}: None");
+
+// Switch with state
+var logger = new Logger();
+opt.Switch(logger,
+    (log, v) => log.Info($"Got {v}"),
+    log => log.Info("No value"));
+```
+
 ### Either<TLeft, TRight>
 
 Represents a value that is one of two possible types, commonly used for success/error scenarios.
@@ -246,6 +326,53 @@ right.Switch(
     leftAction: err => Console.WriteLine($"Failed: {err}"),
     rightAction: val => Console.WriteLine($"Got: {val}")
 );
+```
+
+#### Either Extensions
+
+The `Either` type includes powerful extension methods for transformations and conversions:
+
+```csharp
+using HCommons.Monads;
+
+Either<string, int> either = 42;
+
+// Swap left and right
+Either<int, string> swapped = either.Swap(); // Left("42") becomes Right("42")
+
+// Convert to Optional
+Optional<int> rightOpt = either.AsRightOptional(); // Some(42)
+Optional<string> leftOpt = either.AsLeftOptional(); // None
+
+// Map both sides
+Either<int, string> mapped = either.Map(
+    leftMapper: err => err.Length,
+    rightMapper: val => val.ToString()
+);
+
+// Map only one side
+Either<string, string> rightMapped = either.MapRight(x => x.ToString());
+Either<int, int> leftMapped = either.MapLeft(err => err.Length);
+```
+
+#### Stateful Either Transformations
+
+`Either` also supports stateful transformations for `Map`, `MapLeft`, `MapRight`, `Match`, and `Switch`:
+
+```csharp
+Either<string, int> either = 42;
+
+// Map with state
+var formatter = new NumberFormatter();
+Either<string, string> formatted = either.Map(formatter,
+    (fmt, err) => fmt.FormatError(err),
+    (fmt, val) => fmt.FormatValue(val));
+
+// Match with state
+var logger = new Logger();
+var result = either.Match(logger,
+    (log, err) => { log.Error(err); return -1; },
+    (log, val) => { log.Info($"Got {val}"); return val; });
 ```
 
 ### Result and Result<TValue>
@@ -302,6 +429,63 @@ if (result.TryGetValue(out var val)) {
 }
 ```
 
+#### Result Extensions
+
+`Result` and `Result<TValue>` have extension methods for functional transformations:
+
+```csharp
+using HCommons.Monads;
+
+Result<int> result = Result<int>.Success(42);
+
+// Select (map) to transform success values
+Result<string> strResult = result.Select(x => x.ToString());
+
+// Bind (flatMap) to chain operations that return results
+Result<int> doubled = result.Bind(x => 
+    x > 0 ? Result<int>.Success(x * 2) : Result<int>.Failure("Value must be positive"));
+
+// MapError to transform errors
+Result<int> remapped = result.MapError(err => 
+    Error.WithMessage($"Operation failed: {err.Message}"));
+
+// Match for pattern matching
+var message = result.Match(
+    onSuccess: val => $"Got {val}",
+    onFailure: err => $"Error: {err.Message}"
+);
+```
+
+#### Stateful Result Transformations
+
+All Result transformation methods support stateful overloads:
+
+```csharp
+Result<int> result = Result<int>.Success(42);
+
+// Select with state
+var multiplier = 2;
+Result<int> doubled = result.Select(multiplier, (m, x) => x * m);
+
+// Bind with state
+var validator = new Validator();
+Result<int> validated = result.Bind(validator, (v, x) => 
+    v.IsValid(x) ? Result<int>.Success(x) : Result<int>.Failure("Invalid"));
+
+// MapError with state
+var logger = new Logger();
+Result<int> logged = result.MapError(logger, (log, err) => {
+    log.Error(err.Message);
+    return err;
+});
+
+// Match with state
+var formatter = new Formatter();
+string formatted = result.Match(formatter,
+    (fmt, val) => fmt.FormatSuccess(val),
+    (fmt, err) => fmt.FormatError(err));
+```
+
 ### OperationResult and OperationResult<TValue>
 
 Extends `Result` with cancellation support for operations that can be cancelled.
@@ -330,6 +514,27 @@ if (result.IsSuccess) {
 } else {
     Console.WriteLine($"Failed: {result.Error.Message}");
 }
+```
+
+#### OperationResult Extensions
+
+`OperationResult<TValue>` supports the same functional transformations as `Result<TValue>`, with cancellation awareness:
+
+```csharp
+using HCommons.Monads;
+
+OperationResult<int> opResult = OperationResult<int>.Success(42);
+
+// Select preserves cancellation state
+OperationResult<string> strResult = opResult.Select(x => x.ToString());
+
+// Bind chains operations
+OperationResult<int> doubled = opResult.Bind(x => 
+    OperationResult<int>.Success(x * 2));
+
+// All transformation methods have stateful overloads
+var multiplier = 3;
+OperationResult<int> tripled = opResult.Select(multiplier, (m, x) => x * m);
 ```
 
 ### Error
