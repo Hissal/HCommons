@@ -162,15 +162,15 @@ using HCommons.Math;
 
 // Map integer from 0-100 to 0-255
 int brightness = 75;
-int byteValue = HMath.Map(brightness, 0, 100, 0, 255); // 191
+int byteValue = HMath.Map(brightness, 0, 100, 0, 255); // 191 (75% of 255)
 
 // Map float from 0-1 to -1 to 1
 float normalized = 0.75f;
 float scaled = HMath.Map(normalized, 0f, 1f, -1f, 1f); // 0.5
 
-// Map double for precise calculations
+// Map double for precise calculations (Celsius to Fahrenheit)
 double temperature = 20.0;
-double fahrenheit = HMath.Map(temperature, 0.0, 100.0, 32.0, 212.0);
+double fahrenheit = HMath.Map(temperature, 0.0, 100.0, 32.0, 212.0); // 68.0
 ```
 
 ### HMathExtensions
@@ -186,7 +186,7 @@ float clamped = value.ClampToFloat(); // Returns float.MaxValue
 
 // Map as extension
 int brightness = 75;
-int byteValue = brightness.Map(0, 100, 0, 255); // 191
+int byteValue = brightness.Map(0, 100, 0, 255); // 191 (75% of 255)
 
 float normalized = 0.75f;
 float scaled = normalized.Map(0f, 1f, -1f, 1f); // 0.5
