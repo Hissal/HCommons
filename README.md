@@ -338,7 +338,7 @@ using HCommons.Monads;
 Either<string, int> either = 42;
 
 // Swap left and right
-Either<int, string> swapped = either.Swap(); // Left("42") becomes Right("42")
+Either<int, string> swapped = either.Swap(); // Right(42) becomes Left(42)
 
 // Convert to Optional
 Optional<int> rightOpt = either.AsRightOptional(); // Some(42)
