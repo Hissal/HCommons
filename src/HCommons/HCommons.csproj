@@ -22,7 +22,7 @@
         <PackageTags>Commons Monads Buffers Math</PackageTags>
 
         <PackageReadmeFile>README.md</PackageReadmeFile>
-        <PackageIcon>icon.png</PackageIcon>
+<!--        <PackageIcon>icon.png</PackageIcon>-->
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <PublishRepositoryUrl>true</PublishRepositoryUrl>
         <EmbedUntrackedSources>true</EmbedUntrackedSources>
@@ -45,7 +45,7 @@
 
     <ItemGroup>
         <None Include="../../README.md" Pack="true" PackagePath="\"/>
-        <None Include="../../icon.png" Pack="true" PackagePath="\" Condition="Exists('../../icon.png')"/>
+<!--        <None Include="../../icon.png" Pack="true" PackagePath="\" Condition="Exists('../../icon.png')"/>-->
     </ItemGroup>
 
     <PropertyGroup Condition="$(TargetFramework) != 'netstandard2.0' AND $(TargetFramework) != 'netstandard2.1'">
