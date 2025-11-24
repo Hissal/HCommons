@@ -5,7 +5,19 @@ using JetBrains.Annotations;
 
 namespace HCommons.Buffers;
 
+/// <summary>
+/// Provides extension methods for converting various collection types to <see cref="PooledArray{T}"/>.
+/// </summary>
 public static class PooledArrayExtensions {
+    /// <summary>
+    /// Creates a new <see cref="PooledArray{T}"/> by copying the contents of a <see cref="Span{T}"/>.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the span.</typeparam>
+    /// <param name="source">The span to copy from.</param>
+    /// <returns>A new pooled array containing a copy of the source data. The caller is responsible for disposing the returned array.</returns>
+    /// <remarks>
+    /// The returned <see cref="PooledArray{T}"/> must be disposed by the caller to return the underlying array to the pool.
+    /// </remarks>
     [Pure]
     [MustDisposeResource]
     public static PooledArray<T> ToPooledArray<T>(this Span<T> source) {
@@ -14,6 +26,15 @@ public static class PooledArrayExtensions {
         return pooledArray;
     }
     
+    /// <summary>
+    /// Creates a new <see cref="PooledArray{T}"/> by copying the contents of a <see cref="ReadOnlySpan{T}"/>.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the span.</typeparam>
+    /// <param name="source">The read-only span to copy from.</param>
+    /// <returns>A new pooled array containing a copy of the source data. The caller is responsible for disposing the returned array.</returns>
+    /// <remarks>
+    /// The returned <see cref="PooledArray{T}"/> must be disposed by the caller to return the underlying array to the pool.
+    /// </remarks>
     [Pure]
     [MustDisposeResource]
     public static PooledArray<T> ToPooledArray<T>(this ReadOnlySpan<T> source) {
@@ -22,6 +43,15 @@ public static class PooledArrayExtensions {
         return pooledArray;
     }
     
+    /// <summary>
+    /// Creates a new <see cref="PooledArray{T}"/> by copying the contents of a <see cref="Memory{T}"/>.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the memory.</typeparam>
+    /// <param name="source">The memory to copy from.</param>
+    /// <returns>A new pooled array containing a copy of the source data. The caller is responsible for disposing the returned array.</returns>
+    /// <remarks>
+    /// The returned <see cref="PooledArray{T}"/> must be disposed by the caller to return the underlying array to the pool.
+    /// </remarks>
     [Pure]
     [MustDisposeResource]
     public static PooledArray<T> ToPooledArray<T>(this Memory<T> source) {
@@ -30,6 +60,15 @@ public static class PooledArrayExtensions {
         return pooledArray;
     }
     
+    /// <summary>
+    /// Creates a new <see cref="PooledArray{T}"/> by copying the contents of a <see cref="ReadOnlyMemory{T}"/>.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the memory.</typeparam>
+    /// <param name="source">The read-only memory to copy from.</param>
+    /// <returns>A new pooled array containing a copy of the source data. The caller is responsible for disposing the returned array.</returns>
+    /// <remarks>
+    /// The returned <see cref="PooledArray{T}"/> must be disposed by the caller to return the underlying array to the pool.
+    /// </remarks>
     [Pure]
     [MustDisposeResource]
     public static PooledArray<T> ToPooledArray<T>(this ReadOnlyMemory<T> source) {
@@ -38,6 +77,15 @@ public static class PooledArrayExtensions {
         return pooledArray;
     }
     
+    /// <summary>
+    /// Creates a new <see cref="PooledArray{T}"/> by copying the contents of an <see cref="ArraySegment{T}"/>.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the array segment.</typeparam>
+    /// <param name="source">The array segment to copy from.</param>
+    /// <returns>A new pooled array containing a copy of the source data. The caller is responsible for disposing the returned array.</returns>
+    /// <remarks>
+    /// The returned <see cref="PooledArray{T}"/> must be disposed by the caller to return the underlying array to the pool.
+    /// </remarks>
     [Pure]
     [MustDisposeResource]
     public static PooledArray<T> ToPooledArray<T>(this ArraySegment<T> source) {
@@ -46,6 +94,15 @@ public static class PooledArrayExtensions {
         return pooledArray;
     }
     
+    /// <summary>
+    /// Creates a new <see cref="PooledArray{T}"/> by copying the contents of an array.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the array.</typeparam>
+    /// <param name="source">The array to copy from.</param>
+    /// <returns>A new pooled array containing a copy of the source data. The caller is responsible for disposing the returned array.</returns>
+    /// <remarks>
+    /// The returned <see cref="PooledArray{T}"/> must be disposed by the caller to return the underlying array to the pool.
+    /// </remarks>
     [Pure]
     [MustDisposeResource]
     public static PooledArray<T> ToPooledArray<T>(this T[] source) {
@@ -54,6 +111,16 @@ public static class PooledArrayExtensions {
         return pooledArray;
     }
     
+    /// <summary>
+    /// Creates a new <see cref="PooledArray{T}"/> by copying the contents of an <see cref="ICollection{T}"/>.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the collection.</typeparam>
+    /// <param name="source">The collection to copy from.</param>
+    /// <returns>A new pooled array containing a copy of the source data. The caller is responsible for disposing the returned array.</returns>
+    /// <remarks>
+    /// The returned <see cref="PooledArray{T}"/> must be disposed by the caller to return the underlying array to the pool.
+    /// This method uses <see cref="ICollection{T}.CopyTo"/> for efficient copying.
+    /// </remarks>
     [Pure]
     [MustDisposeResource]
     public static PooledArray<T> ToPooledArray<T>(this ICollection<T> source) {
@@ -62,6 +129,18 @@ public static class PooledArrayExtensions {
         return pooledArray;
     }
     
+    /// <summary>
+    /// Creates a new <see cref="PooledArray{T}"/> by enumerating and copying the contents of an <see cref="IEnumerable{T}"/>.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the enumerable.</typeparam>
+    /// <param name="source">The enumerable to copy from.</param>
+    /// <returns>A new pooled array containing a copy of the source data. The caller is responsible for disposing the returned array.</returns>
+    /// <remarks>
+    /// The returned <see cref="PooledArray{T}"/> must be disposed by the caller to return the underlying array to the pool.
+    /// If the count can be determined without enumeration (via <see cref="Enumerable.TryGetNonEnumeratedCount{TSource}"/>),
+    /// a single appropriately-sized array is rented. Otherwise, a <see cref="PooledArrayBuilder{T}"/> is used to build the array dynamically.
+    /// Special handling is provided for arrays and <see cref="ICollection{T}"/> for optimal performance.
+    /// </remarks>
     [Pure]
     [MustDisposeResource]
     public static PooledArray<T> ToPooledArray<T>(this IEnumerable<T> source) {
