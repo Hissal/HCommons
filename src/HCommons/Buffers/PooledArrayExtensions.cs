@@ -137,9 +137,6 @@ public static class PooledArrayExtensions {
     /// <returns>A new pooled array containing a copy of the source data. The caller is responsible for disposing the returned array.</returns>
     /// <remarks>
     /// The returned <see cref="PooledArray{T}"/> must be disposed by the caller to return the underlying array to the pool.
-    /// If the count can be determined without enumeration (via <see cref="Enumerable.TryGetNonEnumeratedCount{TSource}"/>),
-    /// a single appropriately-sized array is rented. Otherwise, a <see cref="PooledArrayBuilder{T}"/> is used to build the array dynamically.
-    /// Special handling is provided for arrays and <see cref="ICollection{T}"/> for optimal performance.
     /// </remarks>
     [Pure]
     [MustDisposeResource]

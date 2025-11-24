@@ -73,7 +73,8 @@ jobs:
     needs: publish
     runs-on: ubuntu-24.04
     if: ${{ inputs.dry-run == false }}
-
+    permissions: 
+      contents: write
     steps:
       - name: Create Git tag and GitHub Release
         uses: softprops/action-gh-release@v2
