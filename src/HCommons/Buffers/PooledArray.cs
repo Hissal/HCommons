@@ -140,7 +140,7 @@ public struct PooledArray<T>(T[] array, int length) : IDisposable {
     /// underlying array's physical length.
     /// </para>
     /// </remarks>
-    [System.Diagnostics.Contracts.Pure]
+    [Pure]
     [MustDisposeResource]
     public static PooledArray<T> Rent(int length) {
         var array = ArrayPool<T>.Shared.Rent(length);
