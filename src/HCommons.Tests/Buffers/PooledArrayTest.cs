@@ -78,7 +78,7 @@ public class PooledArrayTest {
     [Theory]
     [InlineData("Dispose")]
     [InlineData("Return")]
-    public void AccessingArray_ShouldReturnEmpty_AfterDisposalAndReturn(string method) {
+    public void AccessingArray_ShouldThrowObjectDisposedException_AfterDisposalAndReturn(string method) {
         var pooled = PooledArray<int>.Rent(10);
 
         switch (method) {
@@ -92,7 +92,7 @@ public class PooledArrayTest {
                 throw new ArgumentException("Invalid method", nameof(method));
         }
 
-        pooled.Array.ShouldBe([]);
+        Should.Throw<ObjectDisposedException>(() => { var _ = pooled.Array; });
     }
 
     [Fact]

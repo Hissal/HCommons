@@ -45,30 +45,36 @@ public struct PooledArray<T>(T[] array, int length) : IDisposable {
     public static PooledArray<T> Empty => new([], 0);
 
     /// <summary>
-    /// Returns a disposed pooled array.
+    /// Returns a sentinel value representing a disposed pooled array.
     /// </summary>
+    /// <remarks>
+    /// This property returns a <see cref="PooledArray{T}"/> instance that appears disposed (its internal array is <c>null</c>),
+    /// but it was never actually rented from the pool. There is no underlying array to return.
+    /// Use this as a sentinel to represent a disposed state, not as an array that was previously rented and then disposed.
+    /// </remarks>
     // ReSharper disable once NotDisposedResourceIsReturnedByProperty
     public static PooledArray<T> Disposed => new(null!, 0);
 
     T[]? _array = array;
     
     /// <summary>
-    /// Gets the underlying array. Returns an empty array if disposed.
+    /// Gets the underlying array. Throws <see cref="ObjectDisposedException"/> if the array has been disposed.
     /// </summary>
+    /// <exception cref="ObjectDisposedException">Thrown if accessed in a disposed pooled array</exception>
     public T[] Array {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => _array ?? [];
+        get => _array ?? throw new ObjectDisposedException(nameof(PooledArray<T>));
     }
 
     /// <summary>
-    /// Gets the logical length of the pooled array.
+    /// Gets the logical length of the pooled array. Returns 0 if disposed.
     /// </summary>
     /// <remarks>
     /// This is the exact length that was requested when renting, not the actual length of the underlying
     /// array which may be larger due to pooling behavior. All operations (indexing, enumeration, etc.)
     /// respect this logical length.
     /// </remarks>
-    public int Length => IsDisposed ? 0 : length;
+    public int Length { get; private set; } = length;
 
     /// <summary>
     /// Indicates whether the object has been disposed.
@@ -241,6 +247,7 @@ public struct PooledArray<T>(T[] array, int length) : IDisposable {
         
         ArrayPool<T>.Shared.Return(_array, clearArray);
         _array = null!;
+        Length = 0;
     }
     
     /// <summary>
