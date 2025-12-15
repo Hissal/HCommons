@@ -38,15 +38,26 @@ namespace HCommons.Buffers;
 /// </remarks>
 [MustDisposeResource]
 public struct PooledArray<T>(T[] array, int length) : IDisposable {
+    /// <summary>
+    /// Returns an empty pooled array.
+    /// </summary>
+    // ReSharper disable once NotDisposedResourceIsReturnedByProperty
+    public static PooledArray<T> Empty => new([], 0);
+
+    /// <summary>
+    /// Returns a disposed pooled array.
+    /// </summary>
+    // ReSharper disable once NotDisposedResourceIsReturnedByProperty
+    public static PooledArray<T> Disposed => new(null!, 0);
+
     T[]? _array = array;
     
     /// <summary>
-    /// Gets the underlying array. Throws if the object is disposed.
+    /// Gets the underlying array. Returns an empty array if disposed.
     /// </summary>
-    /// <exception cref="ObjectDisposedException">Thrown when accessing the array after disposal.</exception>
     public T[] Array {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => _array ?? throw new ObjectDisposedException(nameof(PooledArray<T>));
+        get => _array ?? [];
     }
 
     /// <summary>
@@ -57,7 +68,7 @@ public struct PooledArray<T>(T[] array, int length) : IDisposable {
     /// array which may be larger due to pooling behavior. All operations (indexing, enumeration, etc.)
     /// respect this logical length.
     /// </remarks>
-    public int Length { get; } = length;
+    public int Length => IsDisposed ? 0 : length;
 
     /// <summary>
     /// Indicates whether the object has been disposed.
@@ -123,7 +134,7 @@ public struct PooledArray<T>(T[] array, int length) : IDisposable {
     /// underlying array's physical length.
     /// </para>
     /// </remarks>
-    [Pure]
+    [System.Diagnostics.Contracts.Pure]
     [MustDisposeResource]
     public static PooledArray<T> Rent(int length) {
         var array = ArrayPool<T>.Shared.Rent(length);
