@@ -19,6 +19,7 @@ public class PooledArrayTest {
         var pooled = PooledArray<int>.Disposed;
         pooled.IsDisposed.ShouldBeTrue();
         pooled.Length.ShouldBe(0);
+        Should.Throw<ObjectDisposedException>(() => { _ = pooled.Array; });
     }
     
     [Theory]
@@ -92,7 +93,7 @@ public class PooledArrayTest {
                 throw new ArgumentException("Invalid method", nameof(method));
         }
 
-        Should.Throw<ObjectDisposedException>(() => { var _ = pooled.Array; });
+        Should.Throw<ObjectDisposedException>(() => { _ = pooled.Array; });
     }
 
     [Fact]

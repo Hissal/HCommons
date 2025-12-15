@@ -60,7 +60,7 @@ public struct PooledArray<T>(T[] array, int length) : IDisposable {
     /// <summary>
     /// Gets the underlying array. Throws <see cref="ObjectDisposedException"/> if the array has been disposed.
     /// </summary>
-    /// <exception cref="ObjectDisposedException">Thrown if accessed in a disposed pooled array</exception>
+    /// <exception cref="ObjectDisposedException">Thrown when accessed on a disposed pooled array</exception>
     public T[] Array {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => _array ?? throw new ObjectDisposedException(nameof(PooledArray<T>));
