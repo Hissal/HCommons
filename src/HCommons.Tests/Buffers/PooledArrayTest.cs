@@ -6,6 +6,22 @@ namespace HCommons.Tests.Buffers;
 [Collection(nameof(NonParallelTests))]
 [TestSubject(typeof(PooledArray<>))]
 public class PooledArrayTest {
+    [Fact]
+    public void Empty_ShouldReturnAnEmptyPooledArray() {
+        var pooled = PooledArray<int>.Empty;
+        pooled.Array.ShouldBe([]);
+        pooled.Length.ShouldBe(0);
+        pooled.IsDisposed.ShouldBeFalse();
+    }
+    
+    [Fact]
+    public void Disposed_ShouldReturnADisposedPooledArray() {
+        var pooled = PooledArray<int>.Disposed;
+        pooled.IsDisposed.ShouldBeTrue();
+        pooled.Length.ShouldBe(0);
+        Should.Throw<ObjectDisposedException>(() => { _ = pooled.Array; });
+    }
+    
     [Theory]
     [InlineData("Dispose")]
     [InlineData("Return")]
@@ -77,7 +93,7 @@ public class PooledArrayTest {
                 throw new ArgumentException("Invalid method", nameof(method));
         }
 
-        Should.Throw<ObjectDisposedException>(() => pooled.Array);
+        Should.Throw<ObjectDisposedException>(() => { _ = pooled.Array; });
     }
 
     [Fact]
@@ -91,6 +107,26 @@ public class PooledArrayTest {
     public void Length_ShouldBeSetCorrectly_WhenRented() {
         using var pooled = PooledArray<int>.Rent(10);
         pooled.Length.ShouldBe(10);
+    }
+    
+    [Theory]
+    [InlineData("Dispose")]
+    [InlineData("Return")]
+    public void Length_ShouldBeZero_AfterDisposalAndReturn(string method) {
+        var pooled = PooledArray<int>.Rent(10);
+
+        switch (method) {
+            case "Dispose":
+                pooled.Dispose();
+                break;
+            case "Return":
+                PooledArray<int>.Return(ref pooled);
+                break;
+            default:
+                throw new ArgumentException("Invalid method", nameof(method));
+        }
+
+        pooled.Length.ShouldBe(0);
     }
 
     [Fact]
