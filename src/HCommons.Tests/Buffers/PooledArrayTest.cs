@@ -10,12 +10,15 @@ public class PooledArrayTest {
     public void Empty_ShouldReturnAnEmptyPooledArray() {
         var pooled = PooledArray<int>.Empty;
         pooled.Array.ShouldBe([]);
+        pooled.Length.ShouldBe(0);
+        pooled.IsDisposed.ShouldBeFalse();
     }
     
     [Fact]
     public void Disposed_ShouldReturnADisposedPooledArray() {
         var pooled = PooledArray<int>.Disposed;
-        pooled.IsDisposed.ShouldBe(true);
+        pooled.IsDisposed.ShouldBeTrue();
+        pooled.Length.ShouldBe(0);
     }
     
     [Theory]
