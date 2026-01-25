@@ -1,0 +1,51 @@
+﻿<Project>
+    <PropertyGroup>
+        <Authors>Hissal</Authors>
+        <Copyright>Lassi Harjaluoma</Copyright>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <RepositoryUrl>https://github.com/Hissal/HCommons</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <!--        <PackageIcon>Icon.png</PackageIcon>-->
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <!-- Do NOT put Version here if you want them independent -->
+        
+        <!-- Project-wide settings -->
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <LangVersion>13</LangVersion>
+        <TargetFrameworks>net9.0;net8.0;netstandard2.0;netstandard2.1</TargetFrameworks>
+        
+        <!-- Package generation settings -->
+        <IsPackable>false</IsPackable>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <ProduceReferenceAssembly Condition="$(TargetFramework.StartsWith('netstandard'))">true</ProduceReferenceAssembly>
+        <IsTrimmable Condition="$(TargetFramework) != 'netstandard2.0' AND $(TargetFramework) != 'netstandard2.1'">true</IsTrimmable>
+        
+        <!-- Strong naming -->
+        <SignAssembly>true</SignAssembly>
+        <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)opensource.snk</AssemblyOriginatorKeyFile>
+
+        <!-- NuGet deterministic build -->
+        <Deterministic>true</Deterministic>
+        <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+
+        <!-- NuGet SourceLink -->
+        <PublishRepositoryUrl>true</PublishRepositoryUrl>
+        <EmbedUntrackedSources>true</EmbedUntrackedSources>
+        <IncludeSymbols>true</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+        
+        <!-- NuGet Missing Compiler Flags -->
+        <Features>strict</Features>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(ContinuousIntegrationBuild)' == 'true'">
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    </PropertyGroup>
+
+    <ItemGroup>
+<!--        <None Include="$(MSBuildThisFileDirectory)Icon.png" Pack="true" PackagePath="\" />-->
+        <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="\" />
+        <EmbeddedResource Include="$(MSBuildThisFileDirectory)LICENSE" />
+    </ItemGroup>
+</Project>

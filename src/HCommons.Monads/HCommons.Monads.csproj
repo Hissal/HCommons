@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <!-- Package Identity -->
+        <Version>1.0.0</Version>
+        <Title>HCommons.Monads</Title>
+        <Description>Monadic types and functional extensions.</Description>
+        <PackageTags>Monads Functional Option Result</PackageTags>
+
+        <!-- Override Directory.Build.props to allow Nuget generation -->
+        <IsPackable>true</IsPackable>
+        <RootNamespace>HCommons.Monads</RootNamespace>
+    </PropertyGroup>
+
+    <!-- Dependencies for Polyfills on older targets -->
+    <ItemGroup Condition="$(TargetFramework.StartsWith('netstandard'))">
+        <PackageReference Include="PolySharp" Version="1.15.0">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
+
+</Project>
