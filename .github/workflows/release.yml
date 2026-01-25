@@ -178,8 +178,25 @@ jobs:
           echo "matrix=$(echo "$JSON" | jq -c .)" >> $GITHUB_OUTPUT
           echo "has-updates=$HAS_UPDATES" >> $GITHUB_OUTPUT
 
-  publish:
+  test:
     needs: check-versions
+    if: needs.check-versions.outputs.has-updates == 'true'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: |
+            9.0.x
+            8.0.x
+            6.0.x
+      - name: Run Solution Tests
+        run: dotnet test HCommons.sln -c Release --verbosity normal
+
+  publish:
+    needs: [check-versions, test]
     if: needs.check-versions.outputs.has-updates == 'true'
     runs-on: ubuntu-24.04
     strategy:
@@ -194,13 +211,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: |
-            9.0.x
-            8.0.x
-            6.0.x
-
-      - name: Run Solution Tests
-        run: dotnet test HCommons.sln -c Release --verbosity normal
+          dotnet-version: 9.0.x
 
       - name: Build & Pack ${{ matrix.packageId }}
         run: |
@@ -219,6 +230,13 @@ jobs:
             /p:IncludeSymbols=true \
             /p:SymbolPackageFormat=snupkg \
             -o ./artifacts
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pkg-${{ matrix.packageId }}
+          path: ./artifacts/*.nupkg
+          if-no-files-found: error
 
       - name: Push to NuGet
         if: ${{ inputs.dry-run == false }}
