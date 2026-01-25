@@ -3,19 +3,189 @@ name: Build-Release
 on:
   workflow_dispatch:
     inputs:
-      version:
-        description: "NuGet / assembly version (e.g. 0.1.0)"
-        required: true
       dry-run:
-        description: "If true, do not push to NuGet or create a GitHub release."
-        required: true
+        description: "If true, do not push to NuGet or create tags."
+        required: false
         default: false
         type: boolean
 
 jobs:
-  build-and-pack:
+  check-versions:
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      has-updates: ${{ steps.set-matrix.outputs.has-updates }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Identify Updates
+        id: set-matrix
+        shell: bash
+        run: |
+          # Initialize state
+          JSON="[]"
+          HAS_UPDATES="false"
+          CHILDREN_UPDATED="false"
+          HIGHEST_BUMP="none" # Start with no bump required
+          ROOT_PACKAGE_ID="HCommons"
+          ROOT_PROJECT_PATH=""
+
+          # Find all csproj files
+          PROJECTS=$(find src -name "*.csproj")
+
+          echo "Scanning projects..."
+
+          # --- PHASE 1: Process children first ---
+          for PROJECT in $PROJECTS; do
+            IS_PACKABLE=$(dotnet msbuild "$PROJECT" -getProperty:IsPackable)
+
+            if [[ "$IS_PACKABLE" == "true" ]]; then
+              PACKAGE_ID=$(dotnet msbuild "$PROJECT" -getProperty:PackageId)
+              if [[ -z "$PACKAGE_ID" ]]; then PACKAGE_ID=$(dotnet msbuild "$PROJECT" -getProperty:AssemblyName); fi
+
+              # Separate the Root package from the children
+              if [[ "$PACKAGE_ID" == "$ROOT_PACKAGE_ID" ]]; then
+                ROOT_PROJECT_PATH="$PROJECT"
+                continue # Skip processing root for now
+              fi
+
+              # Logic for Child Packages
+              VERSION=$(dotnet msbuild "$PROJECT" -getProperty:Version)
+              LOWER_ID=$(echo "$PACKAGE_ID" | tr '[:upper:]' '[:lower:]')
+              URL="https://api.nuget.org/v3-flatcontainer/$LOWER_ID/index.json"
+              HTTP_CODE=$(curl -s -o response.json -w "%{http_code}" "$URL")
+
+              SHOULD_PUBLISH="false"
+              CURRENT_BUMP="patch" # Default assumption
+
+              if [ "$HTTP_CODE" -eq 404 ]; then
+                  echo "✅ [NEW] $PACKAGE_ID"
+                  SHOULD_PUBLISH="true"
+                  # New package implies added features, treating as Minor bump for root
+                  CURRENT_BUMP="minor"
+              elif [ "$HTTP_CODE" -eq 200 ]; then
+                  if grep -q "\"$VERSION\"" response.json; then
+                      echo "⏭️ [SKIP] $PACKAGE_ID v$VERSION"
+                  else
+                      echo "✅ [NEW] $PACKAGE_ID v$VERSION"
+                      SHOULD_PUBLISH="true"
+          
+                      # Calculate Bump Type (Major/Minor/Patch)
+                      LATEST_NUGET=$(jq -r '.versions[-1]' response.json)
+                      IFS='.' read -r -a old_parts <<< "$LATEST_NUGET"
+                      IFS='.' read -r -a new_parts <<< "$VERSION"
+          
+                      # Parse versions with defaults to 0
+                      oMaj="${old_parts[0]:-0}"; oMin="${old_parts[1]:-0}"
+                      nMaj="${new_parts[0]:-0}"; nMin="${new_parts[1]:-0}"
+
+                      if (( nMaj > oMaj )); then
+                          CURRENT_BUMP="major"
+                      elif (( nMin > oMin )); then
+                          CURRENT_BUMP="minor"
+                      else
+                          CURRENT_BUMP="patch"
+                      fi
+                      echo "   -> Detected change type: $CURRENT_BUMP"
+                  fi
+              fi
+
+              if [[ "$SHOULD_PUBLISH" == "true" ]]; then
+                HAS_UPDATES="true"
+                CHILDREN_UPDATED="true"
+          
+                # Update Highest Bump Logic (Major > Minor > Patch)
+                if [[ "$CURRENT_BUMP" == "major" ]]; then
+                    HIGHEST_BUMP="major"
+                elif [[ "$CURRENT_BUMP" == "minor" && "$HIGHEST_BUMP" != "major" ]]; then
+                    HIGHEST_BUMP="minor"
+                elif [[ "$CURRENT_BUMP" == "patch" && "$HIGHEST_BUMP" == "none" ]]; then
+                    HIGHEST_BUMP="patch"
+                fi
+
+                ITEM=$(jq -n --arg proj "$PROJECT" --arg id "$PACKAGE_ID" --arg ver "$VERSION" '{project: $proj, packageId: $id, version: $ver}')
+                JSON=$(echo "$JSON" | jq ". + [$ITEM]")
+              fi
+            fi
+          done
+
+          echo "Highest bump required based on children: $HIGHEST_BUMP"
+
+          # --- PHASE 2: Process Root (HCommons) ---
+          if [[ -n "$ROOT_PROJECT_PATH" ]]; then
+             echo "Evaluating Root Package: $ROOT_PACKAGE_ID..."
+
+             LOCAL_VERSION=$(dotnet msbuild "$ROOT_PROJECT_PATH" -getProperty:Version)
+             LOWER_ID=$(echo "$ROOT_PACKAGE_ID" | tr '[:upper:]' '[:lower:]')
+             URL="https://api.nuget.org/v3-flatcontainer/$LOWER_ID/index.json"
+             HTTP_CODE=$(curl -s -o response.json -w "%{http_code}" "$URL")
+
+             ROOT_PUBLISH_VERSION=""
+
+             if [ "$HTTP_CODE" -eq 404 ]; then
+                 echo "✅ [NEW] $ROOT_PACKAGE_ID (First release)"
+                 ROOT_PUBLISH_VERSION="$LOCAL_VERSION"
+             elif [ "$HTTP_CODE" -eq 200 ]; then
+                 # Check if local version > nuget version (Manual bump preference)
+                 if ! grep -q "\"$LOCAL_VERSION\"" response.json; then
+                     echo "✅ [NEW] $ROOT_PACKAGE_ID v$LOCAL_VERSION (Manual bump found)"
+                     ROOT_PUBLISH_VERSION="$LOCAL_VERSION"
+                 elif [[ "$CHILDREN_UPDATED" == "true" ]]; then
+                     # AUTO BUMP LOGIC
+                     LATEST_NUGET=$(jq -r '.versions[-1]' response.json)
+          
+                     IFS='.' read -r -a rParts <<< "$LATEST_NUGET"
+                     rMaj="${rParts[0]:-1}"
+                     rMin="${rParts[1]:-0}"
+                     rPat="${rParts[2]:-0}"
+
+                     if [[ "$HIGHEST_BUMP" == "major" ]]; then
+                         NEW_MAJ=$((rMaj + 1))
+                         ROOT_PUBLISH_VERSION="$NEW_MAJ.0.0"
+                         echo "ℹ️  Major bump triggered."
+                     elif [[ "$HIGHEST_BUMP" == "minor" ]]; then
+                         NEW_MIN=$((rMin + 1))
+                         ROOT_PUBLISH_VERSION="$rMaj.$NEW_MIN.0"
+                         echo "ℹ️  Minor bump triggered."
+                     else
+                         # Default to Patch (even if HIGHEST_BUMP is somehow none/patch)
+                         NEW_PAT=$((rPat + 1))
+                         ROOT_PUBLISH_VERSION="$rMaj.$rMin.$NEW_PAT"
+                         echo "ℹ️  Patch bump triggered."
+                     fi
+
+                     echo "✅ [AUTO] $ROOT_PACKAGE_ID v$ROOT_PUBLISH_VERSION (Derived from children)"
+                 else
+                     echo "⏭️ [SKIP] $ROOT_PACKAGE_ID (No changes)"
+                 fi
+             fi
+
+             if [[ -n "$ROOT_PUBLISH_VERSION" ]]; then
+                 HAS_UPDATES="true"
+                 ITEM=$(jq -n --arg proj "$ROOT_PROJECT_PATH" --arg id "$ROOT_PACKAGE_ID" --arg ver "$ROOT_PUBLISH_VERSION" '{project: $proj, packageId: $id, version: $ver}')
+                 JSON=$(echo "$JSON" | jq ". + [$ITEM]")
+             fi
+          fi
+
+          echo "Final Build Matrix:"
+          echo "$JSON" | jq .
+          echo "matrix=$JSON" >> $GITHUB_OUTPUT
+          echo "has-updates=$HAS_UPDATES" >> $GITHUB_OUTPUT
+
+  publish:
+    needs: check-versions
+    if: needs.check-versions.outputs.has-updates == 'true'
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.check-versions.outputs.matrix) }}
 
     steps:
       - name: Checkout
@@ -29,62 +199,42 @@ jobs:
             8.0.x
             6.0.x
 
-      - name: Restore
-        run: dotnet restore HCommons.sln
+      - name: Run Solution Tests
+        run: dotnet test HCommons.sln -c Release --verbosity normal
 
-      - name: Build
-        run: dotnet build HCommons.sln -c Release --no-restore /p:Version=${{ inputs.version }}
+      - name: Build & Pack ${{ matrix.packageId }}
+        run: |
+          dotnet restore "${{ matrix.project }}"
 
-      - name: Test
-        run: dotnet test HCommons.sln -c Release --no-build --verbosity normal
+          # Explicitly set Version property
+          dotnet build "${{ matrix.project }}" \
+            -c Release \
+            --no-restore \
+            /p:Version=${{ matrix.version }}
 
-      - name: Pack
-        run: >
-          dotnet pack HCommons.sln
-          -c Release
-          --no-build
-          /p:PackageVersion=${{ inputs.version }}
-          /p:IncludeSymbols=true
-          /p:SymbolPackageFormat=snupkg
-          -o ./artifacts
+          dotnet pack "${{ matrix.project }}" \
+            -c Release \
+            --no-build \
+            /p:PackageVersion=${{ matrix.version }} \
+            /p:IncludeSymbols=true \
+            /p:SymbolPackageFormat=snupkg \
+            -o ./artifacts
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v6
-        with:
-          name: nuget
-          path: ./artifacts/*.nupkg
+      - name: Push to NuGet
+        if: ${{ inputs.dry-run == false }}
+        run: |
+          dotnet nuget push "./artifacts/*.nupkg" \
+            --api-key "${{ secrets.NUGET_API_KEY }}" \
+            --source "https://api.nuget.org/v3/index.json" \
+            --skip-duplicate
 
-  publish:
-    needs: build-and-pack
-    runs-on: ubuntu-24.04
-    if: ${{ inputs.dry-run == false }}
-
-    steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@v7
-        with:
-          name: nuget
-          path: ./artifacts
-
-      - name: Publish to NuGet
-        run: dotnet nuget push "./artifacts/*.nupkg" --api-key "${{ secrets.NUGET_API_KEY }}" --source "https://api.nuget.org/v3/index.json" --skip-duplicate
-        
-  github-release:
-    needs: publish
-    runs-on: ubuntu-24.04
-    if: ${{ inputs.dry-run == false }}
-    permissions: 
-      contents: write
-    steps:
-      - name: Create Git tag and GitHub Release
+      - name: Create Git Tag
+        if: ${{ inputs.dry-run == false }}
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ inputs.version }}
-          name: v${{ inputs.version }}
+          tag_name: ${{ matrix.packageId }}-v${{ matrix.version }}
+          name: ${{ matrix.packageId }} v${{ matrix.version }}
           body: |
-            HCommons v${{ inputs.version }}
-
-            - TODO: fill in notable changes
+            Automated release for **${{ matrix.packageId }}** version **${{ matrix.version }}**.
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
