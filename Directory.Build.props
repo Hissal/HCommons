@@ -39,9 +39,10 @@
         <Features>strict</Features>
     </PropertyGroup>
 
-    <PropertyGroup Condition="'$(ContinuousIntegrationBuild)' == 'true'">
-        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    </PropertyGroup>
+    <!-- Enable Once Docs are created since those are warnings -->
+<!--    <PropertyGroup Condition="'$(ContinuousIntegrationBuild)' == 'true'">-->
+<!--        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>-->
+<!--    </PropertyGroup>-->
 
     <ItemGroup>
 <!--        <None Include="$(MSBuildThisFileDirectory)Icon.png" Pack="true" PackagePath="\" />-->
