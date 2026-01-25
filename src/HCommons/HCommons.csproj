@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <!-- Package Identity -->
-        <Version>1.0.0</Version>
+        <Version>0.2.0</Version>
         <Title>HCommons</Title>
         <Description>Commonly used types, functions, and extensions.</Description>
         <PackageTags>Commons Monads Buffers Math</PackageTags>
