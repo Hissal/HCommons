@@ -10,6 +10,9 @@
         <!-- Override Directory.Build.props to allow Nuget generation -->
         <IsPackable>true</IsPackable>
         <RootNamespace>HCommons.Buffers</RootNamespace>
+        
+        <!-- Suppress specific warnings -->
+        <NoWarn>CS0436</NoWarn>
     </PropertyGroup>
 
     <!-- Dependencies for Polyfills on older targets -->
