@@ -12,8 +12,10 @@
         <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
         <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
         <TestingPlatformShowTestsFailure>true</TestingPlatformShowTestsFailure>
-
+        
+        <!-- Disable Nuget generation -->
         <IsPackable>false</IsPackable>
+        <GenerateDocumentationFile>false</GenerateDocumentationFile>
     </PropertyGroup>
 
     <!-- Add .NET Framework test -->
@@ -49,6 +51,9 @@
 
     <ItemGroup>
         <ProjectReference Include="..\HCommons\HCommons.csproj"/>
+        <ProjectReference Include="..\HCommons.Monads\HCommons.Monads.csproj"/>
+        <ProjectReference Include="..\HCommons.Buffers\HCommons.Buffers.csproj"/>
+        <ProjectReference Include="..\HCommons.Math\HCommons.Math.csproj"/>
     </ItemGroup>
 
     <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
