@@ -175,7 +175,7 @@ jobs:
 
           echo "Final Build Matrix:"
           echo "$JSON" | jq .
-          echo "matrix=$JSON" >> $GITHUB_OUTPUT
+          echo "matrix=$(echo "$JSON" | jq -c .)" >> $GITHUB_OUTPUT
           echo "has-updates=$HAS_UPDATES" >> $GITHUB_OUTPUT
 
   publish:
