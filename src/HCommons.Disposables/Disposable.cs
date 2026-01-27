@@ -153,60 +153,90 @@ public static class Disposable {
 
     /// <summary>
     /// Disposes two disposables in sequence.
+    /// If any disposable throws an exception during disposal, all remaining disposables are still disposed.
+    /// All exceptions are collected and thrown as an <see cref="AggregateException"/>.
     /// </summary>
     /// <param name="disposable1">The first disposable to dispose.</param>
     /// <param name="disposable2">The second disposable to dispose.</param>
+    /// <exception cref="AggregateException">Thrown when one or more disposables throw exceptions during disposal.</exception>
     public static void Dispose(IDisposable disposable1, IDisposable disposable2) {
-        disposable1.Dispose();
-        disposable2.Dispose();
+        List<Exception>? exceptions = null;
+        
+        try { disposable1?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+        try { disposable2?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+        
+        if (exceptions != null) throw new AggregateException(exceptions);
     }
 
     /// <summary>
     /// Disposes three disposables in sequence.
+    /// If any disposable throws an exception during disposal, all remaining disposables are still disposed.
+    /// All exceptions are collected and thrown as an <see cref="AggregateException"/>.
     /// </summary>
     /// <param name="disposable1">The first disposable to dispose.</param>
     /// <param name="disposable2">The second disposable to dispose.</param>
     /// <param name="disposable3">The third disposable to dispose.</param>
+    /// <exception cref="AggregateException">Thrown when one or more disposables throw exceptions during disposal.</exception>
     public static void Dispose(IDisposable disposable1, IDisposable disposable2, IDisposable disposable3) {
-        disposable1.Dispose();
-        disposable2.Dispose();
-        disposable3.Dispose();
+        List<Exception>? exceptions = null;
+        
+        try { disposable1?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+        try { disposable2?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+        try { disposable3?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+        
+        if (exceptions != null) throw new AggregateException(exceptions);
     }
 
     /// <summary>
     /// Disposes four disposables in sequence.
+    /// If any disposable throws an exception during disposal, all remaining disposables are still disposed.
+    /// All exceptions are collected and thrown as an <see cref="AggregateException"/>.
     /// </summary>
     /// <param name="disposable1">The first disposable to dispose.</param>
     /// <param name="disposable2">The second disposable to dispose.</param>
     /// <param name="disposable3">The third disposable to dispose.</param>
     /// <param name="disposable4">The fourth disposable to dispose.</param>
+    /// <exception cref="AggregateException">Thrown when one or more disposables throw exceptions during disposal.</exception>
     public static void Dispose(IDisposable disposable1, IDisposable disposable2, IDisposable disposable3,
         IDisposable disposable4) {
-        disposable1.Dispose();
-        disposable2.Dispose();
-        disposable3.Dispose();
-        disposable4.Dispose();
+        List<Exception>? exceptions = null;
+        
+        try { disposable1?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+        try { disposable2?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+        try { disposable3?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+        try { disposable4?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+        
+        if (exceptions != null) throw new AggregateException(exceptions);
     }
 
     /// <summary>
     /// Disposes five disposables in sequence.
+    /// If any disposable throws an exception during disposal, all remaining disposables are still disposed.
+    /// All exceptions are collected and thrown as an <see cref="AggregateException"/>.
     /// </summary>
     /// <param name="disposable1">The first disposable to dispose.</param>
     /// <param name="disposable2">The second disposable to dispose.</param>
     /// <param name="disposable3">The third disposable to dispose.</param>
     /// <param name="disposable4">The fourth disposable to dispose.</param>
     /// <param name="disposable5">The fifth disposable to dispose.</param>
+    /// <exception cref="AggregateException">Thrown when one or more disposables throw exceptions during disposal.</exception>
     public static void Dispose(IDisposable disposable1, IDisposable disposable2, IDisposable disposable3,
         IDisposable disposable4, IDisposable disposable5) {
-        disposable1.Dispose();
-        disposable2.Dispose();
-        disposable3.Dispose();
-        disposable4.Dispose();
-        disposable5.Dispose();
+        List<Exception>? exceptions = null;
+        
+        try { disposable1?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+        try { disposable2?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+        try { disposable3?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+        try { disposable4?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+        try { disposable5?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+        
+        if (exceptions != null) throw new AggregateException(exceptions);
     }
 
     /// <summary>
     /// Disposes six disposables in sequence.
+    /// If any disposable throws an exception during disposal, all remaining disposables are still disposed.
+    /// All exceptions are collected and thrown as an <see cref="AggregateException"/>.
     /// </summary>
     /// <param name="disposable1">The first disposable to dispose.</param>
     /// <param name="disposable2">The second disposable to dispose.</param>
@@ -214,18 +244,25 @@ public static class Disposable {
     /// <param name="disposable4">The fourth disposable to dispose.</param>
     /// <param name="disposable5">The fifth disposable to dispose.</param>
     /// <param name="disposable6">The sixth disposable to dispose.</param>
+    /// <exception cref="AggregateException">Thrown when one or more disposables throw exceptions during disposal.</exception>
     public static void Dispose(IDisposable disposable1, IDisposable disposable2, IDisposable disposable3,
         IDisposable disposable4, IDisposable disposable5, IDisposable disposable6) {
-        disposable1.Dispose();
-        disposable2.Dispose();
-        disposable3.Dispose();
-        disposable4.Dispose();
-        disposable5.Dispose();
-        disposable6.Dispose();
+        List<Exception>? exceptions = null;
+        
+        try { disposable1?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+        try { disposable2?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+        try { disposable3?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+        try { disposable4?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+        try { disposable5?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+        try { disposable6?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+        
+        if (exceptions != null) throw new AggregateException(exceptions);
     }
 
     /// <summary>
     /// Disposes seven disposables in sequence.
+    /// If any disposable throws an exception during disposal, all remaining disposables are still disposed.
+    /// All exceptions are collected and thrown as an <see cref="AggregateException"/>.
     /// </summary>
     /// <param name="disposable1">The first disposable to dispose.</param>
     /// <param name="disposable2">The second disposable to dispose.</param>
@@ -234,19 +271,26 @@ public static class Disposable {
     /// <param name="disposable5">The fifth disposable to dispose.</param>
     /// <param name="disposable6">The sixth disposable to dispose.</param>
     /// <param name="disposable7">The seventh disposable to dispose.</param>
+    /// <exception cref="AggregateException">Thrown when one or more disposables throw exceptions during disposal.</exception>
     public static void Dispose(IDisposable disposable1, IDisposable disposable2, IDisposable disposable3,
         IDisposable disposable4, IDisposable disposable5, IDisposable disposable6, IDisposable disposable7) {
-        disposable1.Dispose();
-        disposable2.Dispose();
-        disposable3.Dispose();
-        disposable4.Dispose();
-        disposable5.Dispose();
-        disposable6.Dispose();
-        disposable7.Dispose();
+        List<Exception>? exceptions = null;
+        
+        try { disposable1?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+        try { disposable2?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+        try { disposable3?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+        try { disposable4?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+        try { disposable5?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+        try { disposable6?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+        try { disposable7?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+        
+        if (exceptions != null) throw new AggregateException(exceptions);
     }
 
     /// <summary>
     /// Disposes eight disposables in sequence.
+    /// If any disposable throws an exception during disposal, all remaining disposables are still disposed.
+    /// All exceptions are collected and thrown as an <see cref="AggregateException"/>.
     /// </summary>
     /// <param name="disposable1">The first disposable to dispose.</param>
     /// <param name="disposable2">The second disposable to dispose.</param>
@@ -256,33 +300,49 @@ public static class Disposable {
     /// <param name="disposable6">The sixth disposable to dispose.</param>
     /// <param name="disposable7">The seventh disposable to dispose.</param>
     /// <param name="disposable8">The eighth disposable to dispose.</param>
+    /// <exception cref="AggregateException">Thrown when one or more disposables throw exceptions during disposal.</exception>
     public static void Dispose(IDisposable disposable1, IDisposable disposable2, IDisposable disposable3,
         IDisposable disposable4, IDisposable disposable5, IDisposable disposable6, IDisposable disposable7,
         IDisposable disposable8) {
-        disposable1.Dispose();
-        disposable2.Dispose();
-        disposable3.Dispose();
-        disposable4.Dispose();
-        disposable5.Dispose();
-        disposable6.Dispose();
-        disposable7.Dispose();
-        disposable8.Dispose();
+        List<Exception>? exceptions = null;
+        
+        try { disposable1?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+        try { disposable2?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+        try { disposable3?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+        try { disposable4?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+        try { disposable5?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+        try { disposable6?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+        try { disposable7?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+        try { disposable8?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+        
+        if (exceptions != null) throw new AggregateException(exceptions);
     }
 
     /// <summary>
     /// Disposes all disposables in the array in sequence.
+    /// If any disposable throws an exception during disposal, all remaining disposables are still disposed.
+    /// All exceptions are collected and thrown as an <see cref="AggregateException"/>.
     /// </summary>
     /// <param name="disposables">An array of disposables to dispose.</param>
+    /// <exception cref="AggregateException">Thrown when one or more disposables throw exceptions during disposal.</exception>
     public static void Dispose(params IDisposable[] disposables) {
+        List<Exception>? exceptions = null;
+        
         foreach (var disposable in disposables) {
-            disposable.Dispose();
+            try { disposable?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
         }
+        
+        if (exceptions != null) throw new AggregateException(exceptions);
     }
 
     sealed class CombinedDisposable2(IDisposable disposable1, IDisposable disposable2) : IDisposable {
         public void Dispose() {
-            disposable1.Dispose();
-            disposable2.Dispose();
+            List<Exception>? exceptions = null;
+            
+            try { disposable1?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+            try { disposable2?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+            
+            if (exceptions != null) throw new AggregateException(exceptions);
         }
     }
 
@@ -290,9 +350,13 @@ public static class Disposable {
         : IDisposable 
     {
         public void Dispose() {
-            disposable1.Dispose();
-            disposable2.Dispose();
-            disposable3.Dispose();
+            List<Exception>? exceptions = null;
+            
+            try { disposable1?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+            try { disposable2?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+            try { disposable3?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+            
+            if (exceptions != null) throw new AggregateException(exceptions);
         }
     }
 
@@ -304,10 +368,14 @@ public static class Disposable {
         : IDisposable 
     {
         public void Dispose() {
-            disposable1.Dispose();
-            disposable2.Dispose();
-            disposable3.Dispose();
-            disposable4.Dispose();
+            List<Exception>? exceptions = null;
+            
+            try { disposable1?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+            try { disposable2?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+            try { disposable3?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+            try { disposable4?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+            
+            if (exceptions != null) throw new AggregateException(exceptions);
         }
     }
 
@@ -320,11 +388,15 @@ public static class Disposable {
         : IDisposable 
     {
         public void Dispose() {
-            disposable1.Dispose();
-            disposable2.Dispose();
-            disposable3.Dispose();
-            disposable4.Dispose();
-            disposable5.Dispose();
+            List<Exception>? exceptions = null;
+            
+            try { disposable1?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+            try { disposable2?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+            try { disposable3?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+            try { disposable4?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+            try { disposable5?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+            
+            if (exceptions != null) throw new AggregateException(exceptions);
         }
     }
 
@@ -338,12 +410,16 @@ public static class Disposable {
         : IDisposable 
     {
         public void Dispose() {
-            disposable1.Dispose();
-            disposable2.Dispose();
-            disposable3.Dispose();
-            disposable4.Dispose();
-            disposable5.Dispose();
-            disposable6.Dispose();
+            List<Exception>? exceptions = null;
+            
+            try { disposable1?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+            try { disposable2?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+            try { disposable3?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+            try { disposable4?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+            try { disposable5?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+            try { disposable6?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+            
+            if (exceptions != null) throw new AggregateException(exceptions);
         }
     }
 
@@ -358,13 +434,17 @@ public static class Disposable {
         : IDisposable 
     {
         public void Dispose() {
-            disposable1.Dispose();
-            disposable2.Dispose();
-            disposable3.Dispose();
-            disposable4.Dispose();
-            disposable5.Dispose();
-            disposable6.Dispose();
-            disposable7.Dispose();
+            List<Exception>? exceptions = null;
+            
+            try { disposable1?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+            try { disposable2?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+            try { disposable3?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+            try { disposable4?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+            try { disposable5?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+            try { disposable6?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+            try { disposable7?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+            
+            if (exceptions != null) throw new AggregateException(exceptions);
         }
     }
 
@@ -380,22 +460,30 @@ public static class Disposable {
         : IDisposable 
     {
         public void Dispose() {
-            disposable1.Dispose();
-            disposable2.Dispose();
-            disposable3.Dispose();
-            disposable4.Dispose();
-            disposable5.Dispose();
-            disposable6.Dispose();
-            disposable7.Dispose();
-            disposable8.Dispose();
+            List<Exception>? exceptions = null;
+            
+            try { disposable1?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+            try { disposable2?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+            try { disposable3?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+            try { disposable4?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+            try { disposable5?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+            try { disposable6?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+            try { disposable7?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+            try { disposable8?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
+            
+            if (exceptions != null) throw new AggregateException(exceptions);
         }
     }
 
     sealed class CombinedDisposable(IDisposable[] disposables) : IDisposable {
         public void Dispose() {
+            List<Exception>? exceptions = null;
+            
             foreach (var disposable in disposables) {
-                disposable?.Dispose();
+                try { disposable?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
             }
+            
+            if (exceptions != null) throw new AggregateException(exceptions);
         }
     }
 

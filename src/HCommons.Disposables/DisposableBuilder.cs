@@ -30,7 +30,7 @@ public ref struct DisposableBuilder
     /// <param name="disposable">The disposable to add.</param>
     public void Add(IDisposable disposable) {
         if (IsDisposed) {
-            disposable.Dispose();
+            disposable?.Dispose();
             return;
         }
 

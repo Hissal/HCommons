@@ -58,7 +58,7 @@ public sealed class CompositeDisposable : ICollection<IDisposable>, IDisposable 
     /// <param name="item">The disposable to add.</param>
     public void Add(IDisposable item) {
         if (IsDisposed) {
-            item.Dispose();
+            item?.Dispose();
             return;
         }
         disposables.Add(item);
@@ -73,12 +73,20 @@ public sealed class CompositeDisposable : ICollection<IDisposable>, IDisposable 
 
     /// <summary>
     /// Disposes all disposables in the collection and clears the collection.
+    /// If any disposable throws an exception during disposal, all remaining disposables are still disposed.
+    /// All exceptions are collected and thrown as an <see cref="AggregateException"/>.
     /// </summary>
+    /// <exception cref="AggregateException">Thrown when one or more disposables throw exceptions during disposal.</exception>
     public void Clear() {
+        List<Exception>? exceptions = null;
+        
         foreach (var disposable in disposables) {
-            disposable.Dispose();
+            try { disposable?.Dispose(); } catch (Exception ex) { (exceptions ??= new()).Add(ex); }
         }
+        
         disposables.Clear();
+        
+        if (exceptions != null) throw new AggregateException(exceptions);
     }
 
     /// <summary>
