@@ -98,8 +98,7 @@ public class DisposableCombineTest {
         var aggregateException = Should.Throw<AggregateException>(() => combined.Dispose());
 
         // Assert
-        disposable1.Received(1).Dispose();
-        disposable2.Received(1).Dispose();
+        Assert.All([disposable1, disposable2], d => d.Received(1).Dispose());
         aggregateException.InnerExceptions.Count.ShouldBe(2);
         aggregateException.InnerExceptions[0].ShouldBe(exception1);
         aggregateException.InnerExceptions[1].ShouldBe(exception2);
@@ -121,9 +120,7 @@ public class DisposableCombineTest {
         var aggregateException = Should.Throw<AggregateException>(() => combined.Dispose());
 
         // Assert
-        disposable1.Received(1).Dispose();
-        disposable2.Received(1).Dispose();
-        disposable3.Received(1).Dispose();
+        Assert.All([disposable1, disposable2, disposable3], d => d.Received(1).Dispose());
         aggregateException.InnerExceptions.Count.ShouldBe(3);
         aggregateException.InnerExceptions[0].ShouldBe(exception1);
         aggregateException.InnerExceptions[1].ShouldBe(exception2);
@@ -148,10 +145,7 @@ public class DisposableCombineTest {
         var aggregateException = Should.Throw<AggregateException>(() => combined.Dispose());
 
         // Assert
-        disposable1.Received(1).Dispose();
-        disposable2.Received(1).Dispose();
-        disposable3.Received(1).Dispose();
-        disposable4.Received(1).Dispose();
+        Assert.All([disposable1, disposable2, disposable3, disposable4], d => d.Received(1).Dispose());
         aggregateException.InnerExceptions.Count.ShouldBe(4);
         aggregateException.InnerExceptions[0].ShouldBe(exception1);
         aggregateException.InnerExceptions[1].ShouldBe(exception2);
@@ -179,11 +173,7 @@ public class DisposableCombineTest {
         var aggregateException = Should.Throw<AggregateException>(() => combined.Dispose());
 
         // Assert
-        disposable1.Received(1).Dispose();
-        disposable2.Received(1).Dispose();
-        disposable3.Received(1).Dispose();
-        disposable4.Received(1).Dispose();
-        disposable5.Received(1).Dispose();
+        Assert.All([disposable1, disposable2, disposable3, disposable4, disposable5], d => d.Received(1).Dispose());
         aggregateException.InnerExceptions.Count.ShouldBe(5);
         aggregateException.InnerExceptions[0].ShouldBe(exception1);
         aggregateException.InnerExceptions[1].ShouldBe(exception2);
@@ -214,12 +204,7 @@ public class DisposableCombineTest {
         var aggregateException = Should.Throw<AggregateException>(() => combined.Dispose());
 
         // Assert
-        disposable1.Received(1).Dispose();
-        disposable2.Received(1).Dispose();
-        disposable3.Received(1).Dispose();
-        disposable4.Received(1).Dispose();
-        disposable5.Received(1).Dispose();
-        disposable6.Received(1).Dispose();
+        Assert.All([disposable1, disposable2, disposable3, disposable4, disposable5, disposable6], d => d.Received(1).Dispose());
         aggregateException.InnerExceptions.Count.ShouldBe(6);
         aggregateException.InnerExceptions[0].ShouldBe(exception1);
         aggregateException.InnerExceptions[1].ShouldBe(exception2);
@@ -253,13 +238,7 @@ public class DisposableCombineTest {
         var aggregateException = Should.Throw<AggregateException>(() => combined.Dispose());
 
         // Assert
-        disposable1.Received(1).Dispose();
-        disposable2.Received(1).Dispose();
-        disposable3.Received(1).Dispose();
-        disposable4.Received(1).Dispose();
-        disposable5.Received(1).Dispose();
-        disposable6.Received(1).Dispose();
-        disposable7.Received(1).Dispose();
+        Assert.All([disposable1, disposable2, disposable3, disposable4, disposable5, disposable6, disposable7], d => d.Received(1).Dispose());
         aggregateException.InnerExceptions.Count.ShouldBe(7);
         aggregateException.InnerExceptions[0].ShouldBe(exception1);
         aggregateException.InnerExceptions[1].ShouldBe(exception2);
@@ -297,14 +276,7 @@ public class DisposableCombineTest {
         var aggregateException = Should.Throw<AggregateException>(() => combined.Dispose());
 
         // Assert
-        disposable1.Received(1).Dispose();
-        disposable2.Received(1).Dispose();
-        disposable3.Received(1).Dispose();
-        disposable4.Received(1).Dispose();
-        disposable5.Received(1).Dispose();
-        disposable6.Received(1).Dispose();
-        disposable7.Received(1).Dispose();
-        disposable8.Received(1).Dispose();
+        Assert.All([disposable1, disposable2, disposable3, disposable4, disposable5, disposable6, disposable7, disposable8], d => d.Received(1).Dispose());
         aggregateException.InnerExceptions.Count.ShouldBe(8);
         aggregateException.InnerExceptions[0].ShouldBe(exception1);
         aggregateException.InnerExceptions[1].ShouldBe(exception2);
@@ -345,15 +317,7 @@ public class DisposableCombineTest {
         var aggregateException = Should.Throw<AggregateException>(() => combined.Dispose());
 
         // Assert
-        disposable1.Received(1).Dispose();
-        disposable2.Received(1).Dispose();
-        disposable3.Received(1).Dispose();
-        disposable4.Received(1).Dispose();
-        disposable5.Received(1).Dispose();
-        disposable6.Received(1).Dispose();
-        disposable7.Received(1).Dispose();
-        disposable8.Received(1).Dispose();
-        disposable9.Received(1).Dispose();
+        Assert.All([disposable1, disposable2, disposable3, disposable4, disposable5, disposable6, disposable7, disposable8, disposable9], d => d.Received(1).Dispose());
         aggregateException.InnerExceptions.Count.ShouldBe(9);
         aggregateException.InnerExceptions[0].ShouldBe(exception1);
         aggregateException.InnerExceptions[1].ShouldBe(exception2);
