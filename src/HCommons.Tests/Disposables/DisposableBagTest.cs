@@ -115,4 +115,20 @@ public class DisposableBagTest {
         // Assert
         Assert.All(disposables, d => d.Received(1).Dispose());
     }
+    
+    [Fact]
+    public async Task Dispose_ConcurrentCalls_DisposesOnlyOnce() {
+        // Arrange
+        var disposables = Enumerable.Range(0, 100).Select(_ => Substitute.For<IDisposable>()).ToArray();
+        foreach (var disposable in disposables) {
+            bag.Add(disposable);
+        }
+
+        // Act - Call Dispose from multiple threads concurrently
+        var tasks = Enumerable.Range(0, 10).Select(_ => Task.Run(() => bag.Dispose())).ToArray();
+        await Task.WhenAll(tasks);
+
+        // Assert - Each disposable should be disposed exactly once despite concurrent calls
+        Assert.All(disposables, d => d.Received(1).Dispose());
+    }
 }

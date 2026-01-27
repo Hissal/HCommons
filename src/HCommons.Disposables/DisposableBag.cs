@@ -6,7 +6,7 @@
 /// </summary>
 public struct DisposableBag : IDisposable {
     IDisposable[]? disposables;
-    bool isDisposed;
+    int isDisposed; // 0 = false, 1 = true (for thread-safe Interlocked operations)
     int count;
 
     /// <summary>
@@ -23,7 +23,7 @@ public struct DisposableBag : IDisposable {
     /// </summary>
     /// <param name="item">The disposable to add.</param>
     public void Add(IDisposable item) {
-        if (isDisposed) {
+        if (Volatile.Read(ref isDisposed) == 1) {
             item.Dispose();
             return;
         }
@@ -64,13 +64,12 @@ public struct DisposableBag : IDisposable {
 
     /// <summary>
     /// Disposes all disposables in the bag and marks this instance as disposed.
-    /// Subsequent calls have no effect.
+    /// Subsequent calls have no effect. This method is thread-safe.
     /// </summary>
     public void Dispose() {
-        if (isDisposed)
-            return;
-
-        Clear();
-        isDisposed = true;
+        // Use Interlocked.CompareExchange for thread-safe, idempotent disposal
+        if (Interlocked.CompareExchange(ref isDisposed, 1, 0) == 0) {
+            Clear();
+        }
     }
 }
