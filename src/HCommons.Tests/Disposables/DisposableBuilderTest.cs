@@ -75,26 +75,16 @@ public class DisposableBuilderTest {
 
     [Fact]
     public void Build_Twice_ThrowsObjectDisposedException() {
-        // Arrange
-        var builder = new DisposableBuilder();
-        var d = Substitute.For<IDisposable>();
-        builder.Add(d);
-
-        // Act
-        var first = builder.Build();
-
-        // Assert (precondition check - not the actual test)
-        Assert.NotNull(first);
-        
-        // Act & Assert - actual test
-        ObjectDisposedException? exception = null;
-        try {
-            builder.Build();
-        } catch (ObjectDisposedException ex) {
-            exception = ex;
-        }
-        
-        exception.ShouldNotBeNull();
+        Should.Throw<ObjectDisposedException>(() => {
+            var builder = new DisposableBuilder();
+            var d = Substitute.For<IDisposable>();
+            builder.Add(d);
+            
+            var first = builder.Build();
+            first.ShouldNotBeNull();
+            
+            builder.Build(); // Should throw
+        });
     }
 
     [Fact]
