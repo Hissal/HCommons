@@ -80,9 +80,19 @@ public class DisposableBuilderTest {
             var d = Substitute.For<IDisposable>();
             builder.Add(d);
             
-            var first = builder.Build();
-            first.ShouldNotBeNull();
+            builder.Build();
+            builder.Build(); // Should throw
+        });
+    }
+
+    [Fact]
+    public void Build_AfterDispose_ThrowsObjectDisposedException() {
+        Should.Throw<ObjectDisposedException>(() => {
+            var builder = new DisposableBuilder();
+            var d = Substitute.For<IDisposable>();
+            builder.Add(d);
             
+            builder.Dispose();
             builder.Build(); // Should throw
         });
     }
