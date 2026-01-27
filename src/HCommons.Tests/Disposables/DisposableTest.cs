@@ -8,7 +8,7 @@ public class DisposableTest {
     public void DisposableEmpty_ReturnsSharedInstance() {
         var d1 = Disposable.Empty;
         var d2 = Disposable.Empty;
-        Assert.Same(d1, d2);
+        d1.ShouldBe(d2);
     }
     
     [Fact]
@@ -16,7 +16,7 @@ public class DisposableTest {
         var invoked = false;
         var sut = Disposable.Action(() => invoked = true);
         sut.Dispose();
-        Assert.True(invoked);
+        invoked.ShouldBeTrue();
     }
 
     [Fact]
@@ -24,14 +24,14 @@ public class DisposableTest {
         var invoked = false;
         var sut = Disposable.Action(this, t => invoked = true);
         sut.Dispose();
-        Assert.True(invoked);
+        invoked.ShouldBeTrue();
     }
     
     [Fact]
     public void BooleanDisposable_IsDisposedReflectsState() {
         var sut = Disposable.Boolean();
-        Assert.False(sut.IsDisposed);
+        sut.IsDisposed.ShouldBeFalse();
         sut.Dispose();
-        Assert.True(sut.IsDisposed);
+        sut.IsDisposed.ShouldBeTrue();
     }
 }
