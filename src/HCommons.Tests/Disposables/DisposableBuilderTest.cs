@@ -74,7 +74,7 @@ public class DisposableBuilderTest {
     }
 
     [Fact]
-    public void Build_Twice_ReturnsEmptySecondTime() {
+    public void Build_Twice_ThrowsObjectDisposedException() {
         // Arrange
         var builder = new DisposableBuilder();
         var d = Substitute.For<IDisposable>();
@@ -82,11 +82,19 @@ public class DisposableBuilderTest {
 
         // Act
         var first = builder.Build();
-        var second = builder.Build();
 
-        // Assert
+        // Assert (precondition check - not the actual test)
         Assert.NotNull(first);
-        Assert.Same(Disposable.Empty, second);
+        
+        // Act & Assert - actual test
+        ObjectDisposedException? exception = null;
+        try {
+            builder.Build();
+        } catch (ObjectDisposedException ex) {
+            exception = ex;
+        }
+        
+        exception.ShouldNotBeNull();
     }
 
     [Fact]
@@ -110,5 +118,39 @@ public class DisposableBuilderTest {
 
         // Assert
         Assert.All([d1, d2], d => d.Received(1).Dispose());
+    }
+
+    [Fact]
+    public void IsDisposed_InitiallyFalse() {
+        // Arrange
+        var builder = new DisposableBuilder();
+
+        // Assert
+        builder.IsDisposed.ShouldBeFalse();
+    }
+
+    [Fact]
+    public void IsDisposed_TrueAfterDispose() {
+        // Arrange
+        var builder = new DisposableBuilder();
+
+        // Act
+        builder.Dispose();
+
+        // Assert
+        builder.IsDisposed.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void IsDisposed_TrueAfterBuild() {
+        // Arrange
+        var builder = new DisposableBuilder();
+        builder.Add(Substitute.For<IDisposable>());
+
+        // Act
+        builder.Build();
+
+        // Assert
+        builder.IsDisposed.ShouldBeTrue();
     }
 }
