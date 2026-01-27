@@ -66,8 +66,11 @@ public struct DisposableBag : IDisposable {
                 disposables[i].Dispose();
             }
             catch (Exception ex) {
-                exceptions ??= new List<Exception>();
+                exceptions ??= [];
                 exceptions.Add(ex);
+            }
+            finally {
+                disposables[i] = null!; // Clear reference to allow GC
             }
         }
 

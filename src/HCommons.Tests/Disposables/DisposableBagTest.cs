@@ -115,6 +115,26 @@ public class DisposableBagTest {
         // Assert
         Assert.All(disposables, d => d.Received(1).Dispose());
     }
+    
+    [Fact]
+    public void Clear_WithKeepAllocatedArray_ClearsArraySlots() {
+        // Arrange
+        var disposable = Substitute.For<IDisposable>();
+        bag.Add(disposable);
+
+        // Act
+        bag.Clear(keepAllocatedArray: true);
+        
+        // Add a new item to verify the array was cleared
+        var newDisposable = Substitute.For<IDisposable>();
+        bag.Add(newDisposable);
+        bag.Clear();
+
+        // Assert
+        // Both disposables should have been disposed exactly once
+        disposable.Received(1).Dispose();
+        newDisposable.Received(1).Dispose();
+    }
 
     [Fact]
     public void Clear_WithSingleException_ThrowsAggregateException() {
