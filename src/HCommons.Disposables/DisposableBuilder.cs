@@ -22,7 +22,11 @@ public ref struct DisposableBuilder
     IDisposable[]? disposables;
 
     int count;
-    bool IsDisposed => count == -1;
+    
+    /// <summary>
+    /// Gets a value indicating whether this builder has been disposed.
+    /// </summary>
+    public bool IsDisposed => count == -1;
     
     /// <summary>
     /// Adds a disposable to the builder. If already disposed, the disposable is disposed immediately.
@@ -84,8 +88,11 @@ public ref struct DisposableBuilder
     /// <returns>A composite disposable that disposes all added disposables when disposed.</returns>
     /// <exception cref="ObjectDisposedException">Thrown if the builder has already been disposed.</exception>
     public IDisposable Build() {
+        if (IsDisposed)
+            throw new ObjectDisposedException(nameof(DisposableBuilder));
+        
         var result = count switch {
-            -1 or 0 => Disposable.Empty,
+            0 => Disposable.Empty,
             1 => disposable1!,
             2 => Disposable.Combine(disposable1!, disposable2!),
             3 => Disposable.Combine(disposable1!, disposable2!, disposable3!),

@@ -74,19 +74,27 @@ public class DisposableBuilderTest {
     }
 
     [Fact]
-    public void Build_Twice_ReturnsEmptySecondTime() {
-        // Arrange
-        var builder = new DisposableBuilder();
-        var d = Substitute.For<IDisposable>();
-        builder.Add(d);
+    public void Build_Twice_ThrowsObjectDisposedException() {
+        Should.Throw<ObjectDisposedException>(() => {
+            var builder = new DisposableBuilder();
+            var d = Substitute.For<IDisposable>();
+            builder.Add(d);
+            
+            builder.Build();
+            builder.Build(); // Should throw
+        });
+    }
 
-        // Act
-        var first = builder.Build();
-        var second = builder.Build();
-
-        // Assert
-        Assert.NotNull(first);
-        Assert.Same(Disposable.Empty, second);
+    [Fact]
+    public void Build_AfterDispose_ThrowsObjectDisposedException() {
+        Should.Throw<ObjectDisposedException>(() => {
+            var builder = new DisposableBuilder();
+            var d = Substitute.For<IDisposable>();
+            builder.Add(d);
+            
+            builder.Dispose();
+            builder.Build(); // Should throw
+        });
     }
 
     [Fact]
@@ -110,5 +118,39 @@ public class DisposableBuilderTest {
 
         // Assert
         Assert.All([d1, d2], d => d.Received(1).Dispose());
+    }
+
+    [Fact]
+    public void IsDisposed_InitiallyFalse() {
+        // Arrange
+        var builder = new DisposableBuilder();
+
+        // Assert
+        builder.IsDisposed.ShouldBeFalse();
+    }
+
+    [Fact]
+    public void IsDisposed_TrueAfterDispose() {
+        // Arrange
+        var builder = new DisposableBuilder();
+
+        // Act
+        builder.Dispose();
+
+        // Assert
+        builder.IsDisposed.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void IsDisposed_TrueAfterBuild() {
+        // Arrange
+        var builder = new DisposableBuilder();
+        builder.Add(Substitute.For<IDisposable>());
+
+        // Act
+        builder.Build();
+
+        // Assert
+        builder.IsDisposed.ShouldBeTrue();
     }
 }
