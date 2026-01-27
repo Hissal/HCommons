@@ -47,6 +47,7 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Shouldly" Version="4.3.0"/>
+        <PackageReference Include="NSubstitute" Version="5.3.0"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -54,6 +55,7 @@
         <ProjectReference Include="..\HCommons.Monads\HCommons.Monads.csproj"/>
         <ProjectReference Include="..\HCommons.Buffers\HCommons.Buffers.csproj"/>
         <ProjectReference Include="..\HCommons.Math\HCommons.Math.csproj"/>
+        <ProjectReference Include="..\HCommons.Disposables\HCommons.Disposables.csproj"/>
     </ItemGroup>
 
     <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
@@ -75,6 +77,7 @@
     <ItemGroup>
         <Using Include="Xunit"/>
         <Using Include="Shouldly"/>
+        <Using Include="NSubstitute"/>
         <Using Include="JetBrains.Annotations"/>
     </ItemGroup>
 
