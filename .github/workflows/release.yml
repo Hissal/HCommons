@@ -197,6 +197,7 @@ jobs:
 
   publish:
     needs: [check-versions, test]
+    permissions: write-all # For creating tags and pushing packages
     if: needs.check-versions.outputs.has-updates == 'true'
     runs-on: ubuntu-24.04
     strategy:
