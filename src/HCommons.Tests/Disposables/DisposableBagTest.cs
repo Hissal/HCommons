@@ -117,7 +117,7 @@ public class DisposableBagTest {
     }
     
     [Fact]
-    public void Clear_WithKeepAllocatedArray_AllowsGarbageCollection() {
+    public void Clear_WithKeepAllocatedArray_ClearsArraySlots() {
         // Arrange
         var disposable = Substitute.For<IDisposable>();
         bag.Add(disposable);
