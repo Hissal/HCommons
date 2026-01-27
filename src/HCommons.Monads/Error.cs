@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Diagnostics.Contracts;
 
 namespace HCommons.Monads;
 
@@ -23,14 +22,12 @@ public readonly record struct Error(string Message, Exception? Exception = null)
     /// </summary>
     /// <param name="ex">The exception.</param>
     /// <returns>An error containing the exception's message and the exception itself.</returns>
-    [Pure]
     public static Error FromException(Exception ex) => new Error(ex.Message, ex);
     /// <summary>
     /// Creates an error with the specified message.
     /// </summary>
     /// <param name="message">The error message.</param>
     /// <returns>An error containing the message.</returns>
-    [Pure]
     public static Error WithMessage(string message) => new Error(message);
     
     /// <summary>
@@ -66,7 +63,6 @@ public readonly record struct Error<TValue>(TValue Value, string Message, Except
     /// <param name="value">The associated value.</param>
     /// <param name="ex">The exception.</param>
     /// <returns>An error containing the value, the exception's message, and the exception itself.</returns>
-    [Pure]
     public static Error<TValue> FromException(TValue value, Exception ex) => new Error<TValue>(value, ex.Message, ex);
     /// <summary>
     /// Creates an error with a value and message.
@@ -74,14 +70,12 @@ public readonly record struct Error<TValue>(TValue Value, string Message, Except
     /// <param name="value">The associated value.</param>
     /// <param name="message">The error message.</param>
     /// <returns>An error containing the value and message.</returns>
-    [Pure]
     public static Error<TValue> WithMessage(TValue value, string message) => new Error<TValue>(value, message);
     /// <summary>
     /// Creates an error with only a value and no message.
     /// </summary>
     /// <param name="value">The associated value.</param>
     /// <returns>An error containing only the value.</returns>
-    [Pure]
     public static Error<TValue> ValueOnly(TValue value) => new Error<TValue>(value, string.Empty);
     
     /// <summary>
@@ -107,7 +101,6 @@ public static class ErrorExtensions {
     /// <param name="error">The error to add a value to.</param>
     /// <param name="value">The value to add.</param>
     /// <returns>An error with the added value.</returns>
-    [Pure]
     public static Error<TValue> WithValue<TValue>(this Error error, TValue value) => new Error<TValue>(value, error.Message, error.Exception);
     /// <summary>
     /// Removes the value from an error.
@@ -115,7 +108,6 @@ public static class ErrorExtensions {
     /// <typeparam name="TValue">The type of the value.</typeparam>
     /// <param name="error">The error to remove the value from.</param>
     /// <returns>An error without a value.</returns>
-    [Pure]
     public static Error WithoutValue<TValue>(this Error<TValue> error) => new Error(error.Message, error.Exception);
     
     /// <summary>
@@ -124,7 +116,6 @@ public static class ErrorExtensions {
     /// <param name="error">The error to update.</param>
     /// <param name="message">The new message.</param>
     /// <returns>An error with the updated message.</returns>
-    [Pure]
     public static Error WithMessage(this Error error, string message) => new Error(message, error.Exception);
     /// <summary>
     /// Updates the message of an error with a value.
@@ -133,7 +124,6 @@ public static class ErrorExtensions {
     /// <param name="error">The error to update.</param>
     /// <param name="message">The new message.</param>
     /// <returns>An error with the updated message.</returns>
-    [Pure]
     public static Error<TValue> WithMessage<TValue>(this Error<TValue> error, string message) => new Error<TValue>(error.Value, message, error.Exception);
     
     /// <summary>
@@ -142,7 +132,6 @@ public static class ErrorExtensions {
     /// <param name="error">The error to update.</param>
     /// <param name="exception">The new exception.</param>
     /// <returns>An error with the updated exception.</returns>
-    [Pure]
     public static Error WithException(this Error error, Exception exception) => new Error(error.Message, exception);
     /// <summary>
     /// Updates the exception of an error with a value.
@@ -151,6 +140,6 @@ public static class ErrorExtensions {
     /// <param name="error">The error to update.</param>
     /// <param name="exception">The new exception.</param>
     /// <returns>An error with the updated exception.</returns>
-    [Pure]
     public static Error<TValue> WithException<TValue>(this Error<TValue> error, Exception exception) => new Error<TValue>(error.Value, error.Message, exception);
 }
+

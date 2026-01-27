@@ -1,5 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.Diagnostics.Contracts;
+using System.Diagnostics.CodeAnalysis;
 
 namespace HCommons.Monads;
 
@@ -53,21 +52,18 @@ public readonly record struct OperationResult<TSuccess, TFailure, TCancelled>(
     /// </summary>
     /// <param name="value">The success value.</param>
     /// <returns>A successful operation result.</returns>
-    [Pure]
     public static OperationResult<TSuccess, TFailure, TCancelled> Success(TSuccess value) => new (OperationResultType.Success, SuccessValue: value);
     /// <summary>
     /// Creates a failed operation result with the specified failure value.
     /// </summary>
     /// <param name="value">The failure value.</param>
     /// <returns>A failed operation result.</returns>
-    [Pure]
     public static OperationResult<TSuccess, TFailure, TCancelled> Failure(TFailure value) => new (OperationResultType.Failure, FailureValue: value);
     /// <summary>
     /// Creates a cancelled operation result with the specified cancellation value.
     /// </summary>
     /// <param name="value">The cancellation value.</param>
     /// <returns>A cancelled operation result.</returns>
-    [Pure]
     public static OperationResult<TSuccess, TFailure, TCancelled> Cancelled(TCancelled value) => new (OperationResultType.Cancelled, CancelledValue: value);
         
     /// <summary>
@@ -75,7 +71,6 @@ public readonly record struct OperationResult<TSuccess, TFailure, TCancelled>(
     /// </summary>
     /// <param name="value">When this method returns, contains the success value if the operation succeeded; otherwise, the default value.</param>
     /// <returns>True if the operation succeeded; otherwise, false.</returns>
-    [Pure]
     public bool TryGetSuccess([NotNullWhen(true)] out TSuccess? value) {
         value = SuccessValue;
         return IsSuccess;
@@ -86,7 +81,6 @@ public readonly record struct OperationResult<TSuccess, TFailure, TCancelled>(
     /// </summary>
     /// <param name="value">When this method returns, contains the failure value if the operation failed; otherwise, the default value.</param>
     /// <returns>True if the operation failed; otherwise, false.</returns>
-    [Pure]
     public bool TryGetFailure([NotNullWhen(true)] out TFailure? value) {
         value = FailureValue;
         return IsFailure;
@@ -97,7 +91,6 @@ public readonly record struct OperationResult<TSuccess, TFailure, TCancelled>(
     /// </summary>
     /// <param name="value">When this method returns, contains the cancellation value if the operation was cancelled; otherwise, the default value.</param>
     /// <returns>True if the operation was cancelled; otherwise, false.</returns>
-    [Pure]
     public bool TryGetCancelled([NotNullWhen(true)] out TCancelled? value) {
         value = CancelledValue;
         return IsCancelled;
@@ -107,21 +100,18 @@ public readonly record struct OperationResult<TSuccess, TFailure, TCancelled>(
     /// Gets the success value if the operation succeeded, otherwise returns the default value for the type.
     /// </summary>
     /// <returns>The success value if the operation succeeded, otherwise default.</returns>
-    [Pure]
     public TSuccess? GetSuccessOrDefault() => IsSuccess ? SuccessValue : default;
     /// <summary>
     /// Gets the success value if the operation succeeded, otherwise returns the specified default value.
     /// </summary>
     /// <param name="defaultValue">The default value to return if the operation failed or was cancelled.</param>
     /// <returns>The success value if the operation succeeded, otherwise the specified default value.</returns>
-    [Pure]
     public TSuccess GetSuccessOrDefault(TSuccess defaultValue) => IsSuccess ? SuccessValue : defaultValue;
     
     /// <summary>
     /// Returns a string representation of the operation result.
     /// </summary>
     /// <returns>A string indicating whether the operation succeeded with the success value, failed with the failure value, or was cancelled with the cancellation value.</returns>
-    [Pure]
     public override string ToString() => Type switch {
         OperationResultType.Success => $"Success: {SuccessValue}",
         OperationResultType.Failure => $"Failure: {FailureValue}",

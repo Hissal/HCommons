@@ -1,4 +1,3 @@
-﻿using System.Diagnostics.Contracts;
 
 namespace HCommons.Monads;
 
@@ -10,7 +9,6 @@ public static class EitherExtensions {
     /// <typeparam name="TRight">The type of the right value.</typeparam>
     /// <param name="either">The either to swap.</param>
     /// <returns>An either with the left and right sides swapped.</returns>
-    [Pure]
     public static Either<TRight, TLeft> Swap<TLeft, TRight>(this Either<TLeft, TRight> either) 
         where TLeft : notnull where TRight : notnull 
     {
@@ -26,7 +24,6 @@ public static class EitherExtensions {
     /// <typeparam name="TRight">The type of the right value.</typeparam>
     /// <param name="either">The either to convert.</param>
     /// <returns>An optional containing the left value if present, otherwise none.</returns>
-    [Pure]
     public static Optional<TLeft> AsLeftOptional<TLeft, TRight>(
         this Either<TLeft, TRight> either) 
         where TLeft : notnull where TRight : notnull 
@@ -43,7 +40,6 @@ public static class EitherExtensions {
     /// <typeparam name="TRight">The type of the right value.</typeparam>
     /// <param name="either">The either to convert.</param>
     /// <returns>An optional containing the right value if present, otherwise none.</returns>
-    [Pure]
     public static Optional<TRight> AsRightOptional<TLeft, TRight>(
         this Either<TLeft, TRight> either) 
         where TLeft : notnull where TRight : notnull 
@@ -66,7 +62,6 @@ public static class EitherExtensions {
     /// <param name="leftMapper">The function to apply to the left value.</param>
     /// <param name="rightMapper">The function to apply to the right value.</param>
     /// <returns>An either with the transformed value.</returns>
-    [Pure]
     public static Either<TLeftResult, TRightResult> Map<TLeft, TRight, TLeftResult, TRightResult>(
         this Either<TLeft, TRight> either,
         Func<TLeft, TLeftResult> leftMapper,
@@ -88,7 +83,6 @@ public static class EitherExtensions {
     /// <param name="either">The either to map.</param>
     /// <param name="leftMapper">The function to apply to the left value.</param>
     /// <returns>An either with the transformed left value, or the original right value.</returns>
-    [Pure]
     public static Either<TLeftResult, TRight> MapLeft<TLeft, TRight, TLeftResult>(
         this Either<TLeft, TRight> either,
         Func<TLeft, TLeftResult> leftMapper) 
@@ -109,7 +103,6 @@ public static class EitherExtensions {
     /// <param name="either">The either to map.</param>
     /// <param name="rightMapper">The function to apply to the right value.</param>
     /// <returns>An either with the transformed right value, or the original left value.</returns>
-    [Pure]
     public static Either<TLeft, TRightResult> MapRight<TLeft, TRight, TRightResult>(
         this Either<TLeft, TRight> either,
         Func<TRight, TRightResult> rightMapper) 
@@ -131,7 +124,6 @@ public static class EitherExtensions {
     /// <param name="leftFunc">The function to apply if the either contains a left value.</param>
     /// <param name="rightFunc">The function to apply if the either contains a right value.</param>
     /// <returns>The result of the matching function.</returns>
-    [Pure]
     public static TResult Match<TLeft, TRight, TResult>(
         this Either<TLeft, TRight> either,
         Func<TLeft, TResult> leftFunc,
@@ -158,7 +150,6 @@ public static class EitherExtensions {
     /// <param name="leftMapper">The function to apply to the left value with state.</param>
     /// <param name="rightMapper">The function to apply to the right value with state.</param>
     /// <returns>An either with the transformed value.</returns>
-    [Pure]
     public static Either<TLeftResult, TRightResult> Map<TLeft, TRight, TLeftResult, TRightResult, TState>(
         this Either<TLeft, TRight> either,
         TState state,
@@ -183,7 +174,6 @@ public static class EitherExtensions {
     /// <param name="state">The state to pass to the mapper function.</param>
     /// <param name="leftMapper">The function to apply to the left value with state.</param>
     /// <returns>An either with the transformed left value, or the original right value.</returns>
-    [Pure]
     public static Either<TLeftResult, TRight> MapLeft<TLeft, TRight, TLeftResult, TState>(
         this Either<TLeft, TRight> either,
         TState state,
@@ -207,7 +197,6 @@ public static class EitherExtensions {
     /// <param name="state">The state to pass to the mapper function.</param>
     /// <param name="rightMapper">The function to apply to the right value with state.</param>
     /// <returns>An either with the transformed right value, or the original left value.</returns>
-    [Pure]
     public static Either<TLeft, TRightResult> MapRight<TLeft, TRight, TRightResult, TState>(
         this Either<TLeft, TRight> either,
         TState state,
@@ -232,7 +221,6 @@ public static class EitherExtensions {
     /// <param name="leftFunc">The function to apply if the either contains a left value.</param>
     /// <param name="rightFunc">The function to apply if the either contains a right value.</param>
     /// <returns>The result of the matching function.</returns>
-    [Pure]
     public static TResult Match<TLeft, TRight, TState, TResult>(
         this Either<TLeft, TRight> either,
         TState state,

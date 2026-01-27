@@ -1,5 +1,3 @@
-using System.Diagnostics.Contracts;
-
 namespace HCommons.Monads;
 
 /// <summary>
@@ -14,7 +12,6 @@ public static class OptionalExtensionsAsync {
     /// <param name="optionalTask">The task containing the optional to transform.</param>
     /// <param name="selector">The function to apply to the value if present.</param>
     /// <returns>A task containing an optional with the transformed value if present, or an empty optional if no value is present.</returns>
-    [Pure]
     public static async Task<Optional<TResult>> SelectAsync<T, TResult>(this Task<Optional<T>> optionalTask, Func<T, TResult> selector) where T : notnull where TResult : notnull {
         return (await optionalTask).Select(selector);
     }
@@ -27,7 +24,6 @@ public static class OptionalExtensionsAsync {
     /// <param name="optional">The optional to transform.</param>
     /// <param name="selectorAsync">The asynchronous function to apply to the value if present.</param>
     /// <returns>A task containing an optional with the transformed value if present, or an empty optional if no value is present.</returns>
-    [Pure]
     public static async Task<Optional<TResult>> SelectAsync<T, TResult>(this Optional<T> optional, Func<T, Task<TResult>> selectorAsync) where T : notnull where TResult : notnull {
         return optional.HasValue ? Optional<TResult>.Some(await selectorAsync(optional.Value)) : Optional<TResult>.None();
     }
@@ -40,7 +36,6 @@ public static class OptionalExtensionsAsync {
     /// <param name="optionalTask">The task containing the optional to transform.</param>
     /// <param name="selectorAsync">The asynchronous function to apply to the value if present.</param>
     /// <returns>A task containing an optional with the transformed value if present, or an empty optional if no value is present.</returns>
-    [Pure]
     public static async Task<Optional<TResult>> SelectAsync<T, TResult>(this Task<Optional<T>> optionalTask, Func<T, Task<TResult>> selectorAsync) where T : notnull where TResult : notnull {
         return await (await optionalTask).SelectAsync(selectorAsync);
     }
@@ -53,7 +48,6 @@ public static class OptionalExtensionsAsync {
     /// <param name="optionalTask">The task containing the optional to bind.</param>
     /// <param name="binder">The function to apply to the value if present.</param>
     /// <returns>A task containing the result of applying the binder, or an empty optional if no value is present.</returns>
-    [Pure]
     public static async Task<Optional<TResult>> BindAsync<T, TResult>(this Task<Optional<T>> optionalTask, Func<T, Optional<TResult>> binder) where T : notnull where TResult : notnull {
         return (await optionalTask).Bind(binder);
     }
@@ -66,7 +60,6 @@ public static class OptionalExtensionsAsync {
     /// <param name="optional">The optional to bind.</param>
     /// <param name="binderAsync">The asynchronous function to apply to the value if present.</param>
     /// <returns>A task containing the result of applying the binder, or an empty optional if no value is present.</returns>
-    [Pure]
     public static async Task<Optional<TResult>> BindAsync<T, TResult>(this Optional<T> optional, Func<T, Task<Optional<TResult>>> binderAsync) where T : notnull where TResult : notnull {
         return optional.HasValue ? await binderAsync(optional.Value) : Optional<TResult>.None();
     }
@@ -79,7 +72,6 @@ public static class OptionalExtensionsAsync {
     /// <param name="optionalTask">The task containing the optional to bind.</param>
     /// <param name="binderAsync">The asynchronous function to apply to the value if present.</param>
     /// <returns>A task containing the result of applying the binder, or an empty optional if no value is present.</returns>
-    [Pure]
     public static async Task<Optional<TResult>> BindAsync<T, TResult>(this Task<Optional<T>> optionalTask, Func<T, Task<Optional<TResult>>> binderAsync) where T : notnull where TResult : notnull {
         return await (await optionalTask).BindAsync(binderAsync);
     }
@@ -91,7 +83,6 @@ public static class OptionalExtensionsAsync {
     /// <param name="optionalTask">The task containing the optional to filter.</param>
     /// <param name="predicate">The predicate to test the value.</param>
     /// <returns>A task containing the optional if the value satisfies the predicate; otherwise, an empty optional.</returns>
-    [Pure]
     public static async Task<Optional<T>> WhereAsync<T>(this Task<Optional<T>> optionalTask, Func<T, bool> predicate) where T : notnull {
         return (await optionalTask).Where(predicate);
     }
@@ -103,7 +94,6 @@ public static class OptionalExtensionsAsync {
     /// <param name="optional">The optional to filter.</param>
     /// <param name="predicateAsync">The asynchronous predicate to test the value.</param>
     /// <returns>A task containing the optional if the value satisfies the predicate; otherwise, an empty optional.</returns>
-    [Pure]
     public static async Task<Optional<T>> WhereAsync<T>(this Optional<T> optional, Func<T, Task<bool>> predicateAsync) where T : notnull {
         return optional.HasValue && await predicateAsync(optional.Value) ? optional : Optional<T>.None();
     }
@@ -115,7 +105,6 @@ public static class OptionalExtensionsAsync {
     /// <param name="optionalTask">The task containing the optional to filter.</param>
     /// <param name="predicateAsync">The asynchronous predicate to test the value.</param>
     /// <returns>A task containing the optional if the value satisfies the predicate; otherwise, an empty optional.</returns>
-    [Pure]
     public static async Task<Optional<T>> WhereAsync<T>(this Task<Optional<T>> optionalTask, Func<T, Task<bool>> predicateAsync) where T : notnull {
         return await (await optionalTask).WhereAsync(predicateAsync);
     }
@@ -129,7 +118,6 @@ public static class OptionalExtensionsAsync {
     /// <param name="onValue">The function to execute if a value is present.</param>
     /// <param name="onNone">The function to execute if no value is present.</param>
     /// <returns>A task containing the result of the executed function.</returns>
-    [Pure]
     public static async Task<TResult> MatchAsync<T, TResult>(
         this Task<Optional<T>> optionalTask,
         Func<T, TResult> onValue,
@@ -147,7 +135,6 @@ public static class OptionalExtensionsAsync {
     /// <param name="onValueAsync">The asynchronous function to execute if a value is present.</param>
     /// <param name="onNone">The function to execute if no value is present.</param>
     /// <returns>A task containing the result of the executed function.</returns>
-    [Pure]
     public static async Task<TResult> MatchAsync<T, TResult>(
         this Optional<T> optional,
         Func<T, Task<TResult>> onValueAsync,
@@ -165,7 +152,6 @@ public static class OptionalExtensionsAsync {
     /// <param name="onValue">The function to execute if a value is present.</param>
     /// <param name="onNoneAsync">The asynchronous function to execute if no value is present.</param>
     /// <returns>A task containing the result of the executed function.</returns>
-    [Pure]
     public static async Task<TResult> MatchAsync<T, TResult>(
         this Optional<T> optional,
         Func<T, TResult> onValue,
@@ -183,7 +169,6 @@ public static class OptionalExtensionsAsync {
     /// <param name="onValueAsync">The asynchronous function to execute if a value is present.</param>
     /// <param name="onNone">The function to execute if no value is present.</param>
     /// <returns>A task containing the result of the executed function.</returns>
-    [Pure]
     public static async Task<TResult> MatchAsync<T, TResult>(
         this Task<Optional<T>> optionalTask,
         Func<T, Task<TResult>> onValueAsync,
@@ -201,7 +186,6 @@ public static class OptionalExtensionsAsync {
     /// <param name="onValue">The function to execute if a value is present.</param>
     /// <param name="onNoneAsync">The asynchronous function to execute if no value is present.</param>
     /// <returns>A task containing the result of the executed function.</returns>
-    [Pure]
     public static async Task<TResult> MatchAsync<T, TResult>(
         this Task<Optional<T>> optionalTask,
         Func<T, TResult> onValue,
@@ -219,7 +203,6 @@ public static class OptionalExtensionsAsync {
     /// <param name="onValueAsync">The asynchronous function to execute if a value is present.</param>
     /// <param name="onNoneAsync">The asynchronous function to execute if no value is present.</param>
     /// <returns>A task containing the result of the executed function.</returns>
-    [Pure]
     public static async Task<TResult> MatchAsync<T, TResult>(
         this Optional<T> optional,
         Func<T, Task<TResult>> onValueAsync,
@@ -237,7 +220,6 @@ public static class OptionalExtensionsAsync {
     /// <param name="onValueAsync">The asynchronous function to execute if a value is present.</param>
     /// <param name="onNoneAsync">The asynchronous function to execute if no value is present.</param>
     /// <returns>A task containing the result of the executed function.</returns>
-    [Pure]
     public static async Task<TResult> MatchAsync<T, TResult>(
         this Task<Optional<T>> optionalTask,
         Func<T, Task<TResult>> onValueAsync,
@@ -246,3 +228,4 @@ public static class OptionalExtensionsAsync {
         return await (await optionalTask).MatchAsync(onValueAsync, onNoneAsync);
     }
 }
+

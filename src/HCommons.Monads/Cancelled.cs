@@ -1,4 +1,3 @@
-using System.Diagnostics.Contracts;
 
 namespace HCommons.Monads;
 
@@ -9,7 +8,6 @@ public readonly record struct Cancelled(string Reason) {
     /// <summary>
     /// Gets an empty cancellation with no reason.
     /// </summary>
-    [Pure]
     public static Cancelled Empty => new Cancelled(string.Empty);
     
     /// <summary>
@@ -17,7 +15,6 @@ public readonly record struct Cancelled(string Reason) {
     /// </summary>
     /// <param name="reason">The cancellation reason.</param>
     /// <returns>A cancellation with the specified reason.</returns>
-    [Pure]
     public static Cancelled Because(string reason) => new Cancelled(reason);
     
     /// <summary>
@@ -28,7 +25,6 @@ public readonly record struct Cancelled(string Reason) {
     /// Returns a string representation of the cancellation.
     /// </summary>
     /// <returns>A string containing the cancellation reason.</returns>
-    [Pure]
     public override string ToString() => $"[Cancelled]: {Reason}";
 }
 
@@ -42,7 +38,6 @@ public readonly record struct Cancelled<TValue>(TValue Value, string Reason) {
     /// </summary>
     /// <param name="value">The associated value.</param>
     /// <returns>A cancellation containing only the value.</returns>
-    [Pure]
     public static Cancelled<TValue> ValueOnly(TValue value) => new Cancelled<TValue>(value, string.Empty); 
     /// <summary>
     /// Creates a cancellation with a value and reason.
@@ -50,7 +45,6 @@ public readonly record struct Cancelled<TValue>(TValue Value, string Reason) {
     /// <param name="value">The associated value.</param>
     /// <param name="reason">The cancellation reason.</param>
     /// <returns>A cancellation containing the value and reason.</returns>
-    [Pure]
     public static Cancelled<TValue> Because(TValue value, string reason) => new Cancelled<TValue>(value, reason);
     
     /// <summary>
@@ -61,7 +55,6 @@ public readonly record struct Cancelled<TValue>(TValue Value, string Reason) {
     /// Returns a string representation of the cancellation.
     /// </summary>
     /// <returns>A string containing the cancellation reason and associated value.</returns>
-    [Pure]
     public override string ToString() => $"[Cancelled]: {Reason}, [Value]: {Value}";
 }
 
@@ -76,7 +69,6 @@ public static class CancelledExtensions {
     /// <param name="cancelled">The cancellation to add a value to.</param>
     /// <param name="value">The value to add.</param>
     /// <returns>A cancellation with the added value.</returns>
-    [Pure]
     public static Cancelled<TValue> WithValue<TValue>(this Cancelled cancelled, TValue value) => new Cancelled<TValue>(value, cancelled.Reason);
     /// <summary>
     /// Removes the value from a cancellation.
@@ -84,6 +76,5 @@ public static class CancelledExtensions {
     /// <typeparam name="TValue">The type of the value.</typeparam>
     /// <param name="cancelled">The cancellation to remove the value from.</param>
     /// <returns>A cancellation without a value.</returns>
-    [Pure]
     public static Cancelled WithoutValue<TValue>(this Cancelled<TValue> cancelled) => new Cancelled(cancelled.Reason);
 }

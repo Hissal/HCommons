@@ -1,5 +1,3 @@
-using System.Diagnostics.Contracts;
-
 namespace HCommons.Monads;
 
 /// <summary>
@@ -12,7 +10,6 @@ public static class ResultExtensionsAsync {
     /// <param name="resultTask">The task containing the result whose error to transform.</param>
     /// <param name="mapError">The function to apply to the error if the result is failed.</param>
     /// <returns>A task containing a result with the transformed error if failed, or the original result if successful.</returns>
-    [Pure]
     public static async Task<Result> MapErrorAsync(this Task<Result> resultTask, Func<Error, Error> mapError) {
         return (await resultTask).MapError(mapError);
     }
@@ -23,7 +20,6 @@ public static class ResultExtensionsAsync {
     /// <param name="result">The result whose error to transform.</param>
     /// <param name="mapErrorAsync">The asynchronous function to apply to the error if the result is failed.</param>
     /// <returns>A task containing a result with the transformed error if failed, or the original result if successful.</returns>
-    [Pure]
     public static async Task<Result> MapErrorAsync(this Result result, Func<Error, Task<Error>> mapErrorAsync) {
         return result.IsFailure ? Result.Failure(await mapErrorAsync(result.Error)) : result;
     }
@@ -34,7 +30,6 @@ public static class ResultExtensionsAsync {
     /// <param name="resultTask">The task containing the result whose error to transform.</param>
     /// <param name="mapErrorAsync">The asynchronous function to apply to the error if the result is failed.</param>
     /// <returns>A task containing a result with the transformed error if failed, or the original result if successful.</returns>
-    [Pure]
     public static async Task<Result> MapErrorAsync(this Task<Result> resultTask, Func<Error, Task<Error>> mapErrorAsync) {
         return await (await resultTask).MapErrorAsync(mapErrorAsync);
     }
@@ -47,7 +42,6 @@ public static class ResultExtensionsAsync {
     /// <param name="onSuccess">The function to apply if the result is successful.</param>
     /// <param name="onFailure">The function to apply if the result is failed.</param>
     /// <returns>A task containing the result of applying the appropriate function.</returns>
-    [Pure]
     public static async Task<TResult> MatchAsync<TResult>(
         this Task<Result> resultTask,
         Func<TResult> onSuccess,
@@ -64,7 +58,6 @@ public static class ResultExtensionsAsync {
     /// <param name="onSuccessAsync">The asynchronous function to apply if the result is successful.</param>
     /// <param name="onFailure">The function to apply if the result is failed.</param>
     /// <returns>A task containing the result of applying the appropriate function.</returns>
-    [Pure]
     public static async Task<TResult> MatchAsync<TResult>(
         this Result result,
         Func<Task<TResult>> onSuccessAsync,
@@ -81,7 +74,6 @@ public static class ResultExtensionsAsync {
     /// <param name="onSuccess">The function to apply if the result is successful.</param>
     /// <param name="onFailureAsync">The asynchronous function to apply if the result is failed.</param>
     /// <returns>A task containing the result of applying the appropriate function.</returns>
-    [Pure]
     public static async Task<TResult> MatchAsync<TResult>(
         this Result result,
         Func<TResult> onSuccess,
@@ -98,7 +90,6 @@ public static class ResultExtensionsAsync {
     /// <param name="onSuccessAsync">The asynchronous function to apply if the result is successful.</param>
     /// <param name="onFailure">The function to apply if the result is failed.</param>
     /// <returns>A task containing the result of applying the appropriate function.</returns>
-    [Pure]
     public static async Task<TResult> MatchAsync<TResult>(
         this Task<Result> resultTask,
         Func<Task<TResult>> onSuccessAsync,
@@ -115,7 +106,6 @@ public static class ResultExtensionsAsync {
     /// <param name="onSuccess">The function to apply if the result is successful.</param>
     /// <param name="onFailureAsync">The asynchronous function to apply if the result is failed.</param>
     /// <returns>A task containing the result of applying the appropriate function.</returns>
-    [Pure]
     public static async Task<TResult> MatchAsync<TResult>(
         this Task<Result> resultTask,
         Func<TResult> onSuccess,
@@ -132,7 +122,6 @@ public static class ResultExtensionsAsync {
     /// <param name="onSuccessAsync">The asynchronous function to apply if the result is successful.</param>
     /// <param name="onFailureAsync">The asynchronous function to apply if the result is failed.</param>
     /// <returns>A task containing the result of applying the appropriate function.</returns>
-    [Pure]
     public static async Task<TResult> MatchAsync<TResult>(
         this Result result,
         Func<Task<TResult>> onSuccessAsync,
@@ -149,7 +138,6 @@ public static class ResultExtensionsAsync {
     /// <param name="onSuccessAsync">The asynchronous function to apply if the result is successful.</param>
     /// <param name="onFailureAsync">The asynchronous function to apply if the result is failed.</param>
     /// <returns>A task containing the result of applying the appropriate function.</returns>
-    [Pure]
     public static async Task<TResult> MatchAsync<TResult>(
         this Task<Result> resultTask,
         Func<Task<TResult>> onSuccessAsync,
@@ -158,3 +146,4 @@ public static class ResultExtensionsAsync {
         return await (await resultTask).MatchAsync(onSuccessAsync, onFailureAsync);
     }
 }
+

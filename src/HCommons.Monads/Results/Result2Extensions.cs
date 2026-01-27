@@ -1,4 +1,3 @@
-using System.Diagnostics.Contracts;
 
 namespace HCommons.Monads;
 
@@ -15,7 +14,6 @@ public static class Result2Extensions {
     /// <param name="result">The result to transform.</param>
     /// <param name="selector">The function to apply to the success value if the result is successful.</param>
     /// <returns>A result containing the transformed success value if successful, or the original failure value if failed.</returns>
-    [Pure]
     public static Result<TResult, TFailure> Select<TSuccess, TFailure, TResult>(
         this Result<TSuccess, TFailure> result, 
         Func<TSuccess, TResult> selector) 
@@ -35,7 +33,6 @@ public static class Result2Extensions {
     /// <param name="state">The state to pass to the selector function.</param>
     /// <param name="selector">The function to apply to the state and success value if the result is successful.</param>
     /// <returns>A result containing the transformed success value if successful, or the original failure value if failed.</returns>
-    [Pure]
     public static Result<TResult, TFailure> Select<TSuccess, TFailure, TState, TResult>(
         this Result<TSuccess, TFailure> result, 
         TState state, 
@@ -54,7 +51,6 @@ public static class Result2Extensions {
     /// <param name="result">The result to bind.</param>
     /// <param name="binder">The function to apply to the success value if the result is successful.</param>
     /// <returns>The result returned by the binder function if successful, or the original failure value if failed.</returns>
-    [Pure]
     public static Result<TResult, TFailure> Bind<TSuccess, TFailure, TResult>(
         this Result<TSuccess, TFailure> result, 
         Func<TSuccess, Result<TResult, TFailure>> binder) 
@@ -74,7 +70,6 @@ public static class Result2Extensions {
     /// <param name="state">The state to pass to the binder function.</param>
     /// <param name="binder">The function to apply to the state and success value if the result is successful.</param>
     /// <returns>The result returned by the binder function if successful, or the original failure value if failed.</returns>
-    [Pure]
     public static Result<TResult, TFailure> Bind<TSuccess, TFailure, TState, TResult>(
         this Result<TSuccess, TFailure> result, 
         TState state, 
@@ -93,7 +88,6 @@ public static class Result2Extensions {
     /// <param name="result">The result whose failure value to transform.</param>
     /// <param name="mapFailure">The function to apply to the failure value if the result is failed.</param>
     /// <returns>A result with the transformed failure value if failed, or the original result if successful.</returns>
-    [Pure]
     public static Result<TSuccess, TNewFailure> MapError<TSuccess, TFailure, TNewFailure>(
         this Result<TSuccess, TFailure> result, 
         Func<TFailure, TNewFailure> mapFailure) 
@@ -113,7 +107,6 @@ public static class Result2Extensions {
     /// <param name="state">The state to pass to the mapFailure function.</param>
     /// <param name="mapFailure">The function to apply to the state and failure value if the result is failed.</param>
     /// <returns>A result with the transformed failure value if failed, or the original result if successful.</returns>
-    [Pure]
     public static Result<TSuccess, TNewFailure> MapError<TSuccess, TFailure, TState, TNewFailure>(
         this Result<TSuccess, TFailure> result, 
         TState state, 
@@ -133,7 +126,6 @@ public static class Result2Extensions {
     /// <param name="onSuccess">The function to execute if the operation succeeded.</param>
     /// <param name="onFailure">The function to execute if the operation failed.</param>
     /// <returns>The result of the executed function.</returns>
-    [Pure]
     public static TResult Match<TSuccess, TFailure, TResult>(
         this Result<TSuccess, TFailure> result,
         Func<TSuccess, TResult> onSuccess, 
@@ -156,7 +148,6 @@ public static class Result2Extensions {
     /// <param name="onSuccess">The function to execute if the operation succeeded.</param>
     /// <param name="onFailure">The function to execute if the operation failed.</param>
     /// <returns>The result of the executed function.</returns>
-    [Pure]
     public static TResult Match<TSuccess, TFailure, TState, TResult>(
         this Result<TSuccess, TFailure> result,
         TState state,
@@ -209,3 +200,4 @@ public static class Result2Extensions {
         else onFailure(state, result.FailureValue!);
     }
 }
+
