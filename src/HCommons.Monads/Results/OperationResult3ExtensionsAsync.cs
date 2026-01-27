@@ -148,7 +148,7 @@ public static class OperationResult3ExtensionsAsync {
     /// <typeparam name="TFailure">The type of the source failure value.</typeparam>
     /// <typeparam name="TCancelled">The type of the cancellation value.</typeparam>
     /// <typeparam name="TNewFailure">The type of the new failure value.</typeparam>
-    /// <param name="resultTask">The task containing the operation result whose failure value to transform.</param>
+    /// <param name="result">The task containing the operation result whose failure value to transform.</param>
     /// <param name="mapFailure">The function to apply to the failure value if the operation failed.</param>
     /// <returns>A task containing an operation result with the transformed failure value if failed, or the original result if successful or cancelled.</returns>
     public static async Task<OperationResult<TSuccess, TNewFailure, TCancelled>> MapErrorAsync<TSuccess, TFailure, TCancelled, TNewFailure>(

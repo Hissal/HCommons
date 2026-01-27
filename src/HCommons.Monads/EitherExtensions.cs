@@ -1,6 +1,9 @@
 
 namespace HCommons.Monads;
 
+/// <summary>
+/// Provides extension methods for the Either type.
+/// </summary>
 public static class EitherExtensions {
     /// <summary>
     /// Swaps the left and right sides of an either.

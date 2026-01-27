@@ -1,6 +1,9 @@
 
 namespace HCommons.Monads;
 
+/// <summary>
+/// Provides asynchronous extension methods for the Either monad.
+/// </summary>
 public static class EitherExtensionsAsync {
     
     /// <summary>
