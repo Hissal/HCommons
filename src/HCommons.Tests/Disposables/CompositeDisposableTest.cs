@@ -312,21 +312,6 @@ public class CompositeDisposableTest {
         ex.InnerExceptions.Count.ShouldBe(1);
         ex.InnerExceptions[0].ShouldBe(exception);
         sut.IsDisposed.ShouldBeTrue();
-    }
-
-    [Fact]
-    public void Dispose_WhenDisposableThrows_StillSetsIsDisposed() {
-        // Arrange
-        var sut = new CompositeDisposable();
-        var d1 = Substitute.For<IDisposable>();
-        d1.When(x => x.Dispose()).Do(_ => throw new InvalidOperationException("Dispose failed"));
-        sut.Add(d1);
-
-        // Act
-        Should.Throw<AggregateException>(() => sut.Dispose());
-
-        // Assert
-        sut.IsDisposed.ShouldBeTrue();
         sut.Count.ShouldBe(0);
     }
 
