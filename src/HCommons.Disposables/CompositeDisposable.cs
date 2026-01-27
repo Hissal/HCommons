@@ -80,7 +80,11 @@ public sealed class CompositeDisposable : ICollection<IDisposable>, IDisposable 
     public void Clear() {
         List<Exception>? exceptions = null;
         
-        foreach (var disposable in disposables) {
+        // Take a snapshot to avoid collection modified exceptions if a disposable
+        // attempts to modify this collection during disposal
+        var snapshot = disposables.ToArray();
+        
+        foreach (var disposable in snapshot) {
             try {
                 disposable.Dispose();
             }

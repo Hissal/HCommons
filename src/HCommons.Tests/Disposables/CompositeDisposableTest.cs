@@ -329,4 +329,34 @@ public class CompositeDisposableTest {
         sut.IsDisposed.ShouldBeTrue();
         sut.Count.ShouldBe(0);
     }
+
+    [Fact]
+    public void Clear_WhenDisposableModifiesCollection_DoesNotThrowCollectionModifiedException() {
+        // Arrange
+        var sut = new CompositeDisposable();
+        var d1 = Substitute.For<IDisposable>();
+        var d2 = Substitute.For<IDisposable>();
+        var d3 = Substitute.For<IDisposable>();
+        var dAdded = Substitute.For<IDisposable>();
+        
+        // d2 attempts to add a new disposable when disposed
+        d2.When(x => x.Dispose()).Do(_ => sut.Add(dAdded));
+        
+        sut.Add(d1);
+        sut.Add(d2);
+        sut.Add(d3);
+
+        // Act & Assert - should not throw any exception
+        sut.Clear();
+        
+        // All original disposables should have been disposed
+        d1.Received(1).Dispose();
+        d2.Received(1).Dispose();
+        d3.Received(1).Dispose();
+        
+        // The item added during disposal should not be disposed
+        // (it was added after we took the snapshot but cleared at the end)
+        dAdded.DidNotReceive().Dispose();
+        sut.Count.ShouldBe(0, "Collection should be empty after Clear");
+    }
 }
