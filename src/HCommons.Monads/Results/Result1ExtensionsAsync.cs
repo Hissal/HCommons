@@ -1,4 +1,3 @@
-﻿using System.Diagnostics.Contracts;
 
 namespace HCommons.Monads;
 
@@ -14,7 +13,6 @@ public static class Result1ExtensionsAsync {
     /// <param name="resultTask">The task containing the result to transform.</param>
     /// <param name="selector">The function to apply to the value if the result is successful.</param>
     /// <returns>A task containing a result with the transformed value if successful, or the original error if failed.</returns>
-    [Pure]
     public static async Task<Result<TResult>> SelectAsync<TValue, TResult>(this Task<Result<TValue>> resultTask, Func<TValue, TResult> selector) where TValue : notnull where TResult : notnull {
         return (await resultTask).Select(selector);
     }
@@ -27,7 +25,6 @@ public static class Result1ExtensionsAsync {
     /// <param name="result">The result to transform.</param>
     /// <param name="selectorAsync">The asynchronous function to apply to the value if the result is successful.</param>
     /// <returns>A task containing a result with the transformed value if successful, or the original error if failed.</returns>
-    [Pure]
     public static async Task<Result<TResult>> SelectAsync<TValue, TResult>(this Result<TValue> result, Func<TValue, Task<TResult>> selectorAsync) where TValue : notnull where TResult : notnull {
         return result.IsSuccess ? Result<TResult>.Success(await selectorAsync(result.Value)) : Result<TResult>.Failure(result.Error);
     }
@@ -40,7 +37,6 @@ public static class Result1ExtensionsAsync {
     /// <param name="resultTask">The task containing the result to transform.</param>
     /// <param name="selectorAsync">The asynchronous function to apply to the value if the result is successful.</param>
     /// <returns>A task containing a result with the transformed value if successful, or the original error if failed.</returns>
-    [Pure]
     public static async Task<Result<TResult>> SelectAsync<TValue, TResult>(this Task<Result<TValue>> resultTask, Func<TValue, Task<TResult>> selectorAsync) where TValue : notnull where TResult : notnull {
         return await (await resultTask).SelectAsync(selectorAsync);
     }
@@ -53,7 +49,6 @@ public static class Result1ExtensionsAsync {
     /// <param name="resultTask">The task containing the result to bind.</param>
     /// <param name="binder">The function to apply to the value if the result is successful.</param>
     /// <returns>A task containing the result returned by the binder function if successful, or the original error if failed.</returns>
-    [Pure]
     public static async Task<Result<TResult>> BindAsync<TValue, TResult>(this Task<Result<TValue>> resultTask, Func<TValue, Result<TResult>> binder) where TValue : notnull where TResult : notnull {
         return (await resultTask).Bind(binder);
     }
@@ -66,7 +61,6 @@ public static class Result1ExtensionsAsync {
     /// <param name="result">The result to bind.</param>
     /// <param name="binderAsync">The asynchronous function to apply to the value if the result is successful.</param>
     /// <returns>A task containing the result returned by the binder function if successful, or the original error if failed.</returns>
-    [Pure]
     public static async Task<Result<TResult>> BindAsync<TValue, TResult>(this Result<TValue> result, Func<TValue, Task<Result<TResult>>> binderAsync) where TValue : notnull where TResult : notnull {
         return result.IsSuccess ? await binderAsync(result.Value) : Result<TResult>.Failure(result.Error);
     }
@@ -79,7 +73,6 @@ public static class Result1ExtensionsAsync {
     /// <param name="resultTask">The task containing the result to bind.</param>
     /// <param name="binderAsync">The asynchronous function to apply to the value if the result is successful.</param>
     /// <returns>A task containing the result returned by the binder function if successful, or the original error if failed.</returns>
-    [Pure]
     public static async Task<Result<TResult>> BindAsync<TValue, TResult>(this Task<Result<TValue>> resultTask, Func<TValue, Task<Result<TResult>>> binderAsync) where TValue : notnull where TResult : notnull {
         return await (await resultTask).BindAsync(binderAsync);
     }
@@ -91,7 +84,6 @@ public static class Result1ExtensionsAsync {
     /// <param name="resultTask">The task containing the result whose error to transform.</param>
     /// <param name="mapError">The function to apply to the error if the result is failed.</param>
     /// <returns>A task containing a result with the transformed error if failed, or the original result if successful.</returns>
-    [Pure]
     public static async Task<Result<TValue>> MapErrorAsync<TValue>(this Task<Result<TValue>> resultTask, Func<Error, Error> mapError) where TValue : notnull {
         return (await resultTask).MapError(mapError);
     }
@@ -103,7 +95,6 @@ public static class Result1ExtensionsAsync {
     /// <param name="result">The result whose error to transform.</param>
     /// <param name="mapErrorAsync">The asynchronous function to apply to the error if the result is failed.</param>
     /// <returns>A task containing a result with the transformed error if failed, or the original result if successful.</returns>
-    [Pure]
     public static async Task<Result<TValue>> MapErrorAsync<TValue>(this Result<TValue> result, Func<Error, Task<Error>> mapErrorAsync) where TValue : notnull {
         return result.IsFailure ? Result<TValue>.Failure(await mapErrorAsync(result.Error)) : result;
     }
@@ -115,7 +106,6 @@ public static class Result1ExtensionsAsync {
     /// <param name="resultTask">The task containing the result whose error to transform.</param>
     /// <param name="mapErrorAsync">The asynchronous function to apply to the error if the result is failed.</param>
     /// <returns>A task containing a result with the transformed error if failed, or the original result if successful.</returns>
-    [Pure]
     public static async Task<Result<TValue>> MapErrorAsync<TValue>(this Task<Result<TValue>> resultTask, Func<Error, Task<Error>> mapErrorAsync) where TValue : notnull {
         return await (await resultTask).MapErrorAsync(mapErrorAsync);
     }
@@ -129,7 +119,6 @@ public static class Result1ExtensionsAsync {
     /// <param name="onSuccess">The function to apply if the result is successful.</param>
     /// <param name="onFailure">The function to apply if the result is failed.</param>
     /// <returns>A task containing the result of applying the appropriate function.</returns>
-    [Pure]
     public static async Task<TResult> MatchAsync<TValue, TResult>(
         this Task<Result<TValue>> resultTask,
         Func<TValue, TResult> onSuccess,
@@ -147,7 +136,6 @@ public static class Result1ExtensionsAsync {
     /// <param name="onSuccessAsync">The asynchronous function to apply if the result is successful.</param>
     /// <param name="onFailure">The function to apply if the result is failed.</param>
     /// <returns>A task containing the result of applying the appropriate function.</returns>
-    [Pure]
     public static async Task<TResult> MatchAsync<TValue, TResult>(
         this Result<TValue> result,
         Func<TValue, Task<TResult>> onSuccessAsync,
@@ -165,7 +153,6 @@ public static class Result1ExtensionsAsync {
     /// <param name="onSuccess">The function to apply if the result is successful.</param>
     /// <param name="onFailureAsync">The asynchronous function to apply if the result is failed.</param>
     /// <returns>A task containing the result of applying the appropriate function.</returns>
-    [Pure]
     public static async Task<TResult> MatchAsync<TValue, TResult>(
         this Result<TValue> result,
         Func<TValue, TResult> onSuccess,
@@ -183,7 +170,6 @@ public static class Result1ExtensionsAsync {
     /// <param name="onSuccessAsync">The asynchronous function to apply if the result is successful.</param>
     /// <param name="onFailure">The function to apply if the result is failed.</param>
     /// <returns>A task containing the result of applying the appropriate function.</returns>
-    [Pure]
     public static async Task<TResult> MatchAsync<TValue, TResult>(
         this Task<Result<TValue>> resultTask,
         Func<TValue, Task<TResult>> onSuccessAsync,
@@ -201,7 +187,6 @@ public static class Result1ExtensionsAsync {
     /// <param name="onSuccess">The function to apply if the result is successful.</param>
     /// <param name="onFailureAsync">The asynchronous function to apply if the result is failed.</param>
     /// <returns>A task containing the result of applying the appropriate function.</returns>
-    [Pure]
     public static async Task<TResult> MatchAsync<TValue, TResult>(
         this Task<Result<TValue>> resultTask,
         Func<TValue, TResult> onSuccess,
@@ -219,7 +204,6 @@ public static class Result1ExtensionsAsync {
     /// <param name="onSuccessAsync">The asynchronous function to apply if the result is successful.</param>
     /// <param name="onFailureAsync">The asynchronous function to apply if the result is failed.</param>
     /// <returns>A task containing the result of applying the appropriate function.</returns>
-    [Pure]
     public static async Task<TResult> MatchAsync<TValue, TResult>(
         this Result<TValue> result,
         Func<TValue, Task<TResult>> onSuccessAsync,
@@ -237,7 +221,6 @@ public static class Result1ExtensionsAsync {
     /// <param name="onSuccessAsync">The asynchronous function to apply if the result is successful.</param>
     /// <param name="onFailureAsync">The asynchronous function to apply if the result is failed.</param>
     /// <returns>A task containing the result of applying the appropriate function.</returns>
-    [Pure]
     public static async Task<TResult> MatchAsync<TValue, TResult>(
         this Task<Result<TValue>> resultTask,
         Func<TValue, Task<TResult>> onSuccessAsync,

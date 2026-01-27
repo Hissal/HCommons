@@ -1,4 +1,3 @@
-using System.Diagnostics.Contracts;
 
 namespace HCommons.Monads;
 
@@ -16,7 +15,6 @@ public static class OperationResult3Extensions {
     /// <param name="result">The operation result to transform.</param>
     /// <param name="selector">The function to apply to the success value if the operation succeeded.</param>
     /// <returns>An operation result containing the transformed success value if successful, or the original failure or cancellation value if failed or cancelled.</returns>
-    [Pure]
     public static OperationResult<TResult, TFailure, TCancelled> Select<TSuccess, TFailure, TCancelled, TResult>(
         this OperationResult<TSuccess, TFailure, TCancelled> result, 
         Func<TSuccess, TResult> selector)
@@ -45,7 +43,6 @@ public static class OperationResult3Extensions {
     /// <param name="state">The state to pass to the selector function.</param>
     /// <param name="selector">The function to apply to the state and success value if the operation succeeded.</param>
     /// <returns>An operation result containing the transformed success value if successful, or the original failure or cancellation value if failed or cancelled.</returns>
-    [Pure]
     public static OperationResult<TResult, TFailure, TCancelled> Select<TState, TSuccess, TFailure, TCancelled, TResult>(
         this OperationResult<TSuccess, TFailure, TCancelled> result, 
         TState state,
@@ -73,7 +70,6 @@ public static class OperationResult3Extensions {
     /// <param name="result">The operation result to bind.</param>
     /// <param name="binder">The function to apply to the success value if the operation succeeded.</param>
     /// <returns>The operation result returned by the binder function if successful, or the original failure or cancellation value if failed or cancelled.</returns>
-    [Pure]
     public static OperationResult<TResult, TFailure, TCancelled> Bind<TSuccess, TFailure, TCancelled, TResult>(
         this OperationResult<TSuccess, TFailure, TCancelled> result, 
         Func<TSuccess, OperationResult<TResult, TFailure, TCancelled>> binder)
@@ -102,7 +98,6 @@ public static class OperationResult3Extensions {
     /// <param name="state">The state to pass to the binder function.</param>
     /// <param name="binder">The function to apply to the state and success value if the operation succeeded.</param>
     /// <returns>The operation result returned by the binder function if successful, or the original failure or cancellation value if failed or cancelled.</returns>
-    [Pure]
     public static OperationResult<TResult, TFailure, TCancelled> Bind<TState, TSuccess, TFailure, TCancelled, TResult>(
         this OperationResult<TSuccess, TFailure, TCancelled> result, 
         TState state,
@@ -130,7 +125,6 @@ public static class OperationResult3Extensions {
     /// <param name="result">The operation result whose failure value to transform.</param>
     /// <param name="mapFailure">The function to apply to the failure value if the operation failed.</param>
     /// <returns>An operation result with the transformed failure value if failed, or the original result if successful or cancelled.</returns>
-    [Pure]
     public static OperationResult<TSuccess, TNewFailure, TCancelled> MapError<TSuccess, TFailure, TCancelled, TNewFailure>(
         this OperationResult<TSuccess, TFailure, TCancelled> result, 
         Func<TFailure, TNewFailure> mapFailure)
@@ -161,7 +155,6 @@ public static class OperationResult3Extensions {
     /// <param name="state">The state to pass to the mapFailure function.</param>
     /// <param name="mapFailure">The function to apply to the state and failure value if the operation failed.</param>
     /// <returns>An operation result with the transformed failure value if failed, or the original result if successful or cancelled.</returns>
-    [Pure]
     public static OperationResult<TSuccess, TNewFailure, TCancelled> MapError<TState, TSuccess, TFailure, TCancelled, TNewFailure>(
         this OperationResult<TSuccess, TFailure, TCancelled> result, 
         TState state,
@@ -191,7 +184,6 @@ public static class OperationResult3Extensions {
     /// <param name="result">The operation result whose cancellation value to transform.</param>
     /// <param name="mapCancellation">The function to apply to the cancellation value if the operation was cancelled.</param>
     /// <returns>An operation result with the transformed cancellation value if cancelled, or the original result if successful or failed.</returns>
-    [Pure]
     public static OperationResult<TSuccess, TFailure, TNewCancelled> MapCancellation<TSuccess, TFailure, TCancelled, TNewCancelled>(
         this OperationResult<TSuccess, TFailure, TCancelled> result, 
         Func<TCancelled, TNewCancelled> mapCancellation)
@@ -222,7 +214,6 @@ public static class OperationResult3Extensions {
     /// <param name="state">The state to pass to the mapCancellation function.</param>
     /// <param name="mapCancellation">The function to apply to the state and cancellation value if the operation was cancelled.</param>
     /// <returns>An operation result with the transformed cancellation value if cancelled, or the original result if successful or failed.</returns>
-    [Pure]
     public static OperationResult<TSuccess, TFailure, TNewCancelled> MapCancellation<TState, TSuccess, TFailure, TCancelled, TNewCancelled>(
         this OperationResult<TSuccess, TFailure, TCancelled> result, 
         TState state,
@@ -254,7 +245,6 @@ public static class OperationResult3Extensions {
     /// <param name="onFailure">The function to execute if the operation failed.</param>
     /// <param name="onCancelled">The function to execute if the operation was cancelled.</param>
     /// <returns>The result of the executed function.</returns>
-    [Pure]
     public static TResult Match<TSuccess, TFailure, TCancelled, TResult>(
         this OperationResult<TSuccess, TFailure, TCancelled> result,
         Func<TSuccess, TResult> onSuccess, 
@@ -286,7 +276,6 @@ public static class OperationResult3Extensions {
     /// <param name="onFailure">The function to execute if the operation failed.</param>
     /// <param name="onCancelled">The function to execute if the operation was cancelled.</param>
     /// <returns>The result of the executed function.</returns>
-    [Pure]
     public static TResult Match<TState, TSuccess, TFailure, TCancelled, TResult>(
         this OperationResult<TSuccess, TFailure, TCancelled> result,
         TState state,
@@ -376,3 +365,4 @@ public static class OperationResult3Extensions {
         }
     }
 }
+

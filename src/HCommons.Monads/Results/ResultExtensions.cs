@@ -1,5 +1,3 @@
-using System.Diagnostics.Contracts;
-
 namespace HCommons.Monads;
 
 /// <summary>
@@ -12,7 +10,6 @@ public static class ResultExtensions {
     /// <param name="result">The result whose error to transform.</param>
     /// <param name="mapError">The function to apply to the error if the result is failed.</param>
     /// <returns>A result with the transformed error if failed, or the original result if successful.</returns>
-    [Pure]
     public static Result MapError(this Result result, Func<Error, Error> mapError) =>
         result.IsFailure ? Result.Failure(mapError(result.Error)) : result;
 
@@ -24,7 +21,6 @@ public static class ResultExtensions {
     /// <param name="state">The state to pass to the mapError function.</param>
     /// <param name="mapError">The function to apply to the state and error if the result is failed.</param>
     /// <returns>A result with the transformed error if failed, or the original result if successful.</returns>
-    [Pure]
     public static Result MapError<TState>(this Result result, TState state, Func<TState, Error, Error> mapError) =>
         result.IsFailure ? Result.Failure(mapError(state, result.Error)) : result;
 
@@ -36,7 +32,6 @@ public static class ResultExtensions {
     /// <param name="onSuccess">The function to execute if the operation succeeded.</param>
     /// <param name="onFailure">The function to execute if the operation failed.</param>
     /// <returns>The result of the executed function.</returns>
-    [Pure]
     public static TResult Match<TResult>(this Result result, Func<TResult> onSuccess, Func<Error, TResult> onFailure) =>
         result.IsSuccess ? onSuccess() : onFailure(result.Error);
 
@@ -50,7 +45,6 @@ public static class ResultExtensions {
     /// <param name="onSuccess">The function to execute if the operation succeeded.</param>
     /// <param name="onFailure">The function to execute if the operation failed.</param>
     /// <returns>The result of the executed function.</returns>
-    [Pure]
     public static TResult Match<TState, TResult>(this Result result, TState state, Func<TState, TResult> onSuccess,
         Func<TState, Error, TResult> onFailure) =>
         result.IsSuccess ? onSuccess(state) : onFailure(state, result.Error);
@@ -79,3 +73,4 @@ public static class ResultExtensions {
         else onFailure(state, result.Error);
     }
 }
+

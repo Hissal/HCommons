@@ -1,4 +1,3 @@
-using System.Diagnostics.Contracts;
 
 namespace HCommons.Monads;
 
@@ -12,7 +11,6 @@ public static class OperationResultExtensions {
     /// <param name="result">The operation result whose error to transform.</param>
     /// <param name="mapError">The function to apply to the error if the operation failed.</param>
     /// <returns>An operation result with the transformed error if failed, or the original result if successful or cancelled.</returns>
-    [Pure]
     public static OperationResult MapError(
         this OperationResult result, 
         Func<Error, Error> mapError)
@@ -28,7 +26,6 @@ public static class OperationResultExtensions {
     /// <param name="state">The state to pass to the mapError function.</param>
     /// <param name="mapError">The function to apply to the state and error if the operation failed.</param>
     /// <returns>An operation result with the transformed error if failed, or the original result if successful or cancelled.</returns>
-    [Pure]
     public static OperationResult MapError<TState>(
         this OperationResult result, 
         TState state,
@@ -43,7 +40,6 @@ public static class OperationResultExtensions {
     /// <param name="result">The operation result whose cancellation to transform.</param>
     /// <param name="mapCancellation">The function to apply to the cancellation if the operation was cancelled.</param>
     /// <returns>An operation result with the transformed cancellation if cancelled, or the original result if successful or failed.</returns>
-    [Pure]
     public static OperationResult MapCancellation(
         this OperationResult result,
         Func<Cancelled, Cancelled> mapCancellation) 
@@ -59,7 +55,6 @@ public static class OperationResultExtensions {
     /// <param name="state">The state to pass to the mapCancellation function.</param>
     /// <param name="mapCancellation">The function to apply to the state and cancellation if the operation was cancelled.</param>
     /// <returns>An operation result with the transformed cancellation if cancelled, or the original result if successful or failed.</returns>
-    [Pure]
     public static OperationResult MapCancellation<TState>(
         this OperationResult result, 
         TState state,
@@ -77,7 +72,6 @@ public static class OperationResultExtensions {
     /// <param name="onFailure">The function to execute if the operation failed.</param>
     /// <param name="onCancelled">The function to execute if the operation was cancelled.</param>
     /// <returns>The result of the executed function.</returns>
-    [Pure]
     public static TResult Match<TResult>(
         this OperationResult result,
         Func<TResult> onSuccess,
@@ -103,7 +97,6 @@ public static class OperationResultExtensions {
     /// <param name="onFailure">The function to execute if the operation failed.</param>
     /// <param name="onCancelled">The function to execute if the operation was cancelled.</param>
     /// <returns>The result of the executed function.</returns>
-    [Pure]
     public static TResult Match<TState, TResult>(
         this OperationResult result,
         TState state,

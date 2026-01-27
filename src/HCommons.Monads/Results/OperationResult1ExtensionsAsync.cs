@@ -1,4 +1,3 @@
-using System.Diagnostics.Contracts;
 
 namespace HCommons.Monads;
 
@@ -14,7 +13,6 @@ public static class OperationResult1ExtensionsAsync {
     /// <param name="result">The task containing the operation result to transform.</param>
     /// <param name="selector">The function to apply to the value if the operation succeeded.</param>
     /// <returns>A task containing an operation result with the transformed value if successful, or the original error or cancellation if failed or cancelled.</returns>
-    [Pure]
     public static async Task<OperationResult<TResult>> SelectAsync<TValue, TResult>(
         this Task<OperationResult<TValue>> result, 
         Func<TValue, TResult> selector) 
@@ -32,7 +30,6 @@ public static class OperationResult1ExtensionsAsync {
     /// <param name="result">The operation result to transform.</param>
     /// <param name="selector">The asynchronous function to apply to the value if the operation succeeded.</param>
     /// <returns>A task containing an operation result with the transformed value if successful, or the original error or cancellation if failed or cancelled.</returns>
-    [Pure]
     public static async Task<OperationResult<TResult>> SelectAsync<TValue, TResult>(
         this OperationResult<TValue> result, 
         Func<TValue, Task<TResult>> selector) 
@@ -55,7 +52,6 @@ public static class OperationResult1ExtensionsAsync {
     /// <param name="result">The task containing the operation result to transform.</param>
     /// <param name="selector">The asynchronous function to apply to the value if the operation succeeded.</param>
     /// <returns>A task containing an operation result with the transformed value if successful, or the original error or cancellation if failed or cancelled.</returns>
-    [Pure]
     public static async Task<OperationResult<TResult>> SelectAsync<TValue, TResult>(
         this Task<OperationResult<TValue>> result, 
         Func<TValue, Task<TResult>> selector) 
@@ -73,7 +69,6 @@ public static class OperationResult1ExtensionsAsync {
     /// <param name="result">The task containing the operation result to bind.</param>
     /// <param name="binder">The function to apply to the value if the operation succeeded.</param>
     /// <returns>A task containing the operation result returned by the binder function if successful, or the original error or cancellation if failed or cancelled.</returns>
-    [Pure]
     public static async Task<OperationResult<TResult>> BindAsync<TValue, TResult>(
         this Task<OperationResult<TValue>> result, 
         Func<TValue, OperationResult<TResult>> binder) 
@@ -91,7 +86,6 @@ public static class OperationResult1ExtensionsAsync {
     /// <param name="result">The operation result to bind.</param>
     /// <param name="binder">The asynchronous function to apply to the value if the operation succeeded.</param>
     /// <returns>A task containing the operation result returned by the binder function if successful, or the original error or cancellation if failed or cancelled.</returns>
-    [Pure]
     public static async Task<OperationResult<TResult>> BindAsync<TValue, TResult>(
         this OperationResult<TValue> result, 
         Func<TValue, Task<OperationResult<TResult>>> binder) 
@@ -114,7 +108,6 @@ public static class OperationResult1ExtensionsAsync {
     /// <param name="result">The task containing the operation result to bind.</param>
     /// <param name="binder">The asynchronous function to apply to the value if the operation succeeded.</param>
     /// <returns>A task containing the operation result returned by the binder function if successful, or the original error or cancellation if failed or cancelled.</returns>
-    [Pure]
     public static async Task<OperationResult<TResult>> BindAsync<TValue, TResult>(
         this Task<OperationResult<TValue>> result, 
         Func<TValue, Task<OperationResult<TResult>>> binder) 
@@ -131,7 +124,6 @@ public static class OperationResult1ExtensionsAsync {
     /// <param name="result">The task containing the operation result whose error to transform.</param>
     /// <param name="mapError">The function to apply to the error if the operation failed.</param>
     /// <returns>A task containing an operation result with the transformed error if failed, or the original result if successful or cancelled.</returns>
-    [Pure]
     public static async Task<OperationResult<TValue>> MapErrorAsync<TValue>(
         this Task<OperationResult<TValue>> result, 
         Func<Error, Error> mapError) 
@@ -147,7 +139,6 @@ public static class OperationResult1ExtensionsAsync {
     /// <param name="result">The operation result whose error to transform.</param>
     /// <param name="mapError">The asynchronous function to apply to the error if the operation failed.</param>
     /// <returns>A task containing an operation result with the transformed error if failed, or the original result if successful or cancelled.</returns>
-    [Pure]
     public static async Task<OperationResult<TValue>> MapErrorAsync<TValue>(
         this OperationResult<TValue> result, 
         Func<Error, Task<Error>> mapError) 
@@ -163,7 +154,6 @@ public static class OperationResult1ExtensionsAsync {
     /// <param name="result">The task containing the operation result whose error to transform.</param>
     /// <param name="mapError">The asynchronous function to apply to the error if the operation failed.</param>
     /// <returns>A task containing an operation result with the transformed error if failed, or the original result if successful or cancelled.</returns>
-    [Pure]
     public static async Task<OperationResult<TValue>> MapErrorAsync<TValue>(
         this Task<OperationResult<TValue>> result, 
         Func<Error, Task<Error>> mapError) 
@@ -179,7 +169,6 @@ public static class OperationResult1ExtensionsAsync {
     /// <param name="result">The task containing the operation result whose cancellation to transform.</param>
     /// <param name="mapCancellation">The function to apply to the cancellation if the operation was cancelled.</param>
     /// <returns>A task containing an operation result with the transformed cancellation if cancelled, or the original result if successful or failed.</returns>
-    [Pure]
     public static async Task<OperationResult<TValue>> MapCancellationAsync<TValue>(
         this Task<OperationResult<TValue>> result, 
         Func<Cancelled, Cancelled> mapCancellation) 
@@ -195,7 +184,6 @@ public static class OperationResult1ExtensionsAsync {
     /// <param name="result">The operation result whose cancellation to transform.</param>
     /// <param name="mapCancellation">The asynchronous function to apply to the cancellation if the operation was cancelled.</param>
     /// <returns>A task containing an operation result with the transformed cancellation if cancelled, or the original result if successful or failed.</returns>
-    [Pure]
     public static async Task<OperationResult<TValue>> MapCancellationAsync<TValue>(
         this OperationResult<TValue> result, 
         Func<Cancelled, Task<Cancelled>> mapCancellation) 
@@ -211,7 +199,6 @@ public static class OperationResult1ExtensionsAsync {
     /// <param name="result">The task containing the operation result whose cancellation to transform.</param>
     /// <param name="mapCancellation">The asynchronous function to apply to the cancellation if the operation was cancelled.</param>
     /// <returns>A task containing an operation result with the transformed cancellation if cancelled, or the original result if successful or failed.</returns>
-    [Pure]
     public static async Task<OperationResult<TValue>> MapCancellationAsync<TValue>(
         this Task<OperationResult<TValue>> result, 
         Func<Cancelled, Task<Cancelled>> mapCancellation) 
@@ -232,7 +219,6 @@ public static class OperationResult1ExtensionsAsync {
     /// <param name="onFailure">The function to apply if the operation failed.</param>
     /// <param name="onCancelled">The function to apply if the operation was cancelled.</param>
     /// <returns>A task containing the result of applying the appropriate function.</returns>
-    [Pure]
     public static async Task<TResult> MatchAsync<TValue, TResult>(
         this Task<OperationResult<TValue>> result,
         Func<TValue, TResult> onSuccess,
@@ -253,7 +239,6 @@ public static class OperationResult1ExtensionsAsync {
     /// <param name="onFailure">The function to apply if the operation failed.</param>
     /// <param name="onCancelled">The function to apply if the operation was cancelled.</param>
     /// <returns>A task containing the result of applying the appropriate function.</returns>
-    [Pure]
     public static async Task<TResult> MatchAsync<TValue, TResult>(
         this OperationResult<TValue> result,
         Func<TValue, Task<TResult>> onSuccess,
@@ -279,7 +264,6 @@ public static class OperationResult1ExtensionsAsync {
     /// <param name="onFailure">The asynchronous function to apply if the operation failed.</param>
     /// <param name="onCancelled">The function to apply if the operation was cancelled.</param>
     /// <returns>A task containing the result of applying the appropriate function.</returns>
-    [Pure]
     public static async Task<TResult> MatchAsync<TValue, TResult>(
         this OperationResult<TValue> result,
         Func<TValue, TResult> onSuccess,
@@ -305,7 +289,6 @@ public static class OperationResult1ExtensionsAsync {
     /// <param name="onFailure">The function to apply if the operation failed.</param>
     /// <param name="onCancelled">The asynchronous function to apply if the operation was cancelled.</param>
     /// <returns>A task containing the result of applying the appropriate function.</returns>
-    [Pure]
     public static async Task<TResult> MatchAsync<TValue, TResult>(
         this OperationResult<TValue> result,
         Func<TValue, TResult> onSuccess,
@@ -331,7 +314,6 @@ public static class OperationResult1ExtensionsAsync {
     /// <param name="onFailure">The function to apply if the operation failed.</param>
     /// <param name="onCancelled">The function to apply if the operation was cancelled.</param>
     /// <returns>A task containing the result of applying the appropriate function.</returns>
-    [Pure]
     public static async Task<TResult> MatchAsync<TValue, TResult>(
         this Task<OperationResult<TValue>> result,
         Func<TValue, Task<TResult>> onSuccess,
@@ -352,7 +334,6 @@ public static class OperationResult1ExtensionsAsync {
     /// <param name="onFailure">The asynchronous function to apply if the operation failed.</param>
     /// <param name="onCancelled">The function to apply if the operation was cancelled.</param>
     /// <returns>A task containing the result of applying the appropriate function.</returns>
-    [Pure]
     public static async Task<TResult> MatchAsync<TValue, TResult>(
         this Task<OperationResult<TValue>> result,
         Func<TValue, TResult> onSuccess,
@@ -373,7 +354,6 @@ public static class OperationResult1ExtensionsAsync {
     /// <param name="onFailure">The function to apply if the operation failed.</param>
     /// <param name="onCancelled">The asynchronous function to apply if the operation was cancelled.</param>
     /// <returns>A task containing the result of applying the appropriate function.</returns>
-    [Pure]
     public static async Task<TResult> MatchAsync<TValue, TResult>(
         this Task<OperationResult<TValue>> result,
         Func<TValue, TResult> onSuccess,
@@ -394,7 +374,6 @@ public static class OperationResult1ExtensionsAsync {
     /// <param name="onFailure">The asynchronous function to apply if the operation failed.</param>
     /// <param name="onCancelled">The function to apply if the operation was cancelled.</param>
     /// <returns>A task containing the result of applying the appropriate function.</returns>
-    [Pure]
     public static async Task<TResult> MatchAsync<TValue, TResult>(
         this OperationResult<TValue> result, 
         Func<TValue, Task<TResult>> onSuccess, 
@@ -409,7 +388,7 @@ public static class OperationResult1ExtensionsAsync {
             _ => throw new InvalidOperationException($"Unknown OperationResultType: {result.Type}")
         };
     }
-
+    
     /// <summary>
     /// Matches on the operation result, applying asynchronous functions on success and cancellation or synchronous function on failure.
     /// </summary>
@@ -420,7 +399,6 @@ public static class OperationResult1ExtensionsAsync {
     /// <param name="onFailure">The function to apply if the operation failed.</param>
     /// <param name="onCancelled">The asynchronous function to apply if the operation was cancelled.</param>
     /// <returns>A task containing the result of applying the appropriate function.</returns>
-    [Pure]
     public static async Task<TResult> MatchAsync<TValue, TResult>(
         this OperationResult<TValue> result, 
         Func<TValue, Task<TResult>> onSuccess, 
@@ -446,7 +424,6 @@ public static class OperationResult1ExtensionsAsync {
     /// <param name="onFailure">The asynchronous function to apply if the operation failed.</param>
     /// <param name="onCancelled">The asynchronous function to apply if the operation was cancelled.</param>
     /// <returns>A task containing the result of applying the appropriate function.</returns>
-    [Pure]
     public static async Task<TResult> MatchAsync<TValue, TResult>(
         this OperationResult<TValue> result, 
         Func<TValue, TResult> onSuccess, 
@@ -472,7 +449,6 @@ public static class OperationResult1ExtensionsAsync {
     /// <param name="onFailure">The asynchronous function to apply if the operation failed.</param>
     /// <param name="onCancelled">The function to apply if the operation was cancelled.</param>
     /// <returns>A task containing the result of applying the appropriate function.</returns>
-    [Pure]
     public static async Task<TResult> MatchAsync<TValue, TResult>(
         this Task<OperationResult<TValue>> result,
         Func<TValue, Task<TResult>> onSuccess,
@@ -493,7 +469,6 @@ public static class OperationResult1ExtensionsAsync {
     /// <param name="onFailure">The function to apply if the operation failed.</param>
     /// <param name="onCancelled">The asynchronous function to apply if the operation was cancelled.</param>
     /// <returns>A task containing the result of applying the appropriate function.</returns>
-    [Pure]
     public static async Task<TResult> MatchAsync<TValue, TResult>(
         this Task<OperationResult<TValue>> result, 
         Func<TValue, Task<TResult>> onSuccess, 
@@ -514,7 +489,6 @@ public static class OperationResult1ExtensionsAsync {
     /// <param name="onFailure">The asynchronous function to apply if the operation failed.</param>
     /// <param name="onCancelled">The asynchronous function to apply if the operation was cancelled.</param>
     /// <returns>A task containing the result of applying the appropriate function.</returns>
-    [Pure]
     public static async Task<TResult> MatchAsync<TValue, TResult>(
         this Task<OperationResult<TValue>> result, 
         Func<TValue, TResult> onSuccess,
@@ -535,7 +509,6 @@ public static class OperationResult1ExtensionsAsync {
     /// <param name="onFailure">The asynchronous function to apply if the operation failed.</param>
     /// <param name="onCancelled">The asynchronous function to apply if the operation was cancelled.</param>
     /// <returns>A task containing the result of applying the appropriate function.</returns>
-    [Pure]
     public static async Task<TResult> MatchAsync<TValue, TResult>(
         this OperationResult<TValue> result,
         Func<TValue, Task<TResult>> onSuccess,
@@ -561,7 +534,6 @@ public static class OperationResult1ExtensionsAsync {
     /// <param name="onFailure">The asynchronous function to apply if the operation failed.</param>
     /// <param name="onCancelled">The asynchronous function to apply if the operation was cancelled.</param>
     /// <returns>A task containing the result of applying the appropriate function.</returns>
-    [Pure]
     public static async Task<TResult> MatchAsync<TValue, TResult>(
         this Task<OperationResult<TValue>> result,
         Func<TValue, Task<TResult>> onSuccess,
@@ -574,3 +546,4 @@ public static class OperationResult1ExtensionsAsync {
     
     #endregion
 }
+

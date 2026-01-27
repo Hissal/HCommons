@@ -1,4 +1,3 @@
-﻿using System.Diagnostics.Contracts;
 
 namespace HCommons.Monads;
 
@@ -15,14 +14,12 @@ public readonly record struct Result(bool IsSuccess, Error Error) {
     /// Creates a successful result.
     /// </summary>
     /// <returns>A successful result.</returns>
-    [Pure]
     public static Result Success() => new Result(true, Error.Empty);
     /// <summary>
     /// Creates a failed result with the specified error.
     /// </summary>
     /// <param name="error">The error that caused the failure.</param>
     /// <returns>A failed result.</returns>
-    [Pure]
     public static Result Failure(Error error) => new Result(false, error);
 
     /// <summary>
@@ -34,6 +31,5 @@ public readonly record struct Result(bool IsSuccess, Error Error) {
     /// Returns a string representation of the result.
     /// </summary>
     /// <returns>A string indicating whether the operation succeeded or failed with the error.</returns>
-    [Pure]
     public override string ToString() => IsSuccess ? "Success" : $"Failure: {Error}";
 }

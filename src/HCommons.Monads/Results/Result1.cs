@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Diagnostics.Contracts;
 
 namespace HCommons.Monads;
 
@@ -39,14 +38,12 @@ public readonly record struct Result<TValue> where TValue : notnull {
     /// </summary>
     /// <param name="value">The success value.</param>
     /// <returns>A successful result.</returns>
-    [Pure]
     public static Result<TValue> Success(TValue value) => new (true, value, Error.Empty);
     /// <summary>
     /// Creates a failed result with the specified error.
     /// </summary>
     /// <param name="error">The error that caused the failure.</param>
     /// <returns>A failed result.</returns>
-    [Pure]
     public static Result<TValue> Failure(Error error) => new (false, default, error);
         
     /// <summary>
@@ -63,7 +60,6 @@ public readonly record struct Result<TValue> where TValue : notnull {
     /// </summary>
     /// <param name="value">When this method returns, contains the value if the operation succeeded; otherwise, the default value.</param>
     /// <returns>True if the operation succeeded; otherwise, false.</returns>
-    [Pure]
     public bool TryGetValue([NotNullWhen(true)] out TValue? value) {
         value = Value;
         return IsSuccess;
@@ -74,7 +70,6 @@ public readonly record struct Result<TValue> where TValue : notnull {
     /// </summary>
     /// <param name="error">When this method returns, contains the error if the operation failed; otherwise, the default error.</param>
     /// <returns>True if the operation failed; otherwise, false.</returns>
-    [Pure]
     public bool TryGetError(out Error error) {
         error = Error;
         return !IsSuccess;
@@ -84,20 +79,17 @@ public readonly record struct Result<TValue> where TValue : notnull {
     /// Gets the value if the operation succeeded, otherwise returns the default value for the type.
     /// </summary>
     /// <returns>The value if the operation succeeded, otherwise default.</returns>
-    [Pure]
     public TValue? GetValueOrDefault() => IsSuccess ? Value : default;
     /// <summary>
     /// Gets the value if the operation succeeded, otherwise returns the specified default value.
     /// </summary>
     /// <param name="defaultValue">The default value to return if the operation failed.</param>
     /// <returns>The value if the operation succeeded, otherwise the specified default value.</returns>
-    [Pure]
     public TValue GetValueOrDefault(TValue defaultValue) => IsSuccess ? Value! : defaultValue;
     
     /// <summary>
     /// Returns a string representation of the result.
     /// </summary>
     /// <returns>A string indicating whether the operation succeeded with the value or failed with the error.</returns>
-    [Pure]
     public override string ToString() => IsSuccess ? $"Success: {Value}" : $"Failure: {Error}";
 }

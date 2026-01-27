@@ -1,4 +1,3 @@
-using System.Diagnostics.Contracts;
 
 namespace HCommons.Monads;
 
@@ -41,7 +40,6 @@ public readonly record struct OperationResult(OperationResultType Type, Error Er
     /// Creates a successful operation result.
     /// </summary>
     /// <returns>A successful operation result.</returns>
-    [Pure]
     public static OperationResult Success() => new OperationResult(OperationResultType.Success, Error.Empty, Monads.Cancelled.Empty);
 
     /// <summary>
@@ -49,7 +47,6 @@ public readonly record struct OperationResult(OperationResultType Type, Error Er
     /// </summary>
     /// <param name="error">The error that caused the failure.</param>
     /// <returns>A failed operation result.</returns>
-    [Pure]
     public static OperationResult Failure(Error error) => new OperationResult(OperationResultType.Failure, error, Monads.Cancelled.Empty);
 
     /// <summary>
@@ -57,7 +54,6 @@ public readonly record struct OperationResult(OperationResultType Type, Error Er
     /// </summary>
     /// <param name="cancelled">The cancellation information.</param>
     /// <returns>A cancelled operation result.</returns>
-    [Pure]
     public static OperationResult Cancelled(Cancelled cancelled) => new OperationResult(OperationResultType.Cancelled, Error.Empty, cancelled);
 
     /// <summary>
@@ -73,7 +69,6 @@ public readonly record struct OperationResult(OperationResultType Type, Error Er
     /// Returns a string representation of the operation result.
     /// </summary>
     /// <returns>A string indicating whether the operation succeeded, failed with the error, or was cancelled with the cancellation information.</returns>
-    [Pure]
     public override string ToString() => Type switch {
         OperationResultType.Success => "Success",
         OperationResultType.Failure => $"Failure: {Error}",
