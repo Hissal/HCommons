@@ -339,9 +339,10 @@ public class CompositeDisposableTest {
         d2.Received(1).Dispose();
         d3.Received(1).Dispose();
         
-        // The item added during disposal should not be disposed
-        // (it was added after we took the snapshot but cleared at the end)
+        // The item added during disposal should not be disposed yet
+        // (it was added after we cleared the collection, so it remains for future management)
         dAdded.DidNotReceive().Dispose();
-        sut.Count.ShouldBe(0, "Collection should be empty after Clear");
+        sut.Count.ShouldBe(1, "Item added during disposal should remain in the collection");
+        sut.Contains(dAdded).ShouldBeTrue();
     }
 }

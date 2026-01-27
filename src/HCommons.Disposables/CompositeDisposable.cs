@@ -92,7 +92,11 @@ public sealed class CompositeDisposable : ICollection<IDisposable>, IDisposable 
                 snapshot[i] = disposables[i];
             }
             
-            // Dispose all items
+            // Clear the collection immediately after snapshotting so that any items
+            // added during disposal remain in the collection for future management
+            disposables.Clear();
+            
+            // Dispose all items from the snapshot
             for (var i = 0; i < count; i++) {
                 try {
                     snapshot[i].Dispose();
@@ -104,13 +108,7 @@ public sealed class CompositeDisposable : ICollection<IDisposable>, IDisposable 
             }
         }
         finally {
-            // Always clear the collection and return the array, even if exceptions occurred
-            try {
-                disposables.Clear();
-            }
-            finally {
-                ArrayPool<IDisposable>.Shared.Return(snapshot, clearArray: true);
-            }
+            ArrayPool<IDisposable>.Shared.Return(snapshot, clearArray: true);
         }
         
         if (exceptions is not null) {
