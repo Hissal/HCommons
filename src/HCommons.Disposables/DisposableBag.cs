@@ -81,11 +81,12 @@ public struct DisposableBag : IDisposable {
     /// Disposes all disposables in the bag and marks this instance as disposed.
     /// Subsequent calls have no effect.
     /// </summary>
+    /// <exception cref="AggregateException">Thrown if one or more disposables throw exceptions during disposal.</exception>
     public void Dispose() {
         if (isDisposed)
             return;
 
-        Clear();
         isDisposed = true;
+        Clear();
     }
 }

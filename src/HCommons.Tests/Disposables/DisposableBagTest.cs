@@ -225,9 +225,16 @@ public class DisposableBagTest {
         // Act
         Assert.Throws<AggregateException>(() => bag.Dispose());
         
-        // Assert - subsequent Dispose calls should have no effect
+        // Assert - bag should be marked as disposed
+        var d2 = Substitute.For<IDisposable>();
+        bag.Add(d2);
+        
+        // d2 should be disposed immediately since bag is disposed
+        d2.Received(1).Dispose();
+        
+        // subsequent Dispose calls should have no effect
         bag.Dispose();
-        d1.Received(1).Dispose(); // Still only called once
+        d1.Received(1).Dispose(); // Still only called once from first Dispose
     }
 
     [Fact]
