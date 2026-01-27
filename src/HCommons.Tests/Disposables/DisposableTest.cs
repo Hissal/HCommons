@@ -8,7 +8,7 @@ public class DisposableTest {
     public void DisposableEmpty_ReturnsSharedInstance() {
         var d1 = Disposable.Empty;
         var d2 = Disposable.Empty;
-        d1.ShouldBe(d2);
+        d1.ShouldBeSameAs(d2);
     }
     
     [Fact]
