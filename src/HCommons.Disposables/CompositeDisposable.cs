@@ -102,15 +102,19 @@ public sealed class CompositeDisposable : ICollection<IDisposable>, IDisposable 
                     exceptions.Add(ex);
                 }
             }
-            
-            disposables.Clear();
-            
-            if (exceptions is not null) {
-                throw new AggregateException("One or more exceptions occurred during disposal.", exceptions);
-            }
         }
         finally {
-            ArrayPool<IDisposable>.Shared.Return(snapshot, clearArray: true);
+            // Always clear the collection and return the array, even if exceptions occurred
+            try {
+                disposables.Clear();
+            }
+            finally {
+                ArrayPool<IDisposable>.Shared.Return(snapshot, clearArray: true);
+            }
+        }
+        
+        if (exceptions is not null) {
+            throw new AggregateException("One or more exceptions occurred during disposal.", exceptions);
         }
     }
 
