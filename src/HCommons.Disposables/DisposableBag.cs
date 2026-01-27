@@ -40,8 +40,11 @@ public struct DisposableBag : IDisposable {
 
     /// <summary>
     /// Disposes all disposables in the bag and optionally clears the internal array.
+    /// If any disposables throw exceptions during disposal, all disposables are still attempted to be disposed,
+    /// and then an <see cref="AggregateException"/> is thrown containing all the exceptions.
     /// </summary>
     /// <param name="keepAllocatedArray">If true, keeps the internal array allocated; otherwise, releases it.</param>
+    /// <exception cref="AggregateException">Thrown if one or more disposables throw exceptions during disposal.</exception>
     public void Clear(bool keepAllocatedArray = false) {
         if (disposables == null)
             return;
@@ -51,8 +54,16 @@ public struct DisposableBag : IDisposable {
             return;
         }
 
+        List<Exception>? exceptions = null;
+
         for (var i = 0; i < count; i++) {
-            disposables[i].Dispose();
+            try {
+                disposables[i].Dispose();
+            }
+            catch (Exception ex) {
+                exceptions ??= new List<Exception>();
+                exceptions.Add(ex);
+            }
         }
 
         if (!keepAllocatedArray) {
@@ -60,6 +71,10 @@ public struct DisposableBag : IDisposable {
         }
 
         count = 0;
+
+        if (exceptions != null) {
+            throw new AggregateException("One or more exceptions occurred while disposing resources.", exceptions);
+        }
     }
 
     /// <summary>
