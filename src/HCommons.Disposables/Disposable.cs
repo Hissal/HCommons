@@ -281,8 +281,25 @@ public static class Disposable {
 
     sealed class CombinedDisposable2(IDisposable disposable1, IDisposable disposable2) : IDisposable {
         public void Dispose() {
-            disposable1.Dispose();
-            disposable2.Dispose();
+            List<Exception>? exceptions = null;
+
+            try {
+                disposable1?.Dispose();
+            } catch (Exception ex) {
+                exceptions ??= new List<Exception>();
+                exceptions.Add(ex);
+            }
+
+            try {
+                disposable2?.Dispose();
+            } catch (Exception ex) {
+                exceptions ??= new List<Exception>();
+                exceptions.Add(ex);
+            }
+
+            if (exceptions != null) {
+                throw new AggregateException(exceptions);
+            }
         }
     }
 
@@ -290,9 +307,32 @@ public static class Disposable {
         : IDisposable 
     {
         public void Dispose() {
-            disposable1.Dispose();
-            disposable2.Dispose();
-            disposable3.Dispose();
+            List<Exception>? exceptions = null;
+
+            try {
+                disposable1?.Dispose();
+            } catch (Exception ex) {
+                exceptions ??= new List<Exception>();
+                exceptions.Add(ex);
+            }
+
+            try {
+                disposable2?.Dispose();
+            } catch (Exception ex) {
+                exceptions ??= new List<Exception>();
+                exceptions.Add(ex);
+            }
+
+            try {
+                disposable3?.Dispose();
+            } catch (Exception ex) {
+                exceptions ??= new List<Exception>();
+                exceptions.Add(ex);
+            }
+
+            if (exceptions != null) {
+                throw new AggregateException(exceptions);
+            }
         }
     }
 
@@ -304,10 +344,39 @@ public static class Disposable {
         : IDisposable 
     {
         public void Dispose() {
-            disposable1.Dispose();
-            disposable2.Dispose();
-            disposable3.Dispose();
-            disposable4.Dispose();
+            List<Exception>? exceptions = null;
+
+            try {
+                disposable1?.Dispose();
+            } catch (Exception ex) {
+                exceptions ??= new List<Exception>();
+                exceptions.Add(ex);
+            }
+
+            try {
+                disposable2?.Dispose();
+            } catch (Exception ex) {
+                exceptions ??= new List<Exception>();
+                exceptions.Add(ex);
+            }
+
+            try {
+                disposable3?.Dispose();
+            } catch (Exception ex) {
+                exceptions ??= new List<Exception>();
+                exceptions.Add(ex);
+            }
+
+            try {
+                disposable4?.Dispose();
+            } catch (Exception ex) {
+                exceptions ??= new List<Exception>();
+                exceptions.Add(ex);
+            }
+
+            if (exceptions != null) {
+                throw new AggregateException(exceptions);
+            }
         }
     }
 
@@ -320,11 +389,46 @@ public static class Disposable {
         : IDisposable 
     {
         public void Dispose() {
-            disposable1.Dispose();
-            disposable2.Dispose();
-            disposable3.Dispose();
-            disposable4.Dispose();
-            disposable5.Dispose();
+            List<Exception>? exceptions = null;
+
+            try {
+                disposable1?.Dispose();
+            } catch (Exception ex) {
+                exceptions ??= new List<Exception>();
+                exceptions.Add(ex);
+            }
+
+            try {
+                disposable2?.Dispose();
+            } catch (Exception ex) {
+                exceptions ??= new List<Exception>();
+                exceptions.Add(ex);
+            }
+
+            try {
+                disposable3?.Dispose();
+            } catch (Exception ex) {
+                exceptions ??= new List<Exception>();
+                exceptions.Add(ex);
+            }
+
+            try {
+                disposable4?.Dispose();
+            } catch (Exception ex) {
+                exceptions ??= new List<Exception>();
+                exceptions.Add(ex);
+            }
+
+            try {
+                disposable5?.Dispose();
+            } catch (Exception ex) {
+                exceptions ??= new List<Exception>();
+                exceptions.Add(ex);
+            }
+
+            if (exceptions != null) {
+                throw new AggregateException(exceptions);
+            }
         }
     }
 
@@ -338,12 +442,53 @@ public static class Disposable {
         : IDisposable 
     {
         public void Dispose() {
-            disposable1.Dispose();
-            disposable2.Dispose();
-            disposable3.Dispose();
-            disposable4.Dispose();
-            disposable5.Dispose();
-            disposable6.Dispose();
+            List<Exception>? exceptions = null;
+
+            try {
+                disposable1?.Dispose();
+            } catch (Exception ex) {
+                exceptions ??= new List<Exception>();
+                exceptions.Add(ex);
+            }
+
+            try {
+                disposable2?.Dispose();
+            } catch (Exception ex) {
+                exceptions ??= new List<Exception>();
+                exceptions.Add(ex);
+            }
+
+            try {
+                disposable3?.Dispose();
+            } catch (Exception ex) {
+                exceptions ??= new List<Exception>();
+                exceptions.Add(ex);
+            }
+
+            try {
+                disposable4?.Dispose();
+            } catch (Exception ex) {
+                exceptions ??= new List<Exception>();
+                exceptions.Add(ex);
+            }
+
+            try {
+                disposable5?.Dispose();
+            } catch (Exception ex) {
+                exceptions ??= new List<Exception>();
+                exceptions.Add(ex);
+            }
+
+            try {
+                disposable6?.Dispose();
+            } catch (Exception ex) {
+                exceptions ??= new List<Exception>();
+                exceptions.Add(ex);
+            }
+
+            if (exceptions != null) {
+                throw new AggregateException(exceptions);
+            }
         }
     }
 
@@ -358,13 +503,60 @@ public static class Disposable {
         : IDisposable 
     {
         public void Dispose() {
-            disposable1.Dispose();
-            disposable2.Dispose();
-            disposable3.Dispose();
-            disposable4.Dispose();
-            disposable5.Dispose();
-            disposable6.Dispose();
-            disposable7.Dispose();
+            List<Exception>? exceptions = null;
+
+            try {
+                disposable1?.Dispose();
+            } catch (Exception ex) {
+                exceptions ??= new List<Exception>();
+                exceptions.Add(ex);
+            }
+
+            try {
+                disposable2?.Dispose();
+            } catch (Exception ex) {
+                exceptions ??= new List<Exception>();
+                exceptions.Add(ex);
+            }
+
+            try {
+                disposable3?.Dispose();
+            } catch (Exception ex) {
+                exceptions ??= new List<Exception>();
+                exceptions.Add(ex);
+            }
+
+            try {
+                disposable4?.Dispose();
+            } catch (Exception ex) {
+                exceptions ??= new List<Exception>();
+                exceptions.Add(ex);
+            }
+
+            try {
+                disposable5?.Dispose();
+            } catch (Exception ex) {
+                exceptions ??= new List<Exception>();
+                exceptions.Add(ex);
+            }
+
+            try {
+                disposable6?.Dispose();
+            } catch (Exception ex) {
+                exceptions ??= new List<Exception>();
+                exceptions.Add(ex);
+            }
+
+            try {
+                disposable7?.Dispose();
+            } catch (Exception ex) {
+                exceptions ??= new List<Exception>();
+                exceptions.Add(ex);
+            }
+
+            if (exceptions != null) {
+                throw new AggregateException(exceptions);
+            }
         }
     }
 
@@ -380,21 +572,85 @@ public static class Disposable {
         : IDisposable 
     {
         public void Dispose() {
-            disposable1.Dispose();
-            disposable2.Dispose();
-            disposable3.Dispose();
-            disposable4.Dispose();
-            disposable5.Dispose();
-            disposable6.Dispose();
-            disposable7.Dispose();
-            disposable8.Dispose();
+            List<Exception>? exceptions = null;
+
+            try {
+                disposable1?.Dispose();
+            } catch (Exception ex) {
+                exceptions ??= new List<Exception>();
+                exceptions.Add(ex);
+            }
+
+            try {
+                disposable2?.Dispose();
+            } catch (Exception ex) {
+                exceptions ??= new List<Exception>();
+                exceptions.Add(ex);
+            }
+
+            try {
+                disposable3?.Dispose();
+            } catch (Exception ex) {
+                exceptions ??= new List<Exception>();
+                exceptions.Add(ex);
+            }
+
+            try {
+                disposable4?.Dispose();
+            } catch (Exception ex) {
+                exceptions ??= new List<Exception>();
+                exceptions.Add(ex);
+            }
+
+            try {
+                disposable5?.Dispose();
+            } catch (Exception ex) {
+                exceptions ??= new List<Exception>();
+                exceptions.Add(ex);
+            }
+
+            try {
+                disposable6?.Dispose();
+            } catch (Exception ex) {
+                exceptions ??= new List<Exception>();
+                exceptions.Add(ex);
+            }
+
+            try {
+                disposable7?.Dispose();
+            } catch (Exception ex) {
+                exceptions ??= new List<Exception>();
+                exceptions.Add(ex);
+            }
+
+            try {
+                disposable8?.Dispose();
+            } catch (Exception ex) {
+                exceptions ??= new List<Exception>();
+                exceptions.Add(ex);
+            }
+
+            if (exceptions != null) {
+                throw new AggregateException(exceptions);
+            }
         }
     }
 
     sealed class CombinedDisposable(IDisposable[] disposables) : IDisposable {
         public void Dispose() {
+            List<Exception>? exceptions = null;
+
             foreach (var disposable in disposables) {
-                disposable?.Dispose();
+                try {
+                    disposable?.Dispose();
+                } catch (Exception ex) {
+                    exceptions ??= new List<Exception>();
+                    exceptions.Add(ex);
+                }
+            }
+
+            if (exceptions != null) {
+                throw new AggregateException(exceptions);
             }
         }
     }
