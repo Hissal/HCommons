@@ -22,6 +22,11 @@ public struct DisposableBag : IDisposable {
     /// The internal array grows automatically as needed.
     /// </summary>
     /// <param name="item">The disposable to add.</param>
+    /// <exception cref="Exception">
+    /// If the bag is already disposed and the item's Dispose method throws an exception,
+    /// that exception is propagated to the caller. This differs from Clear/Dispose which
+    /// collect exceptions to ensure all items are disposed.
+    /// </exception>
     public void Add(IDisposable item) {
         if (isDisposed) {
             item.Dispose();
@@ -40,8 +45,11 @@ public struct DisposableBag : IDisposable {
 
     /// <summary>
     /// Disposes all disposables in the bag and optionally clears the internal array.
+    /// If any disposables throw exceptions during disposal, all disposables are still attempted to be disposed,
+    /// and then an <see cref="AggregateException"/> is thrown containing all the exceptions.
     /// </summary>
     /// <param name="keepAllocatedArray">If true, keeps the internal array allocated; otherwise, releases it.</param>
+    /// <exception cref="AggregateException">Thrown if one or more disposables throw exceptions during disposal.</exception>
     public void Clear(bool keepAllocatedArray = false) {
         if (disposables == null)
             return;
@@ -51,8 +59,16 @@ public struct DisposableBag : IDisposable {
             return;
         }
 
+        List<Exception>? exceptions = null;
+
         for (var i = 0; i < count; i++) {
-            disposables[i].Dispose();
+            try {
+                disposables[i].Dispose();
+            }
+            catch (Exception ex) {
+                exceptions ??= new List<Exception>();
+                exceptions.Add(ex);
+            }
         }
 
         if (!keepAllocatedArray) {
@@ -60,17 +76,22 @@ public struct DisposableBag : IDisposable {
         }
 
         count = 0;
+
+        if (exceptions != null) {
+            throw new AggregateException("One or more exceptions occurred while disposing resources.", exceptions);
+        }
     }
 
     /// <summary>
     /// Disposes all disposables in the bag and marks this instance as disposed.
     /// Subsequent calls have no effect.
     /// </summary>
+    /// <exception cref="AggregateException">Thrown if one or more disposables throw exceptions during disposal.</exception>
     public void Dispose() {
         if (isDisposed)
             return;
 
-        Clear();
         isDisposed = true;
+        Clear();
     }
 }
