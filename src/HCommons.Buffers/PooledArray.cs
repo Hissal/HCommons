@@ -28,7 +28,7 @@ namespace HCommons.Buffers;
 /// <item>Returning a <see cref="PooledArray{T}"/> from a method is valid and transfers ownership to the caller. The caller becomes responsible for disposal.</item>
 /// <item>Use <see cref="RentCopy"/> if you need to share the data while retaining ownership of your instance.</item>
 /// <item>Pass by <c>ref</c> when you want to share access without transferring ownership.</item>
-/// <item>Never dispose the same instance more than once.</item>
+/// <item>Never dispose a copy of the same instance more than once.</item>
 /// </list>
 /// </para>
 /// </remarks>
