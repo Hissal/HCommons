@@ -22,6 +22,11 @@ public struct DisposableBag : IDisposable {
     /// The internal array grows automatically as needed.
     /// </summary>
     /// <param name="item">The disposable to add.</param>
+    /// <exception cref="Exception">
+    /// If the bag is already disposed and the item's Dispose method throws an exception,
+    /// that exception is propagated to the caller. This differs from Clear/Dispose which
+    /// collect exceptions to ensure all items are disposed.
+    /// </exception>
     public void Add(IDisposable item) {
         if (isDisposed) {
             item.Dispose();
