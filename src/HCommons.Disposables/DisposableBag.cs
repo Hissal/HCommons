@@ -3,6 +3,10 @@
 /// <summary>
 /// A lightweight, struct-based collection for managing disposable resources.
 /// Designed for high-performance scenarios with minimal allocations.
+/// <para>
+/// This type is not fully thread-safe. Multiple threads should not call Add() or Clear() concurrently.
+/// However, Dispose() can be safely called multiple times (idempotent) and will dispose each item exactly once.
+/// </para>
 /// </summary>
 public struct DisposableBag : IDisposable {
     IDisposable[]? disposables;
@@ -64,7 +68,8 @@ public struct DisposableBag : IDisposable {
 
     /// <summary>
     /// Disposes all disposables in the bag and marks this instance as disposed.
-    /// Subsequent calls have no effect. This method is thread-safe.
+    /// Subsequent calls have no effect. This method is idempotent and safe to call multiple times,
+    /// ensuring each item is disposed exactly once even if called concurrently.
     /// </summary>
     public void Dispose() {
         // Use Interlocked.CompareExchange for thread-safe, idempotent disposal
