@@ -83,4 +83,153 @@ public class DisposableCombineTest {
         Assert.All([disposable1, disposable2, disposable3, disposable4, disposable5, disposable6, disposable7, disposable8, disposable9
         ], d => d.Received(1).Dispose());
     }
+
+    [Fact]
+    public void Combine_Two_WhenFirstThrows_DisposesSecondAndThrowsAggregateException() {
+        // Arrange
+        var exception1 = new InvalidOperationException("First failed");
+        disposable1.When(x => x.Dispose()).Do(_ => throw exception1);
+
+        var combined = Disposable.Combine(disposable1, disposable2);
+
+        // Act
+        var aggregateException = Should.Throw<AggregateException>(() => combined.Dispose());
+
+        // Assert
+        disposable1.Received(1).Dispose();
+        disposable2.Received(1).Dispose(); // Second should still be disposed
+        aggregateException.InnerExceptions.Count.ShouldBe(1);
+        aggregateException.InnerExceptions[0].ShouldBe(exception1);
+    }
+
+    [Fact]
+    public void Combine_Two_WhenSecondThrows_DisposesFirstAndThrowsAggregateException() {
+        // Arrange
+        var exception2 = new InvalidOperationException("Second failed");
+        disposable2.When(x => x.Dispose()).Do(_ => throw exception2);
+
+        var combined = Disposable.Combine(disposable1, disposable2);
+
+        // Act
+        var aggregateException = Should.Throw<AggregateException>(() => combined.Dispose());
+
+        // Assert
+        disposable1.Received(1).Dispose();
+        disposable2.Received(1).Dispose();
+        aggregateException.InnerExceptions.Count.ShouldBe(1);
+        aggregateException.InnerExceptions[0].ShouldBe(exception2);
+    }
+
+    [Fact]
+    public void Combine_Two_WhenBothThrow_DisposesAllAndAggregatesExceptions() {
+        // Arrange
+        var exception1 = new InvalidOperationException("First failed");
+        var exception2 = new InvalidOperationException("Second failed");
+        disposable1.When(x => x.Dispose()).Do(_ => throw exception1);
+        disposable2.When(x => x.Dispose()).Do(_ => throw exception2);
+
+        var combined = Disposable.Combine(disposable1, disposable2);
+
+        // Act
+        var aggregateException = Should.Throw<AggregateException>(() => combined.Dispose());
+
+        // Assert
+        disposable1.Received(1).Dispose();
+        disposable2.Received(1).Dispose();
+        aggregateException.InnerExceptions.Count.ShouldBe(2);
+        aggregateException.InnerExceptions[0].ShouldBe(exception1);
+        aggregateException.InnerExceptions[1].ShouldBe(exception2);
+    }
+
+    [Fact]
+    public void Combine_Three_WhenOneThrows_DisposesAllAndThrowsAggregateException() {
+        // Arrange
+        var exception2 = new InvalidOperationException("Second failed");
+        disposable2.When(x => x.Dispose()).Do(_ => throw exception2);
+
+        var combined = Disposable.Combine(disposable1, disposable2, disposable3);
+
+        // Act
+        var aggregateException = Should.Throw<AggregateException>(() => combined.Dispose());
+
+        // Assert
+        disposable1.Received(1).Dispose();
+        disposable2.Received(1).Dispose();
+        disposable3.Received(1).Dispose(); // All should be attempted
+        aggregateException.InnerExceptions.Count.ShouldBe(1);
+        aggregateException.InnerExceptions[0].ShouldBe(exception2);
+    }
+
+    [Fact]
+    public void Combine_Four_WhenMultipleThrow_DisposesAllAndAggregatesExceptions() {
+        // Arrange
+        var exception1 = new InvalidOperationException("First failed");
+        var exception3 = new InvalidOperationException("Third failed");
+        disposable1.When(x => x.Dispose()).Do(_ => throw exception1);
+        disposable3.When(x => x.Dispose()).Do(_ => throw exception3);
+
+        var combined = Disposable.Combine(disposable1, disposable2, disposable3, disposable4);
+
+        // Act
+        var aggregateException = Should.Throw<AggregateException>(() => combined.Dispose());
+
+        // Assert
+        disposable1.Received(1).Dispose();
+        disposable2.Received(1).Dispose();
+        disposable3.Received(1).Dispose();
+        disposable4.Received(1).Dispose(); // All should be attempted
+        aggregateException.InnerExceptions.Count.ShouldBe(2);
+        aggregateException.InnerExceptions[0].ShouldBe(exception1);
+        aggregateException.InnerExceptions[1].ShouldBe(exception3);
+    }
+
+    [Fact]
+    public void Combine_Eight_WhenSomeThrow_DisposesAllAndAggregatesExceptions() {
+        // Arrange
+        var exception2 = new InvalidOperationException("Second failed");
+        var exception5 = new InvalidOperationException("Fifth failed");
+        var exception7 = new InvalidOperationException("Seventh failed");
+        disposable2.When(x => x.Dispose()).Do(_ => throw exception2);
+        disposable5.When(x => x.Dispose()).Do(_ => throw exception5);
+        disposable7.When(x => x.Dispose()).Do(_ => throw exception7);
+
+        var combined = Disposable.Combine(disposable1, disposable2, disposable3, disposable4, 
+            disposable5, disposable6, disposable7, disposable8);
+
+        // Act
+        var aggregateException = Should.Throw<AggregateException>(() => combined.Dispose());
+
+        // Assert
+        Assert.All([disposable1, disposable2, disposable3, disposable4, disposable5, disposable6, disposable7, disposable8
+        ], d => d.Received(1).Dispose());
+        aggregateException.InnerExceptions.Count.ShouldBe(3);
+        aggregateException.InnerExceptions[0].ShouldBe(exception2);
+        aggregateException.InnerExceptions[1].ShouldBe(exception5);
+        aggregateException.InnerExceptions[2].ShouldBe(exception7);
+    }
+
+    [Fact]
+    public void Combine_ParamsArray_WhenSomeThrow_DisposesAllAndAggregatesExceptions() {
+        // Arrange
+        var exception1 = new InvalidOperationException("First failed");
+        var exception4 = new InvalidOperationException("Fourth failed");
+        var exception9 = new InvalidOperationException("Ninth failed");
+        disposable1.When(x => x.Dispose()).Do(_ => throw exception1);
+        disposable4.When(x => x.Dispose()).Do(_ => throw exception4);
+        disposable9.When(x => x.Dispose()).Do(_ => throw exception9);
+
+        var combined = Disposable.Combine(disposable1, disposable2, disposable3, disposable4, 
+            disposable5, disposable6, disposable7, disposable8, disposable9);
+
+        // Act
+        var aggregateException = Should.Throw<AggregateException>(() => combined.Dispose());
+
+        // Assert
+        Assert.All([disposable1, disposable2, disposable3, disposable4, disposable5, disposable6, disposable7, disposable8, disposable9
+        ], d => d.Received(1).Dispose());
+        aggregateException.InnerExceptions.Count.ShouldBe(3);
+        aggregateException.InnerExceptions[0].ShouldBe(exception1);
+        aggregateException.InnerExceptions[1].ShouldBe(exception4);
+        aggregateException.InnerExceptions[2].ShouldBe(exception9);
+    }
 }
