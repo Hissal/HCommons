@@ -73,22 +73,46 @@ public sealed class CompositeDisposable : ICollection<IDisposable>, IDisposable 
 
     /// <summary>
     /// Disposes all disposables in the collection and clears the collection.
+    /// If any disposables throw exceptions during disposal, all disposables are still attempted
+    /// to be disposed, and an <see cref="AggregateException"/> is thrown containing all exceptions.
     /// </summary>
+    /// <exception cref="AggregateException">Thrown when one or more disposables throw during disposal.</exception>
     public void Clear() {
+        List<Exception>? exceptions = null;
+        
         foreach (var disposable in disposables) {
-            disposable.Dispose();
+            try {
+                disposable.Dispose();
+            }
+            catch (Exception ex) {
+                exceptions ??= new List<Exception>();
+                exceptions.Add(ex);
+            }
         }
+        
         disposables.Clear();
+        
+        if (exceptions is not null) {
+            throw new AggregateException("One or more exceptions occurred during disposal.", exceptions);
+        }
     }
 
     /// <summary>
     /// Disposes all disposables in the collection and marks this instance as disposed.
     /// Subsequent calls have no effect.
+    /// If any disposables throw exceptions during disposal, all disposables are still attempted
+    /// to be disposed, and an <see cref="AggregateException"/> is thrown containing all exceptions.
     /// </summary>
+    /// <exception cref="AggregateException">Thrown when one or more disposables throw during disposal.</exception>
     public void Dispose() {
         if (IsDisposed) return;
-        Clear();
-        IsDisposed = true;
+        
+        try {
+            Clear();
+        }
+        finally {
+            IsDisposed = true;
+        }
     }
 
     /// <summary>

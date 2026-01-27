@@ -230,4 +230,103 @@ public class CompositeDisposableTest {
         // Assert
         items.ShouldBeEquivalentTo(new[] {d1, d2});
     }
+
+    [Fact]
+    public void Clear_WhenOneDisposableThrows_ThrowsAggregateException() {
+        // Arrange
+        var sut = new CompositeDisposable();
+        var d1 = Substitute.For<IDisposable>();
+        var d2 = Substitute.For<IDisposable>();
+        var exception = new InvalidOperationException("Dispose failed");
+        d1.When(x => x.Dispose()).Do(_ => throw exception);
+        sut.Add(d1);
+        sut.Add(d2);
+
+        // Act
+        var ex = Should.Throw<AggregateException>(() => sut.Clear());
+
+        // Assert
+        ex.InnerExceptions.Count.ShouldBe(1);
+        ex.InnerExceptions[0].ShouldBe(exception);
+    }
+
+    [Fact]
+    public void Clear_WhenMultipleDisposablesThrow_ThrowsAggregateExceptionWithAllExceptions() {
+        // Arrange
+        var sut = new CompositeDisposable();
+        var d1 = Substitute.For<IDisposable>();
+        var d2 = Substitute.For<IDisposable>();
+        var d3 = Substitute.For<IDisposable>();
+        var exception1 = new InvalidOperationException("Dispose 1 failed");
+        var exception2 = new InvalidOperationException("Dispose 2 failed");
+        d1.When(x => x.Dispose()).Do(_ => throw exception1);
+        d2.When(x => x.Dispose()).Do(_ => throw exception2);
+        sut.Add(d1);
+        sut.Add(d2);
+        sut.Add(d3);
+
+        // Act
+        var ex = Should.Throw<AggregateException>(() => sut.Clear());
+
+        // Assert
+        ex.InnerExceptions.Count.ShouldBe(2);
+        ex.InnerExceptions[0].ShouldBe(exception1);
+        ex.InnerExceptions[1].ShouldBe(exception2);
+    }
+
+    [Fact]
+    public void Clear_WhenDisposableThrows_StillDisposesAllAndClearsCollection() {
+        // Arrange
+        var sut = new CompositeDisposable();
+        var d1 = Substitute.For<IDisposable>();
+        var d2 = Substitute.For<IDisposable>();
+        var d3 = Substitute.For<IDisposable>();
+        d2.When(x => x.Dispose()).Do(_ => throw new InvalidOperationException("Dispose failed"));
+        sut.Add(d1);
+        sut.Add(d2);
+        sut.Add(d3);
+
+        // Act
+        Should.Throw<AggregateException>(() => sut.Clear());
+
+        // Assert
+        d1.Received(1).Dispose();
+        d2.Received(1).Dispose();
+        d3.Received(1).Dispose();
+        sut.Count.ShouldBe(0, "Collection should be cleared even when exceptions occur");
+    }
+
+    [Fact]
+    public void Dispose_WhenDisposableThrows_ThrowsAggregateException() {
+        // Arrange
+        var sut = new CompositeDisposable();
+        var d1 = Substitute.For<IDisposable>();
+        var exception = new InvalidOperationException("Dispose failed");
+        d1.When(x => x.Dispose()).Do(_ => throw exception);
+        sut.Add(d1);
+
+        // Act
+        var ex = Should.Throw<AggregateException>(() => sut.Dispose());
+
+        // Assert
+        ex.InnerExceptions.Count.ShouldBe(1);
+        ex.InnerExceptions[0].ShouldBe(exception);
+        sut.IsDisposed.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void Dispose_WhenDisposableThrows_StillSetsIsDisposed() {
+        // Arrange
+        var sut = new CompositeDisposable();
+        var d1 = Substitute.For<IDisposable>();
+        d1.When(x => x.Dispose()).Do(_ => throw new InvalidOperationException("Dispose failed"));
+        sut.Add(d1);
+
+        // Act
+        Should.Throw<AggregateException>(() => sut.Dispose());
+
+        // Assert
+        sut.IsDisposed.ShouldBeTrue();
+        sut.Count.ShouldBe(0);
+    }
 }
