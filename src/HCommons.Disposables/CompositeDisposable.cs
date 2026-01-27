@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System.Buffers;
+using System.Collections;
 
 namespace HCommons.Disposables;
 
@@ -82,22 +83,34 @@ public sealed class CompositeDisposable : ICollection<IDisposable>, IDisposable 
         
         // Take a snapshot to avoid collection modified exceptions if a disposable
         // attempts to modify this collection during disposal
-        var snapshot = disposables.ToArray();
+        var count = disposables.Count;
+        var snapshot = ArrayPool<IDisposable>.Shared.Rent(count);
         
-        foreach (var disposable in snapshot) {
-            try {
-                disposable.Dispose();
+        try {
+            // Copy items to the rented array
+            for (var i = 0; i < count; i++) {
+                snapshot[i] = disposables[i];
             }
-            catch (Exception ex) {
-                exceptions ??= new List<Exception>();
-                exceptions.Add(ex);
+            
+            // Dispose all items
+            for (var i = 0; i < count; i++) {
+                try {
+                    snapshot[i].Dispose();
+                }
+                catch (Exception ex) {
+                    exceptions ??= new List<Exception>();
+                    exceptions.Add(ex);
+                }
+            }
+            
+            disposables.Clear();
+            
+            if (exceptions is not null) {
+                throw new AggregateException("One or more exceptions occurred during disposal.", exceptions);
             }
         }
-        
-        disposables.Clear();
-        
-        if (exceptions is not null) {
-            throw new AggregateException("One or more exceptions occurred during disposal.", exceptions);
+        finally {
+            ArrayPool<IDisposable>.Shared.Return(snapshot, clearArray: true);
         }
     }
 
