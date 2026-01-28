@@ -8,7 +8,7 @@ public class DisposableBuilderTest {
     public void Build_NoItems_ReturnsEmpty() {
         var builder = new DisposableBuilder();
         var result = builder.Build();
-        Assert.Same(Disposable.Empty, result);
+        result.ShouldBeSameAs(Disposable.Empty);
     }
 
     [Fact]
@@ -22,7 +22,7 @@ public class DisposableBuilderTest {
         var result = builder.Build();
 
         // Assert
-        Assert.Same(d1, result);
+        result.ShouldBeSameAs(d1);
     }
 
     [Fact]
@@ -40,8 +40,8 @@ public class DisposableBuilderTest {
 
         // Assert
         Assert.All([d1, d2], d => d.Received(1).Dispose());
-        Assert.NotSame(d1, combined);
-        Assert.NotSame(d2, combined);
+        combined.ShouldNotBeSameAs(d1);
+        combined.ShouldNotBeSameAs(d2);
     }
 
     [Fact]
