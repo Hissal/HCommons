@@ -491,7 +491,7 @@ public static class Disposable {
     /// </summary>
     /// <param name="disposables">An array of disposables to dispose.</param>
     /// <exception cref="AggregateException">Thrown if any of the disposables throw an exception during disposal. All disposables are attempted to be disposed even if exceptions occur.</exception>
-    public static void Dispose(params IDisposable?[] disposables) {
+    public static void Dispose(params ReadOnlySpan<IDisposable?> disposables) {
         List<Exception>? exceptions = null;
 
         foreach (var disposable in disposables) {
