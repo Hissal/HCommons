@@ -12,8 +12,7 @@ public class CompositeDisposableTest {
 
     [Fact]
     public void Ctor_WithCapacity_InitialCountIsZero() {
-        var sut = new CompositeDisposable(4);
-        sut.Count.ShouldBe(0);
+        new CompositeDisposable(4).Count.ShouldBe(0);
     }
 
     [Fact]
@@ -180,6 +179,8 @@ public class CompositeDisposableTest {
         // Arrange
         var sut = new CompositeDisposable();
         var d = Substitute.For<IDisposable>();
+        
+        // Act
         sut.Add(d);
         
         // Assert
@@ -188,8 +189,7 @@ public class CompositeDisposableTest {
 
     [Fact]
     public void IsReadOnly_IsFalse() {
-        var sut = new CompositeDisposable();
-        sut.IsReadOnly.ShouldBeFalse();
+        new CompositeDisposable().IsReadOnly.ShouldBeFalse();
     }
 
     [Fact]
@@ -347,7 +347,36 @@ public class CompositeDisposableTest {
     }
 
     [Fact]
-    public void Dispose_WhenDisposableAddsItemDuringDisposal_ItemRemainsInCollection() {
+    public void Clear_WhenDisposableAddsItemDuringClear_ItemRemainsInCollection() {
+        // Arrange
+        var sut = new CompositeDisposable();
+        var d1 = Substitute.For<IDisposable>();
+        var d2 = Substitute.For<IDisposable>();
+        var dAdded = Substitute.For<IDisposable>();
+        
+        // d1 attempts to add a new disposable when disposed
+        d1.When(x => x.Dispose()).Do(_ => sut.Add(dAdded));
+        
+        sut.Add(d1);
+        sut.Add(d2);
+
+        // Act
+        sut.Clear();
+        
+        // Assert
+        // All original disposables should have been disposed
+        d1.Received(1).Dispose();
+        d2.Received(1).Dispose();
+        
+        // The item added during disposal should not be disposed
+        // (it was added after we cleared the collection, so it remains for future management)
+        dAdded.DidNotReceive().Dispose();
+        sut.Count.ShouldBe(1, "Item added during clear should remain in the collection");
+        sut.Contains(dAdded).ShouldBeTrue();
+    }
+    
+    [Fact]
+    public void Dispose_WhenDisposableAddsItemDuringDisposal_ItemIsImmediatelyDisposed() {
         // Arrange
         var sut = new CompositeDisposable();
         var d1 = Substitute.For<IDisposable>();
@@ -368,11 +397,11 @@ public class CompositeDisposableTest {
         d1.Received(1).Dispose();
         d2.Received(1).Dispose();
         
-        // The item added during disposal should not be disposed
-        // (it was added after we cleared the collection, so it remains for future management)
-        dAdded.DidNotReceive().Dispose();
+        // The item added during disposal should be disposed immediately
+        // (it was added after we disposed the collection, so it gets disposed upon addition)
+        dAdded.Received(1).Dispose();
         sut.IsDisposed.ShouldBeTrue();
-        sut.Count.ShouldBe(1, "Item added during disposal should remain in the collection");
-        sut.Contains(dAdded).ShouldBeTrue();
+        sut.Count.ShouldBe(0, "Items added during disposal should not be added to the collection");
+        sut.Contains(dAdded).ShouldBeFalse();
     }
 }

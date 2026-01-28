@@ -87,7 +87,6 @@ public sealed class CompositeDisposable : ICollection<IDisposable>, IDisposable 
         var snapshot = ArrayPool<IDisposable>.Shared.Rent(count);
         
         try {
-            // Copy items to the rented array using CopyTo for better performance
             disposables.CopyTo(snapshot, 0);
             
             // Clear the collection immediately after snapshotting so that any items
@@ -97,11 +96,10 @@ public sealed class CompositeDisposable : ICollection<IDisposable>, IDisposable 
             // Dispose all items from the snapshot
             for (var i = 0; i < count; i++) {
                 try {
-                    snapshot[i].Dispose();
+                    snapshot[i]?.Dispose();
                 }
                 catch (Exception ex) {
-                    exceptions ??= new List<Exception>();
-                    exceptions.Add(ex);
+                    (exceptions ??= []).Add(ex);
                 }
             }
         }
@@ -122,14 +120,11 @@ public sealed class CompositeDisposable : ICollection<IDisposable>, IDisposable 
     /// </summary>
     /// <exception cref="AggregateException">Thrown when one or more disposables throw during disposal.</exception>
     public void Dispose() {
-        if (IsDisposed) return;
+        if (IsDisposed) 
+            return;
         
-        try {
-            Clear();
-        }
-        finally {
-            IsDisposed = true;
-        }
+        IsDisposed = true;
+        Clear();
     }
 
     /// <summary>
