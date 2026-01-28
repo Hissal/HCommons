@@ -22,9 +22,7 @@ public class DisposableBagTest {
         bag.Clear();
 
         // Assert
-        foreach (var d in disposables) {
-            d.Received(1).Dispose();
-        }
+        Assert.All(disposables, d => d.Received(1).Dispose());
     }
     
     [Fact]
@@ -41,9 +39,7 @@ public class DisposableBagTest {
         bag.Clear();
 
         // Assert
-        foreach (var d in disposables) {
-            d.Received(1).Dispose();
-        }
+        Assert.All(disposables, d => d.Received(1).Dispose());
     }
     
     [Fact]
@@ -72,9 +68,7 @@ public class DisposableBagTest {
         bag.Dispose();
 
         // Assert
-        foreach (var d in disposables) {
-            d.Received(1).Dispose();
-        }
+        Assert.All(disposables, d => d.Received(1).Dispose());
     }
 
     [Fact]
@@ -91,9 +85,7 @@ public class DisposableBagTest {
         bag.Dispose();
 
         // Assert
-        foreach (var d in disposables) {
-            d.Received(1).Dispose();
-        }
+        Assert.All(disposables, d => d.Received(1).Dispose());
     }
 
     [Fact]
@@ -121,9 +113,7 @@ public class DisposableBagTest {
         bag.Dispose();
 
         // Assert
-        foreach (var d in disposables) {
-            d.Received(1).Dispose();
-        }
+        Assert.All(disposables, d => d.Received(1).Dispose());
     }
     
     [Fact]
@@ -161,7 +151,7 @@ public class DisposableBagTest {
         bag.Add(d3);
 
         // Act
-        var aggregateException = Assert.Throws<AggregateException>(() => bag.Clear());
+        var aggregateException = Should.Throw<AggregateException>(() => bag.Clear());
 
         // Assert
         aggregateException.InnerExceptions.Count.ShouldBe(1);
@@ -188,7 +178,7 @@ public class DisposableBagTest {
         bag.Add(d3);
 
         // Act
-        var aggregateException = Assert.Throws<AggregateException>(() => bag.Clear());
+        var aggregateException = Should.Throw<AggregateException>(() => bag.Clear());
 
         // Assert
         aggregateException.InnerExceptions.Count.ShouldBe(2);

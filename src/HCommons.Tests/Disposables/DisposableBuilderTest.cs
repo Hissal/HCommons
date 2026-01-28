@@ -39,8 +39,7 @@ public class DisposableBuilderTest {
         combined.Dispose();
 
         // Assert
-        d1.Received(1).Dispose();
-        d2.Received(1).Dispose();
+        Assert.All([d1, d2], d => d.Received(1).Dispose());
         combined.ShouldNotBeSameAs(d1);
         combined.ShouldNotBeSameAs(d2);
     }
@@ -57,9 +56,7 @@ public class DisposableBuilderTest {
         combined.Dispose();
 
         // Assert
-        foreach (var d in items) {
-            d.Received(1).Dispose();
-        }
+        Assert.All(items, d => d.Received(1).Dispose());
     }
 
     [Fact]
@@ -120,8 +117,7 @@ public class DisposableBuilderTest {
         combined.Dispose();
 
         // Assert
-        d1.Received(1).Dispose();
-        d2.Received(1).Dispose();
+        Assert.All([d1, d2], d => d.Received(1).Dispose());
     }
 
     [Fact]
