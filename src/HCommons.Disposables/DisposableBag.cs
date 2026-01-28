@@ -5,7 +5,7 @@
 /// Designed for high-performance scenarios with minimal allocations.
 /// </summary>
 public struct DisposableBag : IDisposable {
-    IDisposable[]? disposables;
+    IDisposable?[]? disposables;
     bool isDisposed;
     int count;
 
@@ -29,7 +29,7 @@ public struct DisposableBag : IDisposable {
     /// </exception>
     public void Add(IDisposable item) {
         if (isDisposed) {
-            item.Dispose();
+            item?.Dispose();
             return;
         }
 
@@ -63,14 +63,14 @@ public struct DisposableBag : IDisposable {
 
         for (var i = 0; i < count; i++) {
             try {
-                disposables[i].Dispose();
+                disposables[i]?.Dispose();
             }
             catch (Exception ex) {
                 exceptions ??= [];
                 exceptions.Add(ex);
             }
             finally {
-                disposables[i] = null!; // Clear reference to allow GC
+                disposables[i] = null; // Clear reference to allow GC
             }
         }
 
