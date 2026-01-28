@@ -87,10 +87,8 @@ public sealed class CompositeDisposable : ICollection<IDisposable>, IDisposable 
         var snapshot = ArrayPool<IDisposable>.Shared.Rent(count);
         
         try {
-            // Copy items to the rented array
-            for (var i = 0; i < count; i++) {
-                snapshot[i] = disposables[i];
-            }
+            // Copy items to the rented array using CopyTo for better performance
+            disposables.CopyTo(snapshot, 0);
             
             // Clear the collection immediately after snapshotting so that any items
             // added during disposal remain in the collection for future management

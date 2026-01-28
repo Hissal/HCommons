@@ -345,4 +345,34 @@ public class CompositeDisposableTest {
         sut.Count.ShouldBe(1, "Item added during disposal should remain in the collection");
         sut.Contains(dAdded).ShouldBeTrue();
     }
+
+    [Fact]
+    public void Dispose_WhenDisposableAddsItemDuringDisposal_ItemRemainsInCollection() {
+        // Arrange
+        var sut = new CompositeDisposable();
+        var d1 = Substitute.For<IDisposable>();
+        var d2 = Substitute.For<IDisposable>();
+        var dAdded = Substitute.For<IDisposable>();
+        
+        // d1 attempts to add a new disposable when disposed
+        d1.When(x => x.Dispose()).Do(_ => sut.Add(dAdded));
+        
+        sut.Add(d1);
+        sut.Add(d2);
+
+        // Act
+        sut.Dispose();
+        
+        // Assert
+        // All original disposables should have been disposed
+        d1.Received(1).Dispose();
+        d2.Received(1).Dispose();
+        
+        // The item added during disposal should not be disposed
+        // (it was added after we cleared the collection, so it remains for future management)
+        dAdded.DidNotReceive().Dispose();
+        sut.IsDisposed.ShouldBeTrue();
+        sut.Count.ShouldBe(1, "Item added during disposal should remain in the collection");
+        sut.Contains(dAdded).ShouldBeTrue();
+    }
 }
