@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System.Buffers;
+using System.Collections;
 
 namespace HCommons.Disposables;
 
@@ -73,22 +74,62 @@ public sealed class CompositeDisposable : ICollection<IDisposable>, IDisposable 
 
     /// <summary>
     /// Disposes all disposables in the collection and clears the collection.
+    /// If any disposables throw exceptions during disposal, all disposables are still attempted
+    /// to be disposed, and an <see cref="AggregateException"/> is thrown containing all exceptions.
     /// </summary>
+    /// <exception cref="AggregateException">Thrown when one or more disposables throw during disposal.</exception>
     public void Clear() {
-        foreach (var disposable in disposables) {
-            disposable.Dispose();
+        List<Exception>? exceptions = null;
+        
+        // Take a snapshot to avoid collection modified exceptions if a disposable
+        // attempts to modify this collection during disposal
+        var count = disposables.Count;
+        var snapshot = ArrayPool<IDisposable>.Shared.Rent(count);
+        
+        try {
+            // Copy items to the rented array using CopyTo for better performance
+            disposables.CopyTo(snapshot, 0);
+            
+            // Clear the collection immediately after snapshotting so that any items
+            // added during disposal remain in the collection for future management
+            disposables.Clear();
+            
+            // Dispose all items from the snapshot
+            for (var i = 0; i < count; i++) {
+                try {
+                    snapshot[i].Dispose();
+                }
+                catch (Exception ex) {
+                    exceptions ??= new List<Exception>();
+                    exceptions.Add(ex);
+                }
+            }
         }
-        disposables.Clear();
+        finally {
+            ArrayPool<IDisposable>.Shared.Return(snapshot, clearArray: true);
+        }
+        
+        if (exceptions is not null) {
+            throw new AggregateException("One or more exceptions occurred during disposal.", exceptions);
+        }
     }
 
     /// <summary>
     /// Disposes all disposables in the collection and marks this instance as disposed.
     /// Subsequent calls have no effect.
+    /// If any disposables throw exceptions during disposal, all disposables are still attempted
+    /// to be disposed, and an <see cref="AggregateException"/> is thrown containing all exceptions.
     /// </summary>
+    /// <exception cref="AggregateException">Thrown when one or more disposables throw during disposal.</exception>
     public void Dispose() {
         if (IsDisposed) return;
-        Clear();
-        IsDisposed = true;
+        
+        try {
+            Clear();
+        }
+        finally {
+            IsDisposed = true;
+        }
     }
 
     /// <summary>

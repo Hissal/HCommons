@@ -230,4 +230,149 @@ public class CompositeDisposableTest {
         // Assert
         items.ShouldBeEquivalentTo(new[] {d1, d2});
     }
+
+    [Fact]
+    public void Clear_WhenOneDisposableThrows_ThrowsAggregateException() {
+        // Arrange
+        var sut = new CompositeDisposable();
+        var d1 = Substitute.For<IDisposable>();
+        var d2 = Substitute.For<IDisposable>();
+        var exception = new InvalidOperationException("Dispose failed");
+        d1.When(x => x.Dispose()).Do(_ => throw exception);
+        sut.Add(d1);
+        sut.Add(d2);
+
+        // Act
+        var ex = Should.Throw<AggregateException>(() => sut.Clear());
+
+        // Assert
+        ex.InnerExceptions.Count.ShouldBe(1);
+        ex.InnerExceptions[0].ShouldBe(exception);
+    }
+
+    [Fact]
+    public void Clear_WhenMultipleDisposablesThrow_ThrowsAggregateExceptionWithAllExceptions() {
+        // Arrange
+        var sut = new CompositeDisposable();
+        var d1 = Substitute.For<IDisposable>();
+        var d2 = Substitute.For<IDisposable>();
+        var d3 = Substitute.For<IDisposable>();
+        var exception1 = new InvalidOperationException("Dispose 1 failed");
+        var exception2 = new InvalidOperationException("Dispose 2 failed");
+        d1.When(x => x.Dispose()).Do(_ => throw exception1);
+        d2.When(x => x.Dispose()).Do(_ => throw exception2);
+        sut.Add(d1);
+        sut.Add(d2);
+        sut.Add(d3);
+
+        // Act
+        var ex = Should.Throw<AggregateException>(() => sut.Clear());
+
+        // Assert
+        ex.InnerExceptions.Count.ShouldBe(2);
+        ex.InnerExceptions[0].ShouldBe(exception1);
+        ex.InnerExceptions[1].ShouldBe(exception2);
+    }
+
+    [Fact]
+    public void Clear_WhenDisposableThrows_StillDisposesAllAndClearsCollection() {
+        // Arrange
+        var sut = new CompositeDisposable();
+        var d1 = Substitute.For<IDisposable>();
+        var d2 = Substitute.For<IDisposable>();
+        var d3 = Substitute.For<IDisposable>();
+        d2.When(x => x.Dispose()).Do(_ => throw new InvalidOperationException("Dispose failed"));
+        sut.Add(d1);
+        sut.Add(d2);
+        sut.Add(d3);
+
+        // Act
+        Should.Throw<AggregateException>(() => sut.Clear());
+
+        // Assert
+        d1.Received(1).Dispose();
+        d2.Received(1).Dispose();
+        d3.Received(1).Dispose();
+        sut.Count.ShouldBe(0, "Collection should be cleared even when exceptions occur");
+    }
+
+    [Fact]
+    public void Dispose_WhenDisposableThrows_ThrowsAggregateException() {
+        // Arrange
+        var sut = new CompositeDisposable();
+        var d1 = Substitute.For<IDisposable>();
+        var exception = new InvalidOperationException("Dispose failed");
+        d1.When(x => x.Dispose()).Do(_ => throw exception);
+        sut.Add(d1);
+
+        // Act
+        var ex = Should.Throw<AggregateException>(() => sut.Dispose());
+
+        // Assert
+        ex.InnerExceptions.Count.ShouldBe(1);
+        ex.InnerExceptions[0].ShouldBe(exception);
+        sut.IsDisposed.ShouldBeTrue();
+        sut.Count.ShouldBe(0);
+    }
+
+    [Fact]
+    public void Clear_WhenDisposableModifiesCollection_DoesNotThrowCollectionModifiedException() {
+        // Arrange
+        var sut = new CompositeDisposable();
+        var d1 = Substitute.For<IDisposable>();
+        var d2 = Substitute.For<IDisposable>();
+        var d3 = Substitute.For<IDisposable>();
+        var dAdded = Substitute.For<IDisposable>();
+        
+        // d2 attempts to add a new disposable when disposed
+        d2.When(x => x.Dispose()).Do(_ => sut.Add(dAdded));
+        
+        sut.Add(d1);
+        sut.Add(d2);
+        sut.Add(d3);
+
+        // Act & Assert - should not throw any exception
+        sut.Clear();
+        
+        // All original disposables should have been disposed
+        d1.Received(1).Dispose();
+        d2.Received(1).Dispose();
+        d3.Received(1).Dispose();
+        
+        // The item added during disposal should not be disposed yet
+        // (it was added after we cleared the collection, so it remains for future management)
+        dAdded.DidNotReceive().Dispose();
+        sut.Count.ShouldBe(1, "Item added during disposal should remain in the collection");
+        sut.Contains(dAdded).ShouldBeTrue();
+    }
+
+    [Fact]
+    public void Dispose_WhenDisposableAddsItemDuringDisposal_ItemRemainsInCollection() {
+        // Arrange
+        var sut = new CompositeDisposable();
+        var d1 = Substitute.For<IDisposable>();
+        var d2 = Substitute.For<IDisposable>();
+        var dAdded = Substitute.For<IDisposable>();
+        
+        // d1 attempts to add a new disposable when disposed
+        d1.When(x => x.Dispose()).Do(_ => sut.Add(dAdded));
+        
+        sut.Add(d1);
+        sut.Add(d2);
+
+        // Act
+        sut.Dispose();
+        
+        // Assert
+        // All original disposables should have been disposed
+        d1.Received(1).Dispose();
+        d2.Received(1).Dispose();
+        
+        // The item added during disposal should not be disposed
+        // (it was added after we cleared the collection, so it remains for future management)
+        dAdded.DidNotReceive().Dispose();
+        sut.IsDisposed.ShouldBeTrue();
+        sut.Count.ShouldBe(1, "Item added during disposal should remain in the collection");
+        sut.Contains(dAdded).ShouldBeTrue();
+    }
 }
