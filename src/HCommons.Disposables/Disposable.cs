@@ -489,7 +489,7 @@ public static class Disposable {
     /// <summary>
     /// Disposes all disposables in the array in sequence.
     /// </summary>
-    /// <param name="disposables">An array of disposables to dispose.</param>
+    /// <param name="disposables">A span of disposables to dispose.</param>
     /// <exception cref="AggregateException">Thrown if any of the disposables throw an exception during disposal. All disposables are attempted to be disposed even if exceptions occur.</exception>
     public static void Dispose(params ReadOnlySpan<IDisposable?> disposables) {
         List<Exception>? exceptions = null;
