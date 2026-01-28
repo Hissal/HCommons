@@ -22,7 +22,9 @@ public class DisposableBagTest {
         bag.Clear();
 
         // Assert
-        Assert.All(disposables, d => d.Received(1).Dispose());
+        foreach (var d in disposables) {
+            d.Received(1).Dispose();
+        }
     }
     
     [Fact]
@@ -39,7 +41,9 @@ public class DisposableBagTest {
         bag.Clear();
 
         // Assert
-        Assert.All(disposables, d => d.Received(1).Dispose());
+        foreach (var d in disposables) {
+            d.Received(1).Dispose();
+        }
     }
     
     [Fact]
@@ -68,7 +72,9 @@ public class DisposableBagTest {
         bag.Dispose();
 
         // Assert
-        Assert.All(disposables, d => d.Received(1).Dispose());
+        foreach (var d in disposables) {
+            d.Received(1).Dispose();
+        }
     }
 
     [Fact]
@@ -85,7 +91,9 @@ public class DisposableBagTest {
         bag.Dispose();
 
         // Assert
-        Assert.All(disposables, d => d.Received(1).Dispose());
+        foreach (var d in disposables) {
+            d.Received(1).Dispose();
+        }
     }
 
     [Fact]
@@ -113,7 +121,9 @@ public class DisposableBagTest {
         bag.Dispose();
 
         // Assert
-        Assert.All(disposables, d => d.Received(1).Dispose());
+        foreach (var d in disposables) {
+            d.Received(1).Dispose();
+        }
     }
     
     [Fact]
@@ -202,7 +212,7 @@ public class DisposableBagTest {
         bag.Add(d2);
 
         // Act
-        Assert.Throws<AggregateException>(() => bag.Clear());
+        Should.Throw<AggregateException>(() => bag.Clear());
         
         // Assert - bag should be cleared, allowing new items to be added
         var d3 = Substitute.For<IDisposable>();
@@ -224,7 +234,7 @@ public class DisposableBagTest {
         bag.Add(d2);
 
         // Act
-        var aggregateException = Assert.Throws<AggregateException>(() => bag.Dispose());
+        var aggregateException = Should.Throw<AggregateException>(() => bag.Dispose());
 
         // Assert
         aggregateException.InnerExceptions.Count.ShouldBe(1);
@@ -243,7 +253,7 @@ public class DisposableBagTest {
         bag.Add(d1);
 
         // Act
-        Assert.Throws<AggregateException>(() => bag.Dispose());
+        Should.Throw<AggregateException>(() => bag.Dispose());
         
         // Assert - bag should be marked as disposed
         var d2 = Substitute.For<IDisposable>();
