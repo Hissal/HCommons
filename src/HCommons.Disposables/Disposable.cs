@@ -76,7 +76,7 @@ public static class Disposable {
     /// <param name="disposable4">The fourth disposable.</param>
     /// <returns>A combined disposable.</returns>
     public static IDisposable Combine(IDisposable? disposable1, IDisposable? disposable2, IDisposable? disposable3,
-        IDisposable disposable4) =>
+        IDisposable? disposable4) =>
         new CombinedDisposable4(disposable1, disposable2, disposable3, disposable4);
 
     /// <summary>
