@@ -251,8 +251,8 @@ jobs:
         if: ${{ inputs.dry-run == false }}
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ matrix.packageId }}-v${{ matrix.version }}
-          name: ${{ matrix.packageId }} v${{ matrix.version }}
+          tag_name: ${{ matrix.packageId == 'HCommons' && format('v{0}', matrix.version) || format('{0}-v{1}', matrix.packageId, matrix.version) }}
+          name: ${{ matrix.packageId == 'HCommons' && format('v{0}', matrix.version) || format('{0} v{1}', matrix.packageId, matrix.version) }}
           body: |
             Automated release for **${{ matrix.packageId }}** version **${{ matrix.version }}**.
         env:
