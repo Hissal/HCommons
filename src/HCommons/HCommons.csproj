@@ -17,8 +17,8 @@
         <ProjectReference Include="..\HCommons.Monads\HCommons.Monads.csproj" />
         <ProjectReference Include="..\HCommons.Buffers\HCommons.Buffers.csproj" />
         <ProjectReference Include="..\HCommons.Math\HCommons.Math.csproj" />
-        <ProjectReference Include="..\HCommons.Math\HCommons.Void.csproj" />
-        <ProjectReference Include="..\HCommons.Math\HCommons.Disposables.csproj" />
+        <ProjectReference Include="..\HCommons.Void\HCommons.Void.csproj" />
+        <ProjectReference Include="..\HCommons.Disposables\HCommons.Disposables.csproj" />
     </ItemGroup>
 
 </Project>

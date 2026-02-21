@@ -7,7 +7,7 @@ namespace JetBrains.Annotations {
     internal sealed class NoEnumerationAttribute : Attribute;
 }
 
-namespace HCommons.Buffers.Internal {
+namespace HCommons.Buffers {
 internal static class EnumerableExtensions {
 #if !NET6_0_OR_GREATER
         public static bool TryGetNonEnumeratedCount<TSource>([NoEnumeration] this IEnumerable<TSource> source, out int count) {

@@ -1,6 +1,4 @@
-﻿using HCommons.Buffers.Internal;
-
-namespace HCommons.Buffers;
+﻿namespace HCommons.Buffers;
 
 /// <summary>
 /// Provides extension methods for converting various collection types to <see cref="PooledArray{T}"/>.
