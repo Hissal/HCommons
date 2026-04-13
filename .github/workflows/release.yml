@@ -249,7 +249,7 @@ jobs:
 
       - name: Create Git Tag
         if: ${{ inputs.dry-run == false }}
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ matrix.packageId == 'HCommons' && format('v{0}', matrix.version) || format('{0}-v{1}', matrix.packageId, matrix.version) }}
           name: ${{ matrix.packageId == 'HCommons' && format('v{0}', matrix.version) || format('{0} v{1}', matrix.packageId, matrix.version) }}
