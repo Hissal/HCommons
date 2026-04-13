@@ -53,6 +53,11 @@ public readonly record struct OperationResult<TValue>(
         new OperationResult<TValue>(OperationResultType.Cancelled, default, Error.Empty, cancelled);
 
     /// <summary>
+    /// Implicitly converts a value to a successful operation result.
+    /// </summary>
+    public static implicit operator OperationResult<TValue>(TValue value) => Success(value);
+    
+    /// <summary>
     /// Implicitly converts an error to a failed operation result.
     /// </summary>
     public static implicit operator OperationResult<TValue>(Error error) => Failure(error);
