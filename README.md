@@ -1,5 +1,7 @@
 # HCommons
 
+[![Tests](https://github.com/Hissal/HCommons/actions/workflows/Build-Debug.yml/badge.svg)](https://github.com/Hissal/HCommons/actions/workflows/Build-Debug.yml)
+
 A C# commons library providing utility types and helper functions for .NET applications.
 
 ## Features
