@@ -17,6 +17,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\src\HCommons.Disposables\HCommons.Disposables.csproj" />
+      <ProjectReference Include="..\..\src\HCommons.Reflection\HCommons.Reflection.csproj" />
     </ItemGroup>
 
 </Project>

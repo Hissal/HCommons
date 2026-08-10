@@ -11,6 +11,7 @@ using BenchmarkDotNet.Loggers;
 using BenchmarkDotNet.Order;
 using BenchmarkDotNet.Running;
 using HCommons.Disposables;
+using HCommons.Reflection;
 using Perfolizer.Horology;
 
 BenchmarkSwitcher.FromAssembly(Assembly.GetExecutingAssembly()).Run(args: null, new AccurateConfig());
@@ -76,6 +77,24 @@ public sealed class AccurateConfig : ManualConfig {
 
         WithOptions(ConfigOptions.KeepBenchmarkFiles); // Keep artifacts for inspection
         Orderer = new DefaultOrderer(SummaryOrderPolicy.FastestToSlowest);
+    }
+}
+
+[MemoryDiagnoser]
+public class RuntimeTypeCacheBench {
+    [GlobalSetup]
+    public void GlobalSetup() {
+        RuntimeTypeCache.Clear();
+        RuntimeTypeCache.TypesDerivedFrom<IDisposable>();
+    }
+
+    [Benchmark(Baseline = true)]
+    public IReadOnlyList<Type> CachedQuery() => RuntimeTypeCache.TypesDerivedFrom<IDisposable>();
+
+    [Benchmark]
+    public IReadOnlyList<Type> FullRebuild() {
+        RuntimeTypeCache.Clear();
+        return RuntimeTypeCache.TypesDerivedFrom<IDisposable>();
     }
 }
 

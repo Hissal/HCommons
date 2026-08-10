@@ -9,6 +9,7 @@ A C# commons library providing utility types and helper functions for .NET appli
 - **Buffers**: Memory-efficient pooled array types for high-performance scenarios
 - **Math**: Mathematical helper methods and extensions for common operations
 - **Monads**: Functional programming utilities for safe and expressive error handling
+- **Types**: Cached runtime discovery of assignable types across loaded assemblies
 
 ## Installation
 
@@ -579,6 +580,27 @@ Cancelled cancellation2 = "User requested"; // Implicit conversion
 // Cancellation with value
 Cancelled<int> cancellation3 = Cancelled<int>.Because(42, "Partial result");
 ```
+
+## Types
+
+The `HCommons.Reflection` namespace provides cached runtime type discovery without taking a dependency on Unity.
+
+```csharp
+using HCommons.Reflection;
+
+IReadOnlyList<Type> handlers = RuntimeTypeCache.TypesDerivedFrom<IHandler>();
+
+using IDisposable binding = RuntimeTypeCache.Bind<IHandler>(updatedHandlers => {
+    // The first snapshot is delivered immediately. Later snapshots are delivered
+    // when newly loaded assemblies add matching types.
+});
+```
+
+Reflection metadata can be removed by .NET trimming and Unity managed code stripping. Applications must preserve types that are discovered only through this API. In Unity, use a `link.xml` file, `[Preserve]`, or an equivalent linker annotation. `UnityEditor.TypeCache` is faster for editor-only discovery; `RuntimeTypeCache` is intended for player/runtime and shared-library code.
+
+Assemblies loaded after the first query are scanned incrementally. Runtime-emitted types added after their assembly has loaded are not detectable automatically; call `RuntimeTypeCache.Clear()` to force a complete rescan.
+
+The cache holds strong references to discovered `Assembly` and `Type` objects. Clear it and release returned snapshots before unloading a collectible `AssemblyLoadContext`.
 
 ## Target Frameworks
 
