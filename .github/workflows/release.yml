@@ -220,16 +220,16 @@ jobs:
         run: |
           dotnet restore "${{ matrix.project }}"
 
-          # Explicitly set Version property
+          # HCommons consumes this property; child projects keep their own versions.
           dotnet build "${{ matrix.project }}" \
             -c Release \
             --no-restore \
-            /p:Version=${{ matrix.version }}
+            /p:HCommonsReleaseVersion=${{ matrix.version }}
 
           dotnet pack "${{ matrix.project }}" \
             -c Release \
             --no-build \
-            /p:PackageVersion=${{ matrix.version }} \
+            /p:HCommonsReleaseVersion=${{ matrix.version }} \
             /p:IncludeSymbols=true \
             /p:SymbolPackageFormat=snupkg \
             -o ./artifacts
