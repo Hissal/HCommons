@@ -197,7 +197,9 @@ jobs:
 
   publish:
     needs: [check-versions, test]
-    permissions: write-all # For creating tags and pushing packages
+    permissions:
+      contents: write # Create GitHub releases and tags
+      id-token: write # Request a GitHub OIDC token for NuGet trusted publishing
     if: needs.check-versions.outputs.has-updates == 'true'
     runs-on: ubuntu-24.04
     strategy:
@@ -239,11 +241,18 @@ jobs:
           path: ./artifacts/*.nupkg
           if-no-files-found: error
 
+      - name: NuGet login (OIDC to temporary API key)
+        if: ${{ inputs.dry-run == false }}
+        uses: NuGet/login@v1
+        id: nuget_login
+        with:
+          user: ${{ secrets.NUGET_USER }}
+
       - name: Push to NuGet
         if: ${{ inputs.dry-run == false }}
         run: |
           dotnet nuget push "./artifacts/*.nupkg" \
-            --api-key "${{ secrets.NUGET_API_KEY }}" \
+            --api-key "${{ steps.nuget_login.outputs.NUGET_API_KEY }}" \
             --source "https://api.nuget.org/v3/index.json" \
             --skip-duplicate
 
