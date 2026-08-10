@@ -16,6 +16,7 @@
         <!-- Disable Nuget generation -->
         <IsPackable>false</IsPackable>
         <GenerateDocumentationFile>false</GenerateDocumentationFile>
+        <NoWarn>$(NoWarn);IL2026</NoWarn>
     </PropertyGroup>
 
     <!-- Add .NET Framework test -->
@@ -56,7 +57,16 @@
         <ProjectReference Include="..\HCommons.Buffers\HCommons.Buffers.csproj"/>
         <ProjectReference Include="..\HCommons.Math\HCommons.Math.csproj"/>
         <ProjectReference Include="..\HCommons.Disposables\HCommons.Disposables.csproj"/>
+        <ProjectReference Include="..\HCommons.Reflection\HCommons.Reflection.csproj"/>
+        <ProjectReference Include="..\HCommons.Reflection.Tests.Fixture\HCommons.Reflection.Tests.Fixture.csproj"
+                          ReferenceOutputAssembly="false"
+                          AdditionalProperties="Configuration=$(Configuration)"/>
     </ItemGroup>
+
+    <Target Name="CopyTypeCacheTestFixture" AfterTargets="Build" Condition="'$(TargetFramework)' != ''">
+        <Copy SourceFiles="..\HCommons.Reflection.Tests.Fixture\bin\$(Configuration)\netstandard2.0\HCommons.Reflection.Tests.Fixture.dll"
+              DestinationFolder="$(OutDir)" />
+    </Target>
 
     <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="[17.13.0]" Condition="'$(TargetFramework)' == 'net6.0'"/>

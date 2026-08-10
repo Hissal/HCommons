@@ -5,7 +5,7 @@
         <Version>1.0.0</Version>
         <Title>HCommons</Title>
         <Description>Commonly used types, functions, and extensions.</Description>
-        <PackageTags>Commons Monads Buffers Math</PackageTags>
+        <PackageTags>Commons Monads Buffers Math Types Reflection</PackageTags>
 
         <!-- Override Directory.Build.props to allow Nuget generation -->
         <IsPackable>true</IsPackable>
@@ -19,6 +19,7 @@
         <ProjectReference Include="..\HCommons.Math\HCommons.Math.csproj" />
         <ProjectReference Include="..\HCommons.Void\HCommons.Void.csproj" />
         <ProjectReference Include="..\HCommons.Disposables\HCommons.Disposables.csproj" />
+        <ProjectReference Include="..\HCommons.Reflection\HCommons.Reflection.csproj" />
     </ItemGroup>
 
 </Project>
