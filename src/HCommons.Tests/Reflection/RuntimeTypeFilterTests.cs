@@ -105,8 +105,27 @@ public sealed class RuntimeTypeFilterTests {
     }
 
     [Fact]
+    public void StatefulWhere_PassesStructStateWithoutChangingCompositionSemantics() {
+        var state = new ExactTypeState(typeof(string));
+        var standalone = RuntimeTypeFilters.Where(
+            state,
+            static (filterState, type) => filterState.Matches(type));
+        var chained = RuntimeTypeFilters
+            .Concrete()
+            .Where(state, static (filterState, type) => filterState.Matches(type));
+
+        standalone.IsCacheable.ShouldBeFalse();
+        standalone.Matches(typeof(string)).ShouldBeTrue();
+        standalone.Matches(typeof(int)).ShouldBeFalse();
+        chained.Matches(typeof(string)).ShouldBeTrue();
+        chained.Matches(typeof(IDisposable)).ShouldBeFalse();
+    }
+
+    [Fact]
     public void Where_NullInputsThrow() {
         Should.Throw<ArgumentNullException>(() => RuntimeTypeFilters.Where((Func<Type, bool>)null!));
+        Should.Throw<ArgumentNullException>(() =>
+            RuntimeTypeFilters.Where(42, (Func<int, Type, bool>)null!));
         Should.Throw<ArgumentNullException>(() => RuntimeTypeFilters.Where((RuntimeTypeFilterRule)null!));
     }
 
@@ -120,5 +139,15 @@ public sealed class RuntimeTypeFilterTests {
 
     sealed record ExactTypeRule(Type Expected) : RuntimeTypeFilterRule {
         public override bool Matches(Type type) => type == Expected;
+    }
+
+    readonly struct ExactTypeState {
+        readonly Type _expected;
+
+        public ExactTypeState(Type expected) {
+            _expected = expected;
+        }
+
+        public bool Matches(Type type) => type == _expected;
     }
 }

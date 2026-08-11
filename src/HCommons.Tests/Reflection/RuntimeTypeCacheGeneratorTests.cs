@@ -142,10 +142,20 @@ public sealed class RuntimeTypeCacheGeneratorTests {
                 public override bool Matches(Type type) => type == Expected;
             }
 
+            public readonly struct FilterState {
+                public bool Matches(Type type) => type.IsClass;
+            }
+
             public static class Filters {
                 public static void Build() {
                     _ = RuntimeTypeFilters.Where(type => type.IsClass).Cached();
                     _ = RuntimeTypeFilters.Concrete().Cached().Where(type => type.IsClass);
+                    _ = RuntimeTypeFilters.Where(
+                        new FilterState(),
+                        static (state, type) => state.Matches(type)).Cached();
+                    _ = RuntimeTypeFilters.Concrete().Cached().Where(
+                        new FilterState(),
+                        static (state, type) => state.Matches(type));
                     _ = RuntimeTypeFilters.Where(new ExactTypeRule(typeof(string))).Cached();
                 }
             }
@@ -157,7 +167,7 @@ public sealed class RuntimeTypeCacheGeneratorTests {
             .WithAnalyzers(analyzers, cancellationToken: TestContext.Current.CancellationToken)
             .GetAnalyzerDiagnosticsAsync(TestContext.Current.CancellationToken);
 
-        diagnostics.Count(diagnostic => diagnostic.Id == "HCRTCFILTER001").ShouldBe(2);
+        diagnostics.Count(diagnostic => diagnostic.Id == "HCRTCFILTER001").ShouldBe(4);
     }
 
     static GeneratorResult RunGenerator(string source) =>

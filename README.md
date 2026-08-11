@@ -601,8 +601,10 @@ using IDisposable binding = RuntimeTypeCache.Bind<IHandler>(updatedHandlers => {
 
 Reusable filters support built-in conditions, immutable record rules, Boolean composition, direct
 `Matches(Type)` evaluation, and explicit filtered-snapshot caching through `.Cached()`. Delegate
-predicate overloads remain available for one-off uncached filtering. All filter forms work with
-`Bind`, runtime-selected `Type` queries, generated catalogs, and reflection-backed results.
+predicate overloads remain available for one-off uncached filtering, including a stateful
+`Where<TState>` form that avoids closure allocation when used with a static lambda. All filter forms
+work with `Bind`, runtime-selected `Type` queries, generated catalogs, and reflection-backed
+results.
 
 `HCommons.Reflection` includes a source generator. Concrete generic calls and direct
 `typeof(...)` calls automatically emit per-assembly type catalogs:

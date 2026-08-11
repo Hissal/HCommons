@@ -99,6 +99,30 @@ public readonly struct RuntimeTypeFilter : IEquatable<RuntimeTypeFilter> {
     }
 
     /// <summary>
+    /// Adds an arbitrary, uncacheable predicate with explicitly supplied state to this filter.
+    /// </summary>
+    /// <typeparam name="TState">The type of state passed to the predicate.</typeparam>
+    /// <param name="state">The state stored with the filter expression.</param>
+    /// <param name="predicate">The predicate that evaluates the state and candidate type.</param>
+    /// <remarks>
+    /// Use a static lambda to prevent accidental captures. Value-type state is stored directly in
+    /// the generic expression node without boxing. Stateful delegate behavior has no stable
+    /// structural identity, so a filter containing this condition ignores <see cref="Cached"/>.
+    /// </remarks>
+    public RuntimeTypeFilter Where<TState>(
+        TState state,
+        Func<TState, Type, bool> predicate) {
+        if (predicate is null) {
+            throw new ArgumentNullException(nameof(predicate));
+        }
+
+        return And(new RuntimeTypeFilter(
+            RuntimeTypeFilterFlags.None,
+            new StatefulDelegateRuntimeTypeFilterExpression<TState>(state, predicate),
+            cacheRequested: false));
+    }
+
+    /// <summary>
     /// Adds a structurally cacheable rule to this filter.
     /// </summary>
     /// <param name="rule">An immutable rule whose record equality represents all matching behavior.</param>
@@ -258,6 +282,12 @@ public static class RuntimeTypeFilters {
     public static RuntimeTypeFilter Where(Func<Type, bool> predicate) =>
         default(RuntimeTypeFilter).Where(predicate);
 
+    /// <summary>Creates an uncacheable filter from explicitly supplied state and a predicate.</summary>
+    public static RuntimeTypeFilter Where<TState>(
+        TState state,
+        Func<TState, Type, bool> predicate) =>
+        default(RuntimeTypeFilter).Where(state, predicate);
+
     /// <summary>Creates a structurally cacheable filter from an immutable record rule.</summary>
     public static RuntimeTypeFilter Where(RuntimeTypeFilterRule rule) =>
         default(RuntimeTypeFilter).Where(rule);
@@ -297,6 +327,14 @@ sealed record DelegateRuntimeTypeFilterExpression(Func<Type, bool> Predicate) : 
     public override bool IsCacheable => false;
 
     public override bool Matches(Type type) => Predicate(type);
+}
+
+sealed record StatefulDelegateRuntimeTypeFilterExpression<TState>(
+    TState State,
+    Func<TState, Type, bool> Predicate) : RuntimeTypeFilterExpression {
+    public override bool IsCacheable => false;
+
+    public override bool Matches(Type type) => Predicate(State, type);
 }
 
 sealed record RuleRuntimeTypeFilterExpression(RuntimeTypeFilterRule Rule) : RuntimeTypeFilterExpression {

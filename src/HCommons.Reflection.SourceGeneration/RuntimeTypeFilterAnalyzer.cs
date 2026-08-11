@@ -66,21 +66,30 @@ public sealed class RuntimeTypeFilterAnalyzer : DiagnosticAnalyzer {
 
     static bool IsDelegateWhere(IMethodSymbol method) {
         if (method.Name != "Where" ||
-            method.Parameters.Length != 1 ||
+            method.Parameters.Length is < 1 or > 2 ||
             GetMetadataName(method.ContainingType) is not (FilterTypeName or "HCommons.Reflection.RuntimeTypeFilters")) {
             return false;
         }
 
-        if (method.Parameters[0].Type is not INamedTypeSymbol parameterType ||
+        if (method.Parameters[method.Parameters.Length - 1].Type is not INamedTypeSymbol parameterType ||
             parameterType.Name != "Func" ||
-            parameterType.Arity != 2 ||
             GetMetadataName(parameterType.ContainingType) is not null ||
             parameterType.ContainingNamespace.ToDisplayString() != "System") {
             return false;
         }
 
-        return GetMetadataName(parameterType.TypeArguments[0]) == "System.Type" &&
-               parameterType.TypeArguments[1].SpecialType == SpecialType.System_Boolean;
+        if (method.Parameters.Length == 1) {
+            return parameterType.Arity == 2 &&
+                   GetMetadataName(parameterType.TypeArguments[0]) == "System.Type" &&
+                   parameterType.TypeArguments[1].SpecialType == SpecialType.System_Boolean;
+        }
+
+        return parameterType.Arity == 3 &&
+               SymbolEqualityComparer.Default.Equals(
+                   method.Parameters[0].Type,
+                   parameterType.TypeArguments[0]) &&
+               GetMetadataName(parameterType.TypeArguments[1]) == "System.Type" &&
+               parameterType.TypeArguments[2].SpecialType == SpecialType.System_Boolean;
     }
 
     static string? GetMetadataName(ISymbol? symbol) {

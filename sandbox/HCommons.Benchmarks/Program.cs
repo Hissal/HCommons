@@ -136,6 +136,31 @@ public abstract class GeneratedRuntimeTypeCacheBenchmarkBase : IGeneratedRuntime
 
 internal sealed class GeneratedRuntimeTypeCacheBenchmarkImplementation : GeneratedRuntimeTypeCacheBenchmarkBase;
 
+[MemoryDiagnoser]
+public sealed class RuntimeTypeFilterBench {
+    readonly RuntimeTypeFilterBenchmarkState _state = new(typeof(IDisposable));
+
+    [Benchmark(Baseline = true)]
+    public RuntimeTypeFilter CapturingWhere() =>
+        RuntimeTypeFilters.Where(type => _state.Matches(type));
+
+    [Benchmark]
+    public RuntimeTypeFilter StatefulWhere() =>
+        RuntimeTypeFilters.Where(
+            _state,
+            static (state, type) => state.Matches(type));
+}
+
+public readonly struct RuntimeTypeFilterBenchmarkState {
+    readonly Type _expected;
+
+    public RuntimeTypeFilterBenchmarkState(Type expected) {
+        _expected = expected;
+    }
+
+    public bool Matches(Type type) => type == _expected;
+}
+
 // [MemoryDiagnoser]
 // public class BagAddBench {
 //     DisposableBag bag;

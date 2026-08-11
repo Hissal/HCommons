@@ -80,6 +80,9 @@ Boolean-equivalence equality.
   expression, instance `Not(other)` means AND NOT, and static `RuntimeTypeFilters.Not(filter)`
   negates the supplied expression.
 - `Where(Func<Type, bool>)` is always uncacheable.
+- `Where<TState>(TState, Func<TState, Type, bool>)` is also uncacheable. It exists to avoid closure
+  allocation: value-type state is embedded in the generic expression node without boxing, and a
+  static lambda allows the compiler to reuse the delegate. The expression node still allocates.
 - `Where(RuntimeTypeFilterRule)` is cacheable. Derived records must be immutable, behaviorally pure,
   and include every matching input in record equality.
 - `Cached()` is an explicit request for both queries and bindings. Equal uncached descriptors may
@@ -89,11 +92,16 @@ Boolean-equivalence equality.
 - User predicates and rules must be evaluated outside `RuntimeTypeCache.s_gate`. Equality and hash
   implementations used as cache keys must remain pure and non-blocking.
 
-The bundled analyzer reports `HCRTCFILTER001` when it can see `Cached()` and a delegate-based
-`Where` in the same fluent expression. The runtime must still ignore caching for every uncacheable
-descriptor because analyzers cannot prove values that flow through variables. Keep the analyzer,
-runtime `IsCacheable` behavior, package README, diagnostic tests, and Unity analyzer packaging in
-sync whenever custom filtering changes.
+The bundled analyzer reports `HCRTCFILTER001` when it can see `Cached()` and either delegate-based
+`Where` overload in the same fluent expression. The runtime must still ignore caching for every
+uncacheable descriptor because analyzers cannot prove values that flow through variables. Keep the
+analyzer, runtime `IsCacheable` behavior, package README, diagnostic tests, and Unity analyzer
+packaging in sync whenever custom filtering changes.
+
+Stateful predicate overloads intentionally live on `RuntimeTypeFilter` and `RuntimeTypeFilters`,
+not directly on every `RuntimeTypeCache` query and binding method. Callers can construct a
+descriptor inline without adding a state type parameter to the already-large cache overload
+surface or running into partial generic type-inference limitations.
 
 Potential parameterized built-ins such as namespace, assembly, or attribute filters should be
 implemented as immutable `RuntimeTypeFilterRule` records rather than expanding the flag set.

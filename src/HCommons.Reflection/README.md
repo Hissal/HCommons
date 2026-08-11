@@ -125,6 +125,24 @@ RuntimeTypeFilter enabledHandlers = RuntimeTypeFilters
 A delegate has no stable structural identity, so any filter containing one is uncacheable. Its
 captured state is reevaluated on every query or binding update.
 
+When constructing the filter repeatedly, pass state separately and use a static lambda to avoid
+allocating a closure:
+
+```csharp
+RuntimeTypeFilter enabledHandlers = RuntimeTypeFilters
+    .Concrete()
+    .Where(
+        configuration,
+        static (configuration, type) => configuration.IsEnabled(type));
+```
+
+`Where<TState>(TState, Func<TState, Type, bool>)` stores value-type state directly in its generic
+expression node without boxing. The expression node itself is still allocated, and reference-type
+state is stored by reference. This form remains uncacheable because passing state separately does
+not prove that its matching behavior or identity is immutable. Prefer a static lambda so the
+compiler can reuse its delegate; use an immutable `RuntimeTypeFilterRule` when the custom condition
+needs filtered-snapshot caching.
+
 For a reusable cacheable condition, derive an immutable record from `RuntimeTypeFilterRule`:
 
 ```csharp
@@ -165,10 +183,10 @@ stored per exact base type and structural filter expression. An equivalent descr
 `Cached()` can reuse an existing entry but does not create one. `Clear()` and changes to the
 underlying base-type snapshot invalidate cached filtered results.
 
-Calling `Cached()` on a descriptor containing delegate-based `Where` remains correct but does not
-cache its result. Analyzer warning `HCRTCFILTER001` identifies directly constructed fluent chains
-where the request cannot be honored. Use a `RuntimeTypeFilterRule` when custom logic has a stable,
-immutable value identity.
+Calling `Cached()` on a descriptor containing either delegate-based `Where` overload remains
+correct but does not cache its result. Analyzer warning `HCRTCFILTER001` identifies directly
+constructed fluent chains where the request cannot be honored. Use a `RuntimeTypeFilterRule` when
+custom logic has a stable, immutable value identity.
 
 Filtering happens after the shared base-type query is resolved. Generated catalogs and reflected
 assemblies therefore have identical behavior. The filter receives only types already assignable to
