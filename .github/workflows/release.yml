@@ -210,21 +210,39 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 9.0.x
 
-      - name: Build & Pack ${{ matrix.packageId }}
-        run: |
-          dotnet restore "${{ matrix.project }}"
+      - name: Restore ${{ matrix.packageId }}
+        run: dotnet restore "${{ matrix.project }}"
 
+      - name: Generate Release Notes
+        shell: bash
+        run: |
+          bash .github/scripts/generate-release-notes.sh \
+            "${{ matrix.packageId }}" \
+            "${{ matrix.project }}" \
+            "${{ matrix.version }}" \
+            release-notes.md
+
+          cat release-notes.md
+
+      - name: Build & Pack ${{ matrix.packageId }}
+        shell: bash
+        run: |
           # HCommons consumes this property; child projects keep their own versions.
           dotnet build "${{ matrix.project }}" \
             -c Release \
             --no-restore \
             /p:HCommonsReleaseVersion=${{ matrix.version }}
+
+          PackageReleaseNotes="$(cat release-notes.md)"
+          export PackageReleaseNotes
 
           dotnet pack "${{ matrix.project }}" \
             -c Release \
@@ -262,7 +280,7 @@ jobs:
         with:
           tag_name: ${{ matrix.packageId == 'HCommons' && format('v{0}', matrix.version) || format('{0}-v{1}', matrix.packageId, matrix.version) }}
           name: ${{ matrix.packageId == 'HCommons' && format('v{0}', matrix.version) || format('{0} v{1}', matrix.packageId, matrix.version) }}
-          body: |
-            Automated release for **${{ matrix.packageId }}** version **${{ matrix.version }}**.
+          body_path: release-notes.md
+          target_commitish: ${{ github.sha }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
