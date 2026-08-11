@@ -4,6 +4,7 @@ using HCommons.Reflection;
 using HCommons.Reflection.SourceGeneration;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace HCommons.Tests;
 
@@ -13,6 +14,7 @@ public sealed class RuntimeTypeCacheGeneratorTests {
         const string source = """
             using System;
             using System.Collections.Generic;
+            using HCommons.Reflection;
             using Cache = HCommons.Reflection.RuntimeTypeCache;
 
             public interface IMarker { }
@@ -23,8 +25,16 @@ public sealed class RuntimeTypeCacheGeneratorTests {
                 public static void Run() {
                     _ = Cache.TypesDerivedFrom<IMarker>();
                     _ = Cache.TypesDerivedFrom(typeof(IMarker));
+                    _ = Cache.TypesDerivedFrom<IMarker>(type => !type.IsAbstract);
+                    _ = Cache.TypesDerivedFrom(typeof(IMarker), type => !type.IsAbstract);
+                    _ = Cache.TypesDerivedFrom<IMarker>(RuntimeTypeFilters.Concrete());
+                    _ = Cache.TypesDerivedFrom(typeof(IMarker), RuntimeTypeFilters.Concrete());
                     _ = Cache.Bind<IMarker>(_ => { });
                     _ = Cache.Bind(typeof(IMarker), _ => { });
+                    _ = Cache.Bind<IMarker>(type => !type.IsAbstract, _ => { });
+                    _ = Cache.Bind(typeof(IMarker), type => !type.IsAbstract, _ => { });
+                    _ = Cache.Bind<IMarker>(RuntimeTypeFilters.Concrete(), _ => { });
+                    _ = Cache.Bind(typeof(IMarker), RuntimeTypeFilters.Concrete(), _ => { });
                 }
             }
             """;
@@ -120,6 +130,44 @@ public sealed class RuntimeTypeCacheGeneratorTests {
 
         result.GeneratedSource!.ShouldContain("typeof(global::IMarker), true");
         result.GeneratedSource!.ShouldContain("typeof(global::Marker)");
+    }
+
+    [Fact]
+    public async Task FilterAnalyzer_WarnsOnlyWhenDelegateWhereRequestsCaching() {
+        const string source = """
+            using System;
+            using HCommons.Reflection;
+
+            public sealed record ExactTypeRule(Type Expected) : RuntimeTypeFilterRule {
+                public override bool Matches(Type type) => type == Expected;
+            }
+
+            public readonly struct FilterState {
+                public bool Matches(Type type) => type.IsClass;
+            }
+
+            public static class Filters {
+                public static void Build() {
+                    _ = RuntimeTypeFilters.Where(type => type.IsClass).Cached();
+                    _ = RuntimeTypeFilters.Concrete().Cached().Where(type => type.IsClass);
+                    _ = RuntimeTypeFilters.Where(
+                        new FilterState(),
+                        static (state, type) => state.Matches(type)).Cached();
+                    _ = RuntimeTypeFilters.Concrete().Cached().Where(
+                        new FilterState(),
+                        static (state, type) => state.Matches(type));
+                    _ = RuntimeTypeFilters.Where(new ExactTypeRule(typeof(string))).Cached();
+                }
+            }
+            """;
+        var compilation = CreateCompilation(source, "FilterAnalyzerTests");
+        var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(new RuntimeTypeFilterAnalyzer());
+
+        var diagnostics = await compilation
+            .WithAnalyzers(analyzers, cancellationToken: TestContext.Current.CancellationToken)
+            .GetAnalyzerDiagnosticsAsync(TestContext.Current.CancellationToken);
+
+        diagnostics.Count(diagnostic => diagnostic.Id == "HCRTCFILTER001").ShouldBe(4);
     }
 
     static GeneratorResult RunGenerator(string source) =>

@@ -43,6 +43,171 @@ definitions when they satisfy normal runtime assignability rules. Result order i
 Snapshots are safe to retain and enumerate while other assemblies load. A later query returns a
 new snapshot if new matches have appeared; an existing snapshot is never mutated.
 
+## Filtering results
+
+Use a reusable `RuntimeTypeFilter` for common conditions:
+
+```csharp
+RuntimeTypeFilter filter = RuntimeTypeFilters
+    .Concrete()
+    .Public()
+    .Closed();
+
+IReadOnlyList<Type> handlers =
+    RuntimeTypeCache.TypesDerivedFrom<IHandler>(filter);
+```
+
+Built-in filters are represented as flags in a non-generic `readonly struct`. Constructing and
+chaining the built-in conditions does not allocate on the managed heap:
+
+- `Concrete()` excludes abstract types and interfaces.
+- `Public()` requires `Type.IsVisible`, including the visibility of containing types.
+- `Closed()` excludes types containing unassigned generic parameters.
+- `HasPublicParameterlessConstructor()` accepts value types or types with a public parameterless
+  constructor.
+- `Instantiable()` combines concrete, closed, and public-parameterless-constructor conditions.
+  Append `Public()` separately when external type visibility is also required.
+
+The default `RuntimeTypeFilter` matches every non-null type. Filters can also be evaluated outside
+the cache:
+
+```csharp
+bool accepted = filter.Matches(typeof(FileHandler));
+IEnumerable<Type> acceptedTypes = candidateTypes.Where(filter.Matches);
+```
+
+### Combining filters
+
+Chained conditions use Boolean AND by default. `And` accepts a separately constructed group, `Or`
+combines the complete accumulated expression with an alternative, and instance `Not` means AND NOT:
+
+```csharp
+RuntimeTypeFilter filter = RuntimeTypeFilters
+    .Concrete()
+    .Public()
+    .Not(RuntimeTypeFilters.Where(new NamespaceRule("Framework")))
+    .Or(RuntimeTypeFilters.Where(new ExactTypeRule(typeof(FallbackHandler))));
+```
+
+Composition is left-associative. The example means:
+
+```text
+((Concrete AND Public) AND NOT FrameworkNamespace) OR ExactFallbackType
+```
+
+Group the right side explicitly when needed:
+
+```csharp
+RuntimeTypeFilter filter = RuntimeTypeFilters.Concrete().Or(
+    RuntimeTypeFilters.Public().Closed());
+```
+
+Use the static form to negate a complete expression:
+
+```csharp
+RuntimeTypeFilter nonPublic = RuntimeTypeFilters.Not(RuntimeTypeFilters.Public());
+```
+
+`And` and `Or` short-circuit in expression order. `Not` evaluates its operand once and inverts the
+result. Simple built-in AND chains retain the allocation-free flag representation; rules and
+compound Boolean expressions use immutable expression nodes.
+
+### Custom conditions and rules
+
+For one-off or stateful logic, append a delegate with `Where`:
+
+```csharp
+RuntimeTypeFilter enabledHandlers = RuntimeTypeFilters
+    .Concrete()
+    .Where(type => configuration.IsEnabled(type));
+```
+
+A delegate has no stable structural identity, so any filter containing one is uncacheable. Its
+captured state is reevaluated on every query or binding update.
+
+When constructing the filter repeatedly, pass state separately and use a static lambda to avoid
+allocating a closure:
+
+```csharp
+RuntimeTypeFilter enabledHandlers = RuntimeTypeFilters
+    .Concrete()
+    .Where(
+        configuration,
+        static (configuration, type) => configuration.IsEnabled(type));
+```
+
+`Where<TState>(TState, Func<TState, Type, bool>)` stores value-type state directly in its generic
+expression node without boxing. The expression node itself is still allocated, and reference-type
+state is stored by reference. This form remains uncacheable because passing state separately does
+not prove that its matching behavior or identity is immutable. Prefer a static lambda so the
+compiler can reuse its delegate; use an immutable `RuntimeTypeFilterRule` when the custom condition
+needs filtered-snapshot caching.
+
+For a reusable cacheable condition, derive an immutable record from `RuntimeTypeFilterRule`:
+
+```csharp
+public sealed record NamespaceRule(string Namespace) : RuntimeTypeFilterRule {
+    public override bool Matches(Type type) => type.Namespace == Namespace;
+}
+
+RuntimeTypeFilter gameTypes = RuntimeTypeFilters
+    .Concrete()
+    .Where(new NamespaceRule("My.Game"));
+```
+
+Every value affecting `Matches` must participate in record equality, and a rule must not depend on
+mutable external state. Equal rule records produce structurally equal filter descriptors.
+
+The original `Func<Type, bool>` overloads remain available for concise uncached calls:
+
+```csharp
+IReadOnlyList<Type> concreteHandlers = RuntimeTypeCache.TypesDerivedFrom<IHandler>(
+    type => !type.IsAbstract && !type.IsInterface);
+```
+
+### Opt-in filtered snapshot caching
+
+Call `Cached()` when the same cacheable descriptor will be evaluated repeatedly:
+
+```csharp
+RuntimeTypeFilter filter = RuntimeTypeFilters
+    .Concrete()
+    .Public()
+    .Cached();
+
+IReadOnlyList<Type> handlers = RuntimeTypeCache.TypesDerivedFrom<IHandler>(filter);
+```
+
+Caching is explicit and behaves the same for `TypesDerivedFrom` and `Bind`. A cached snapshot is
+stored per exact base type and structural filter expression. An equivalent descriptor without
+`Cached()` can reuse an existing entry but does not create one. `Clear()` and changes to the
+underlying base-type snapshot invalidate cached filtered results.
+
+Calling `Cached()` on a descriptor containing either delegate-based `Where` overload remains
+correct but does not cache its result. Analyzer warning `HCRTCFILTER001` identifies directly
+constructed fluent chains where the request cannot be honored. Use a `RuntimeTypeFilterRule` when
+custom logic has a stable, immutable value identity.
+
+Filtering happens after the shared base-type query is resolved. Generated catalogs and reflected
+assemblies therefore have identical behavior. The filter receives only types already assignable to
+the requested base type, and the base type itself has already been excluded. Returned snapshots are
+immutable and their order is unspecified.
+
+Filtered bindings use the argument order filter, then callback:
+
+```csharp
+using IDisposable subscription = RuntimeTypeCache.Bind<IHandler>(
+    RuntimeTypeFilters.Concrete().Cached(),
+    handlers => RebuildHandlerRegistry(handlers));
+```
+
+They deliver an initial filtered snapshot synchronously and notify again only when the filtered
+type set changes. A newly loaded assignable type that fails the predicate does not trigger the user
+callback. Delegate predicates should remain behaviorally stable for the lifetime of a subscription;
+dispose and recreate the binding when captured criteria change. Filters run on the same thread or
+synchronization context as the corresponding callback. Query filter exceptions propagate to the
+caller; binding filter exceptions other than `OutOfMemoryException` are written as trace warnings.
+
 ## Observing late-loaded assemblies
 
 `Bind` delivers an initial snapshot synchronously and replacement snapshots when newly loaded
@@ -117,18 +282,26 @@ The generator recognizes concrete generic calls:
 
 ```csharp
 RuntimeTypeCache.TypesDerivedFrom<IHandler>();
+RuntimeTypeCache.TypesDerivedFrom<IHandler>(type => !type.IsAbstract);
 RuntimeTypeCache.Bind<IHandler>(OnHandlersChanged);
+RuntimeTypeCache.Bind<IHandler>(type => !type.IsAbstract, OnHandlersChanged);
 ```
 
 It also recognizes a direct `typeof(...)` argument:
 
 ```csharp
 RuntimeTypeCache.TypesDerivedFrom(typeof(IHandler));
+RuntimeTypeCache.TypesDerivedFrom(typeof(IHandler), type => !type.IsAbstract);
 RuntimeTypeCache.Bind(typeof(IHandler), OnHandlersChanged);
+RuntimeTypeCache.Bind(typeof(IHandler), type => !type.IsAbstract, OnHandlersChanged);
 ```
 
 Aliases and fully qualified method calls are supported because discovery uses Roslyn symbols, not
 method-name text.
+
+Predicates do not change catalog completeness. The generator records every assignable type for the
+base query, and the runtime applies the predicate to that complete snapshot. The predicate itself
+is not analyzed or executed at compile time.
 
 A runtime `Type` variable is not a compile-time query and therefore uses reflection:
 

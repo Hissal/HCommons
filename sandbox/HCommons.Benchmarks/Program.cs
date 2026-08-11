@@ -82,15 +82,35 @@ public sealed class AccurateConfig : ManualConfig {
 
 [MemoryDiagnoser]
 public class RuntimeTypeCacheBench {
+    static readonly Func<Type, bool> s_concreteFilter =
+        type => !type.IsAbstract && !type.IsInterface;
+    static readonly RuntimeTypeFilter s_uncachedDescriptor =
+        RuntimeTypeFilters.Concrete().Closed();
+    static readonly RuntimeTypeFilter s_cachedDescriptor =
+        RuntimeTypeFilters.Concrete().Cached();
+
     [GlobalSetup]
     public void GlobalSetup() {
         RuntimeTypeCache.Clear();
         RuntimeTypeCache.TypesDerivedFrom<IDisposable>();
         RuntimeTypeCache.TypesDerivedFrom<IGeneratedRuntimeTypeCacheBenchmark>();
+        RuntimeTypeCache.TypesDerivedFrom<IDisposable>(s_cachedDescriptor);
     }
 
     [Benchmark(Baseline = true)]
     public IReadOnlyList<Type> CachedQuery() => RuntimeTypeCache.TypesDerivedFrom<IDisposable>();
+
+    [Benchmark]
+    public IReadOnlyList<Type> CachedFilteredQuery() =>
+        RuntimeTypeCache.TypesDerivedFrom<IDisposable>(s_concreteFilter);
+
+    [Benchmark]
+    public IReadOnlyList<Type> UncachedDescriptorQuery() =>
+        RuntimeTypeCache.TypesDerivedFrom<IDisposable>(s_uncachedDescriptor);
+
+    [Benchmark]
+    public IReadOnlyList<Type> CachedDescriptorQuery() =>
+        RuntimeTypeCache.TypesDerivedFrom<IDisposable>(s_cachedDescriptor);
 
     [Benchmark]
     public IReadOnlyList<Type> ReflectionFullRebuild() {
@@ -115,6 +135,31 @@ public interface IGeneratedRuntimeTypeCacheBenchmark;
 public abstract class GeneratedRuntimeTypeCacheBenchmarkBase : IGeneratedRuntimeTypeCacheBenchmark;
 
 internal sealed class GeneratedRuntimeTypeCacheBenchmarkImplementation : GeneratedRuntimeTypeCacheBenchmarkBase;
+
+[MemoryDiagnoser]
+public sealed class RuntimeTypeFilterBench {
+    readonly RuntimeTypeFilterBenchmarkState _state = new(typeof(IDisposable));
+
+    [Benchmark(Baseline = true)]
+    public RuntimeTypeFilter CapturingWhere() =>
+        RuntimeTypeFilters.Where(type => _state.Matches(type));
+
+    [Benchmark]
+    public RuntimeTypeFilter StatefulWhere() =>
+        RuntimeTypeFilters.Where(
+            _state,
+            static (state, type) => state.Matches(type));
+}
+
+public readonly struct RuntimeTypeFilterBenchmarkState {
+    readonly Type _expected;
+
+    public RuntimeTypeFilterBenchmarkState(Type expected) {
+        _expected = expected;
+    }
+
+    public bool Matches(Type type) => type == _expected;
+}
 
 // [MemoryDiagnoser]
 // public class BagAddBench {
