@@ -82,6 +82,9 @@ public sealed class AccurateConfig : ManualConfig {
 
 [MemoryDiagnoser]
 public class RuntimeTypeCacheBench {
+    static readonly Func<Type, bool> s_concreteFilter =
+        type => !type.IsAbstract && !type.IsInterface;
+
     [GlobalSetup]
     public void GlobalSetup() {
         RuntimeTypeCache.Clear();
@@ -91,6 +94,10 @@ public class RuntimeTypeCacheBench {
 
     [Benchmark(Baseline = true)]
     public IReadOnlyList<Type> CachedQuery() => RuntimeTypeCache.TypesDerivedFrom<IDisposable>();
+
+    [Benchmark]
+    public IReadOnlyList<Type> CachedFilteredQuery() =>
+        RuntimeTypeCache.TypesDerivedFrom<IDisposable>(s_concreteFilter);
 
     [Benchmark]
     public IReadOnlyList<Type> ReflectionFullRebuild() {

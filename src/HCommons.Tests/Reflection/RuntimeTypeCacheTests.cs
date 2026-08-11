@@ -32,6 +32,32 @@ public sealed class RuntimeTypeCacheTests {
     }
 
     [Fact]
+    public void TypesDerivedFrom_FilterReturnsAnImmutableMatchingSnapshot() {
+        RuntimeTypeCache.Clear();
+
+        var types = RuntimeTypeCache.TypesDerivedFrom<ITestMarker>(
+            type => !type.IsAbstract && !type.IsInterface);
+
+        types.ShouldContain(typeof(ConcreteTestMarker));
+        types.ShouldNotContain(typeof(AbstractTestMarker));
+        types.ShouldNotContain(typeof(IDerivedTestMarker));
+        var mutableView = types.ShouldBeAssignableTo<IList<Type>>();
+        mutableView.IsReadOnly.ShouldBeTrue();
+        Should.Throw<NotSupportedException>(() => mutableView.Add(typeof(string)));
+    }
+
+    [Fact]
+    public void TypesDerivedFrom_TypeFilterOverloadAppliesThePredicate() {
+        RuntimeTypeCache.Clear();
+
+        var types = RuntimeTypeCache.TypesDerivedFrom(
+            typeof(ITestMarker),
+            type => type.IsAbstract && !type.IsInterface);
+
+        types.ShouldBe(new[] { typeof(AbstractTestMarker) }, ignoreOrder: true);
+    }
+
+    [Fact]
     public void Clear_RebuildsTheSnapshotWithoutChangingItsContents() {
         RuntimeTypeCache.Clear();
         var beforeClear = RuntimeTypeCache.TypesDerivedFrom<ITestMarker>();
@@ -49,9 +75,33 @@ public sealed class RuntimeTypeCacheTests {
     }
 
     [Fact]
+    public void TypesDerivedFrom_NullFilterThrows() {
+        Should.Throw<ArgumentNullException>(() =>
+            RuntimeTypeCache.TypesDerivedFrom<ITestMarker>(null!));
+        Should.Throw<ArgumentNullException>(() =>
+            RuntimeTypeCache.TypesDerivedFrom(typeof(ITestMarker), null!));
+        Should.Throw<ArgumentNullException>(() =>
+            RuntimeTypeCache.TypesDerivedFrom(null!, _ => true));
+    }
+
+    [Fact]
     public void Bind_NullCallbackThrows() {
         Should.Throw<ArgumentNullException>(() =>
             RuntimeTypeCache.Bind(typeof(ITestMarker), null!, synchronizationContext: null));
+        Should.Throw<ArgumentNullException>(() =>
+            RuntimeTypeCache.Bind<ITestMarker>(_ => true, null!));
+        Should.Throw<ArgumentNullException>(() =>
+            RuntimeTypeCache.Bind(typeof(ITestMarker), _ => true, null!));
+    }
+
+    [Fact]
+    public void Bind_NullFilterThrows() {
+        Should.Throw<ArgumentNullException>(() =>
+            RuntimeTypeCache.Bind<ITestMarker>(null!, _ => { }));
+        Should.Throw<ArgumentNullException>(() =>
+            RuntimeTypeCache.Bind(typeof(ITestMarker), null!, _ => { }));
+        Should.Throw<ArgumentNullException>(() =>
+            RuntimeTypeCache.Bind(null!, _ => true, _ => { }));
     }
 
     [Fact]
@@ -66,16 +116,37 @@ public sealed class RuntimeTypeCacheTests {
     }
 
     [Fact]
+    public void Bind_FilterDeliversTheInitialFilteredSnapshotSynchronously() {
+        RuntimeTypeCache.Clear();
+        IReadOnlyList<Type>? received = null;
+
+        using var binding = RuntimeTypeCache.Bind<ITestMarker>(
+            type => !type.IsAbstract && !type.IsInterface,
+            types => received = types);
+
+        received.ShouldNotBeNull();
+        received.ShouldContain(typeof(ConcreteTestMarker));
+        received.ShouldNotContain(typeof(AbstractTestMarker));
+        received.ShouldNotContain(typeof(IDerivedTestMarker));
+    }
+
+    [Fact]
     public void Bind_LoadedAssemblyPublishesOnlyAffectedQueriesOnTheCapturedContext() {
         RuntimeTypeCache.Clear();
         var context = new PumpSynchronizationContext();
         var disposableSnapshots = new List<IReadOnlyList<Type>>();
+        var filteredNotificationCount = 0;
         var markerNotificationCount = 0;
         var disposedNotificationCount = 0;
 
         using var disposableBinding = RuntimeTypeCache.Bind(
             typeof(IDisposable),
             types => disposableSnapshots.Add(types),
+            context);
+        using var filteredBinding = RuntimeTypeCache.Bind(
+            typeof(IDisposable),
+            _ => false,
+            _ => filteredNotificationCount++,
             context);
         using var markerBinding = RuntimeTypeCache.Bind<ITestMarker>(
             _ => markerNotificationCount++,
@@ -102,6 +173,7 @@ public sealed class RuntimeTypeCacheTests {
 
         disposableSnapshots.Count.ShouldBe(2);
         disposableSnapshots[^1].ShouldContain(fixtureType);
+        filteredNotificationCount.ShouldBe(1, "A binding should publish only when its filtered result changes.");
         markerNotificationCount.ShouldBe(1, "An assembly with no marker implementations must not publish that query.");
         disposedNotificationCount.ShouldBe(1, "A disposed binding must suppress pending and future notifications.");
     }

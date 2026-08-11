@@ -43,6 +43,47 @@ definitions when they satisfy normal runtime assignability rules. Result order i
 Snapshots are safe to retain and enumerate while other assemblies load. A later query returns a
 new snapshot if new matches have appeared; an existing snapshot is never mutated.
 
+## Filtering results
+
+Pass a `Func<Type, bool>` when only part of the assignable type set is relevant:
+
+```csharp
+IReadOnlyList<Type> concreteHandlers = RuntimeTypeCache.TypesDerivedFrom<IHandler>(
+    type => !type.IsAbstract && !type.IsInterface);
+```
+
+The runtime-selected form accepts the same predicate:
+
+```csharp
+IReadOnlyList<Type> concreteHandlers = RuntimeTypeCache.TypesDerivedFrom(
+    typeof(IHandler),
+    type => !type.IsAbstract && !type.IsInterface);
+```
+
+The predicate receives only types already assignable to the requested base type; the base type
+itself has already been excluded. The returned filtered snapshot is immutable and its order is
+unspecified.
+
+Filtering happens after the shared base-type query is resolved. Generated catalogs and reflected
+assemblies therefore use identical filter behavior, and separate filters reuse the same unfiltered
+cache. A `TypesDerivedFrom` predicate is evaluated on every call rather than cached because a
+delegate can capture mutable state. Predicate exceptions propagate to the caller.
+
+Filtered bindings use the same argument order: base type, filter, then callback:
+
+```csharp
+using IDisposable subscription = RuntimeTypeCache.Bind<IHandler>(
+    type => !type.IsAbstract && !type.IsInterface,
+    handlers => RebuildHandlerRegistry(handlers));
+```
+
+They deliver an initial filtered snapshot synchronously and notify again only when the filtered
+type set changes. A newly loaded assignable type that fails the predicate does not trigger the user
+callback. Keep a binding predicate behaviorally stable for the lifetime of its subscription;
+dispose and recreate the binding when its criteria change. Predicates run on the same thread or
+synchronization context as the corresponding callback. As with callback exceptions, binding
+predicate exceptions other than `OutOfMemoryException` are written as trace warnings.
+
 ## Observing late-loaded assemblies
 
 `Bind` delivers an initial snapshot synchronously and replacement snapshots when newly loaded
@@ -117,18 +158,26 @@ The generator recognizes concrete generic calls:
 
 ```csharp
 RuntimeTypeCache.TypesDerivedFrom<IHandler>();
+RuntimeTypeCache.TypesDerivedFrom<IHandler>(type => !type.IsAbstract);
 RuntimeTypeCache.Bind<IHandler>(OnHandlersChanged);
+RuntimeTypeCache.Bind<IHandler>(type => !type.IsAbstract, OnHandlersChanged);
 ```
 
 It also recognizes a direct `typeof(...)` argument:
 
 ```csharp
 RuntimeTypeCache.TypesDerivedFrom(typeof(IHandler));
+RuntimeTypeCache.TypesDerivedFrom(typeof(IHandler), type => !type.IsAbstract);
 RuntimeTypeCache.Bind(typeof(IHandler), OnHandlersChanged);
+RuntimeTypeCache.Bind(typeof(IHandler), type => !type.IsAbstract, OnHandlersChanged);
 ```
 
 Aliases and fully qualified method calls are supported because discovery uses Roslyn symbols, not
 method-name text.
+
+Predicates do not change catalog completeness. The generator records every assignable type for the
+base query, and the runtime applies the predicate to that complete snapshot. The predicate itself
+is not analyzed or executed at compile time.
 
 A runtime `Type` variable is not a compile-time query and therefore uses reflection:
 

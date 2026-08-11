@@ -23,8 +23,12 @@ public sealed class RuntimeTypeCacheGeneratorTests {
                 public static void Run() {
                     _ = Cache.TypesDerivedFrom<IMarker>();
                     _ = Cache.TypesDerivedFrom(typeof(IMarker));
+                    _ = Cache.TypesDerivedFrom<IMarker>(type => !type.IsAbstract);
+                    _ = Cache.TypesDerivedFrom(typeof(IMarker), type => !type.IsAbstract);
                     _ = Cache.Bind<IMarker>(_ => { });
                     _ = Cache.Bind(typeof(IMarker), _ => { });
+                    _ = Cache.Bind<IMarker>(type => !type.IsAbstract, _ => { });
+                    _ = Cache.Bind(typeof(IMarker), type => !type.IsAbstract, _ => { });
                 }
             }
             """;

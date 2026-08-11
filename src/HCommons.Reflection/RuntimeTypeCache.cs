@@ -40,6 +40,22 @@ public static class RuntimeTypeCache {
     public static IReadOnlyList<Type> TypesDerivedFrom<TBase>() => TypesDerivedFrom(typeof(TBase));
 
     /// <summary>
+    /// Returns every loaded type assignable to <typeparamref name="TBase"/> that satisfies
+    /// <paramref name="filter"/>, excluding <typeparamref name="TBase"/> itself.
+    /// </summary>
+    /// <typeparam name="TBase">The base class or interface to query.</typeparam>
+    /// <param name="filter">A predicate that selects types from the cached query result.</param>
+    /// <returns>An immutable snapshot of the matching types. Result order is unspecified.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="filter"/> is <see langword="null"/>.</exception>
+#if NET5_0_OR_GREATER
+    [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(
+        "Runtime type discovery cannot guarantee that types have been preserved by trimming.")]
+#endif
+    [RuntimeTypeCacheSourceGenerationTarget(RuntimeTypeCacheQuerySource.GenericTypeArgument, 0)]
+    public static IReadOnlyList<Type> TypesDerivedFrom<TBase>(Func<Type, bool> filter) =>
+        TypesDerivedFrom(typeof(TBase), filter);
+
+    /// <summary>
     /// Returns every loaded type assignable to <paramref name="baseType"/>, excluding
     /// <paramref name="baseType"/> itself.
     /// </summary>
@@ -70,6 +86,33 @@ public static class RuntimeTypeCache {
     }
 
     /// <summary>
+    /// Returns every loaded type assignable to <paramref name="baseType"/> that satisfies
+    /// <paramref name="filter"/>, excluding <paramref name="baseType"/> itself.
+    /// </summary>
+    /// <param name="baseType">The base class or interface to query.</param>
+    /// <param name="filter">A predicate that selects types from the cached query result.</param>
+    /// <returns>An immutable snapshot of the matching types. Result order is unspecified.</returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="baseType"/> or <paramref name="filter"/> is <see langword="null"/>.
+    /// </exception>
+#if NET5_0_OR_GREATER
+    [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(
+        "Runtime type discovery cannot guarantee that types have been preserved by trimming.")]
+#endif
+    [RuntimeTypeCacheSourceGenerationTarget(RuntimeTypeCacheQuerySource.MethodArgument, 0)]
+    public static IReadOnlyList<Type> TypesDerivedFrom(Type baseType, Func<Type, bool> filter) {
+        if (baseType is null) {
+            throw new ArgumentNullException(nameof(baseType));
+        }
+
+        if (filter is null) {
+            throw new ArgumentNullException(nameof(filter));
+        }
+
+        return FilterSnapshot(TypesDerivedFrom(baseType), filter);
+    }
+
+    /// <summary>
     /// Observes types assignable to <typeparamref name="TBase"/> on the current synchronization context.
     /// </summary>
     /// <param name="onChanged">
@@ -83,6 +126,29 @@ public static class RuntimeTypeCache {
     [RuntimeTypeCacheSourceGenerationTarget(RuntimeTypeCacheQuerySource.GenericTypeArgument, 0)]
     public static IDisposable Bind<TBase>(Action<IReadOnlyList<Type>> onChanged) =>
         Bind(typeof(TBase), onChanged, SynchronizationContext.Current);
+
+    /// <summary>
+    /// Observes types assignable to <typeparamref name="TBase"/> that satisfy
+    /// <paramref name="filter"/> on the current synchronization context.
+    /// </summary>
+    /// <param name="filter">A predicate that selects types from each cached query snapshot.</param>
+    /// <param name="onChanged">
+    /// A callback that receives the initial filtered snapshot synchronously and later replacement
+    /// snapshots when the filtered result changes.
+    /// </param>
+    /// <returns>A subscription that stops future notifications when disposed.</returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="filter"/> or <paramref name="onChanged"/> is <see langword="null"/>.
+    /// </exception>
+#if NET5_0_OR_GREATER
+    [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(
+        "Runtime type discovery cannot guarantee that types have been preserved by trimming.")]
+#endif
+    [RuntimeTypeCacheSourceGenerationTarget(RuntimeTypeCacheQuerySource.GenericTypeArgument, 0)]
+    public static IDisposable Bind<TBase>(
+        Func<Type, bool> filter,
+        Action<IReadOnlyList<Type>> onChanged) =>
+        Bind(typeof(TBase), filter, onChanged, SynchronizationContext.Current);
 
     /// <summary>
     /// Observes types assignable to <typeparamref name="TBase"/> on a specified synchronization context.
@@ -105,6 +171,33 @@ public static class RuntimeTypeCache {
         Bind(typeof(TBase), onChanged, synchronizationContext);
 
     /// <summary>
+    /// Observes types assignable to <typeparamref name="TBase"/> that satisfy
+    /// <paramref name="filter"/> on a specified synchronization context.
+    /// </summary>
+    /// <param name="filter">A predicate that selects types from each cached query snapshot.</param>
+    /// <param name="onChanged">
+    /// A callback that receives the initial filtered snapshot synchronously and later replacement
+    /// snapshots when the filtered result changes.
+    /// </param>
+    /// <param name="synchronizationContext">
+    /// The context used for later notifications, or <see langword="null"/> to use the thread pool.
+    /// </param>
+    /// <returns>A subscription that stops future notifications when disposed.</returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="filter"/> or <paramref name="onChanged"/> is <see langword="null"/>.
+    /// </exception>
+#if NET5_0_OR_GREATER
+    [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(
+        "Runtime type discovery cannot guarantee that types have been preserved by trimming.")]
+#endif
+    [RuntimeTypeCacheSourceGenerationTarget(RuntimeTypeCacheQuerySource.GenericTypeArgument, 0)]
+    public static IDisposable Bind<TBase>(
+        Func<Type, bool> filter,
+        Action<IReadOnlyList<Type>> onChanged,
+        SynchronizationContext? synchronizationContext) =>
+        Bind(typeof(TBase), filter, onChanged, synchronizationContext);
+
+    /// <summary>
     /// Observes types assignable to <paramref name="baseType"/> on the current synchronization context.
     /// </summary>
     /// <param name="baseType">The base class or interface to query.</param>
@@ -119,6 +212,32 @@ public static class RuntimeTypeCache {
     [RuntimeTypeCacheSourceGenerationTarget(RuntimeTypeCacheQuerySource.MethodArgument, 0)]
     public static IDisposable Bind(Type baseType, Action<IReadOnlyList<Type>> onChanged) =>
         Bind(baseType, onChanged, SynchronizationContext.Current);
+
+    /// <summary>
+    /// Observes types assignable to <paramref name="baseType"/> that satisfy
+    /// <paramref name="filter"/> on the current synchronization context.
+    /// </summary>
+    /// <param name="baseType">The base class or interface to query.</param>
+    /// <param name="filter">A predicate that selects types from each cached query snapshot.</param>
+    /// <param name="onChanged">
+    /// A callback that receives the initial filtered snapshot synchronously and later replacement
+    /// snapshots when the filtered result changes.
+    /// </param>
+    /// <returns>A subscription that stops future notifications when disposed.</returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="baseType"/>, <paramref name="filter"/>, or <paramref name="onChanged"/>
+    /// is <see langword="null"/>.
+    /// </exception>
+#if NET5_0_OR_GREATER
+    [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(
+        "Runtime type discovery cannot guarantee that types have been preserved by trimming.")]
+#endif
+    [RuntimeTypeCacheSourceGenerationTarget(RuntimeTypeCacheQuerySource.MethodArgument, 0)]
+    public static IDisposable Bind(
+        Type baseType,
+        Func<Type, bool> filter,
+        Action<IReadOnlyList<Type>> onChanged) =>
+        Bind(baseType, filter, onChanged, SynchronizationContext.Current);
 
     /// <summary>
     /// Observes types assignable to <paramref name="baseType"/> on a specified synchronization context.
@@ -167,6 +286,50 @@ public static class RuntimeTypeCache {
         Publish(notifications);
         binding.Start(snapshot);
         return binding;
+    }
+
+    /// <summary>
+    /// Observes types assignable to <paramref name="baseType"/> that satisfy
+    /// <paramref name="filter"/> on a specified synchronization context.
+    /// </summary>
+    /// <param name="baseType">The base class or interface to query.</param>
+    /// <param name="filter">A predicate that selects types from each cached query snapshot.</param>
+    /// <param name="onChanged">
+    /// A callback that receives the initial filtered snapshot synchronously and later replacement
+    /// snapshots when the filtered result changes.
+    /// </param>
+    /// <param name="synchronizationContext">
+    /// The context used for later notifications, or <see langword="null"/> to use the thread pool.
+    /// </param>
+    /// <returns>A subscription that stops future notifications when disposed.</returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="baseType"/>, <paramref name="filter"/>, or <paramref name="onChanged"/>
+    /// is <see langword="null"/>.
+    /// </exception>
+#if NET5_0_OR_GREATER
+    [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(
+        "Runtime type discovery cannot guarantee that types have been preserved by trimming.")]
+#endif
+    [RuntimeTypeCacheSourceGenerationTarget(RuntimeTypeCacheQuerySource.MethodArgument, 0)]
+    public static IDisposable Bind(
+        Type baseType,
+        Func<Type, bool> filter,
+        Action<IReadOnlyList<Type>> onChanged,
+        SynchronizationContext? synchronizationContext) {
+        if (baseType is null) {
+            throw new ArgumentNullException(nameof(baseType));
+        }
+
+        if (filter is null) {
+            throw new ArgumentNullException(nameof(filter));
+        }
+
+        if (onChanged is null) {
+            throw new ArgumentNullException(nameof(onChanged));
+        }
+
+        var observer = new FilteredObserver(filter, onChanged);
+        return Bind(baseType, observer.OnChanged, synchronizationContext);
     }
 
     /// <summary>
@@ -362,6 +525,33 @@ public static class RuntimeTypeCache {
         }
     }
 
+    static IReadOnlyList<Type> FilterSnapshot(
+        IReadOnlyList<Type> snapshot,
+        Func<Type, bool> filter) {
+        List<Type>? filteredTypes = null;
+
+        for (var index = 0; index < snapshot.Count; index++) {
+            var type = snapshot[index];
+            if (filter(type)) {
+                filteredTypes?.Add(type);
+                continue;
+            }
+
+            if (filteredTypes is not null) {
+                continue;
+            }
+
+            filteredTypes = new List<Type>(snapshot.Count - 1);
+            for (var includedIndex = 0; includedIndex < index; includedIndex++) {
+                filteredTypes.Add(snapshot[includedIndex]);
+            }
+        }
+
+        return filteredTypes is null
+            ? snapshot
+            : Array.AsReadOnly(filteredTypes.ToArray());
+    }
+
     static void Unbind(Binding binding) {
         lock (s_gate) {
             if (s_queries.TryGetValue(binding.BaseType, out var query)) {
@@ -501,6 +691,30 @@ public static class RuntimeTypeCache {
     readonly record struct GeneratedQuery(bool IsComplete, Type[] Types);
 
     readonly record struct Notification(Binding Binding, IReadOnlyList<Type> Snapshot);
+
+    sealed class FilteredObserver {
+        readonly Func<Type, bool> _filter;
+        readonly Action<IReadOnlyList<Type>> _onChanged;
+
+        HashSet<Type>? _previousTypes;
+
+        public FilteredObserver(
+            Func<Type, bool> filter,
+            Action<IReadOnlyList<Type>> onChanged) {
+            _filter = filter;
+            _onChanged = onChanged;
+        }
+
+        public void OnChanged(IReadOnlyList<Type> snapshot) {
+            var filteredSnapshot = FilterSnapshot(snapshot, _filter);
+            if (_previousTypes is not null && _previousTypes.SetEquals(filteredSnapshot)) {
+                return;
+            }
+
+            _previousTypes = new HashSet<Type>(filteredSnapshot);
+            _onChanged(filteredSnapshot);
+        }
+    }
 
     sealed class Binding : IDisposable {
         readonly object _gate = new();

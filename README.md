@@ -589,12 +589,17 @@ The `HCommons.Reflection` namespace provides cached runtime type discovery witho
 using HCommons.Reflection;
 
 IReadOnlyList<Type> handlers = RuntimeTypeCache.TypesDerivedFrom<IHandler>();
+IReadOnlyList<Type> concreteHandlers = RuntimeTypeCache.TypesDerivedFrom<IHandler>(
+    type => !type.IsAbstract && !type.IsInterface);
 
 using IDisposable binding = RuntimeTypeCache.Bind<IHandler>(updatedHandlers => {
     // The first snapshot is delivered immediately. Later snapshots are delivered
     // when newly loaded assemblies add matching types.
 });
 ```
+
+Predicate overloads are also available for `Bind` and runtime-selected `Type` queries. Filtering
+reuses the shared base-type cache and is applied equally to generated and reflection-backed results.
 
 `HCommons.Reflection` includes a source generator. Concrete generic calls and direct
 `typeof(...)` calls automatically emit per-assembly type catalogs:
