@@ -44,6 +44,16 @@ public sealed class RuntimeTypeCacheSourceGenerationTests {
     }
 
     [Fact]
+    public void DescriptorCall_UsesTheGeneratedCatalogAndAppliesTheFilter() {
+        RuntimeTypeCache.Clear();
+
+        var types = RuntimeTypeCache.TypesDerivedFrom<IGeneratedCallMarker>(
+            RuntimeTypeFilters.Not(RuntimeTypeFilters.Concrete()));
+
+        types.ShouldNotContain(typeof(GeneratedCallMarkerImplementation));
+    }
+
+    [Fact]
     public void BindGenericCall_UsesTheGeneratedCatalogForTheInitialSnapshot() {
         RuntimeTypeCache.Clear();
         IReadOnlyList<Type>? received = null;

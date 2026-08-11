@@ -45,44 +45,150 @@ new snapshot if new matches have appeared; an existing snapshot is never mutated
 
 ## Filtering results
 
-Pass a `Func<Type, bool>` when only part of the assignable type set is relevant:
+Use a reusable `RuntimeTypeFilter` for common conditions:
+
+```csharp
+RuntimeTypeFilter filter = RuntimeTypeFilters
+    .Concrete()
+    .Public()
+    .Closed();
+
+IReadOnlyList<Type> handlers =
+    RuntimeTypeCache.TypesDerivedFrom<IHandler>(filter);
+```
+
+Built-in filters are represented as flags in a non-generic `readonly struct`. Constructing and
+chaining the built-in conditions does not allocate on the managed heap:
+
+- `Concrete()` excludes abstract types and interfaces.
+- `Public()` requires `Type.IsVisible`, including the visibility of containing types.
+- `Closed()` excludes types containing unassigned generic parameters.
+- `HasPublicParameterlessConstructor()` accepts value types or types with a public parameterless
+  constructor.
+- `Instantiable()` combines concrete, closed, and public-parameterless-constructor conditions.
+  Append `Public()` separately when external type visibility is also required.
+
+The default `RuntimeTypeFilter` matches every non-null type. Filters can also be evaluated outside
+the cache:
+
+```csharp
+bool accepted = filter.Matches(typeof(FileHandler));
+IEnumerable<Type> acceptedTypes = candidateTypes.Where(filter.Matches);
+```
+
+### Combining filters
+
+Chained conditions use Boolean AND by default. `And` accepts a separately constructed group, `Or`
+combines the complete accumulated expression with an alternative, and instance `Not` means AND NOT:
+
+```csharp
+RuntimeTypeFilter filter = RuntimeTypeFilters
+    .Concrete()
+    .Public()
+    .Not(RuntimeTypeFilters.Where(new NamespaceRule("Framework")))
+    .Or(RuntimeTypeFilters.Where(new ExactTypeRule(typeof(FallbackHandler))));
+```
+
+Composition is left-associative. The example means:
+
+```text
+((Concrete AND Public) AND NOT FrameworkNamespace) OR ExactFallbackType
+```
+
+Group the right side explicitly when needed:
+
+```csharp
+RuntimeTypeFilter filter = RuntimeTypeFilters.Concrete().Or(
+    RuntimeTypeFilters.Public().Closed());
+```
+
+Use the static form to negate a complete expression:
+
+```csharp
+RuntimeTypeFilter nonPublic = RuntimeTypeFilters.Not(RuntimeTypeFilters.Public());
+```
+
+`And` and `Or` short-circuit in expression order. `Not` evaluates its operand once and inverts the
+result. Simple built-in AND chains retain the allocation-free flag representation; rules and
+compound Boolean expressions use immutable expression nodes.
+
+### Custom conditions and rules
+
+For one-off or stateful logic, append a delegate with `Where`:
+
+```csharp
+RuntimeTypeFilter enabledHandlers = RuntimeTypeFilters
+    .Concrete()
+    .Where(type => configuration.IsEnabled(type));
+```
+
+A delegate has no stable structural identity, so any filter containing one is uncacheable. Its
+captured state is reevaluated on every query or binding update.
+
+For a reusable cacheable condition, derive an immutable record from `RuntimeTypeFilterRule`:
+
+```csharp
+public sealed record NamespaceRule(string Namespace) : RuntimeTypeFilterRule {
+    public override bool Matches(Type type) => type.Namespace == Namespace;
+}
+
+RuntimeTypeFilter gameTypes = RuntimeTypeFilters
+    .Concrete()
+    .Where(new NamespaceRule("My.Game"));
+```
+
+Every value affecting `Matches` must participate in record equality, and a rule must not depend on
+mutable external state. Equal rule records produce structurally equal filter descriptors.
+
+The original `Func<Type, bool>` overloads remain available for concise uncached calls:
 
 ```csharp
 IReadOnlyList<Type> concreteHandlers = RuntimeTypeCache.TypesDerivedFrom<IHandler>(
     type => !type.IsAbstract && !type.IsInterface);
 ```
 
-The runtime-selected form accepts the same predicate:
+### Opt-in filtered snapshot caching
+
+Call `Cached()` when the same cacheable descriptor will be evaluated repeatedly:
 
 ```csharp
-IReadOnlyList<Type> concreteHandlers = RuntimeTypeCache.TypesDerivedFrom(
-    typeof(IHandler),
-    type => !type.IsAbstract && !type.IsInterface);
+RuntimeTypeFilter filter = RuntimeTypeFilters
+    .Concrete()
+    .Public()
+    .Cached();
+
+IReadOnlyList<Type> handlers = RuntimeTypeCache.TypesDerivedFrom<IHandler>(filter);
 ```
 
-The predicate receives only types already assignable to the requested base type; the base type
-itself has already been excluded. The returned filtered snapshot is immutable and its order is
-unspecified.
+Caching is explicit and behaves the same for `TypesDerivedFrom` and `Bind`. A cached snapshot is
+stored per exact base type and structural filter expression. An equivalent descriptor without
+`Cached()` can reuse an existing entry but does not create one. `Clear()` and changes to the
+underlying base-type snapshot invalidate cached filtered results.
+
+Calling `Cached()` on a descriptor containing delegate-based `Where` remains correct but does not
+cache its result. Analyzer warning `HCRTCFILTER001` identifies directly constructed fluent chains
+where the request cannot be honored. Use a `RuntimeTypeFilterRule` when custom logic has a stable,
+immutable value identity.
 
 Filtering happens after the shared base-type query is resolved. Generated catalogs and reflected
-assemblies therefore use identical filter behavior, and separate filters reuse the same unfiltered
-cache. A `TypesDerivedFrom` predicate is evaluated on every call rather than cached because a
-delegate can capture mutable state. Predicate exceptions propagate to the caller.
+assemblies therefore have identical behavior. The filter receives only types already assignable to
+the requested base type, and the base type itself has already been excluded. Returned snapshots are
+immutable and their order is unspecified.
 
-Filtered bindings use the same argument order: base type, filter, then callback:
+Filtered bindings use the argument order filter, then callback:
 
 ```csharp
 using IDisposable subscription = RuntimeTypeCache.Bind<IHandler>(
-    type => !type.IsAbstract && !type.IsInterface,
+    RuntimeTypeFilters.Concrete().Cached(),
     handlers => RebuildHandlerRegistry(handlers));
 ```
 
 They deliver an initial filtered snapshot synchronously and notify again only when the filtered
 type set changes. A newly loaded assignable type that fails the predicate does not trigger the user
-callback. Keep a binding predicate behaviorally stable for the lifetime of its subscription;
-dispose and recreate the binding when its criteria change. Predicates run on the same thread or
-synchronization context as the corresponding callback. As with callback exceptions, binding
-predicate exceptions other than `OutOfMemoryException` are written as trace warnings.
+callback. Delegate predicates should remain behaviorally stable for the lifetime of a subscription;
+dispose and recreate the binding when captured criteria change. Filters run on the same thread or
+synchronization context as the corresponding callback. Query filter exceptions propagate to the
+caller; binding filter exceptions other than `OutOfMemoryException` are written as trace warnings.
 
 ## Observing late-loaded assemblies
 

@@ -22,6 +22,10 @@ Predicate overloads still establish only a base-type query. Catalogs must contai
 assignable set; runtime filtering is deliberately applied after generated or reflected discovery.
 Never specialize catalog contents based on a predicate expression.
 
+This includes `RuntimeTypeFilter` descriptor overloads. Every new query overload must retain the
+source-generation target marker even when its filter could theoretically be interpreted at compile
+time. Catalog completeness describes assignability, not a particular runtime filter expression.
+
 ## Catalog completeness
 
 The generator emits `RuntimeTypeCacheGeneratedTypesAttribute` at assembly level for each
@@ -62,30 +66,37 @@ Filtered queries additionally evaluate their predicate over the cached base snap
 delegates are not cache keys because their captured state can change without changing delegate
 identity.
 
-## Possible built-in filters
+## RuntimeTypeFilter contract
 
-No built-in filters are currently part of the public API. If common usage justifies them, the most
-natural first surface is a `RuntimeTypeFilters` class exposing reusable `Func<Type, bool>` values
-and `All`, `Any`, and `Not` combinators. Useful candidates include:
+`RuntimeTypeFilter` is a non-generic readonly struct. Built-in AND-only conditions use flags and
+must remain allocation-free. Rule and Boolean expression nodes are immutable records. Composition
+is left-associative, preserves short-circuit evaluation order, and uses structural rather than full
+Boolean-equivalence equality.
 
-- `Concrete`: excludes interfaces and abstract types.
-- `Closed`: excludes types whose `ContainsGenericParameters` is true.
-- `Instantiable`: combines concrete and closed checks, with an explicit decision about value types
-  and constructor requirements.
-- `Public`: accepts top-level public and nested public types.
-- `HasPublicParameterlessConstructor`: useful for simple activator and registration scenarios.
-- `HasAttribute<TAttribute>(inherit)`: a parameterized predicate for metadata-driven discovery.
-- Assembly or namespace predicates for plug-in boundaries.
+- `Concrete`, `Public`, `Closed`, and the constructor condition are built-in flags.
+- `Instantiable` is the canonical combination of concrete, closed, and public-parameterless-
+  constructor flags. It deliberately does not imply external type visibility.
+- Chained built-ins mean AND. `And` combines a grouped filter, `Or` combines the complete accumulated
+  expression, instance `Not(other)` means AND NOT, and static `RuntimeTypeFilters.Not(filter)`
+  negates the supplied expression.
+- `Where(Func<Type, bool>)` is always uncacheable.
+- `Where(RuntimeTypeFilterRule)` is cacheable. Derived records must be immutable, behaviorally pure,
+  and include every matching input in record equality.
+- `Cached()` is an explicit request for both queries and bindings. Equal uncached descriptors may
+  read an already registered entry but never create one.
+- The cache key excludes the cache-request bit. Filtered snapshots are stored per `QueryEntry` and
+  invalidated on `Clear()` or when their source snapshot changes.
+- User predicates and rules must be evaluated outside `RuntimeTypeCache.s_gate`. Equality and hash
+  implementations used as cache keys must remain pure and non-blocking.
 
-Keep `Concrete` distinct from `Instantiable`: a non-abstract open generic type is concrete but
-cannot be directly constructed. Prefer predicates and combinators over an enum flags API because
-attributes, assemblies, namespaces, and constructor rules need parameters and compose more clearly
-as functions.
+The bundled analyzer reports `HCRTCFILTER001` when it can see `Cached()` and a delegate-based
+`Where` in the same fluent expression. The runtime must still ignore caching for every uncacheable
+descriptor because analyzers cannot prove values that flow through variables. Keep the analyzer,
+runtime `IsCacheable` behavior, package README, diagnostic tests, and Unity analyzer packaging in
+sync whenever custom filtering changes.
 
-If profiling later shows repeated built-in filtering to be significant, a separate immutable
-filter descriptor with stable equality could allow filtered snapshots to be cached by
-`(baseType, filterDescriptor)`. Preserve the `Func<Type, bool>` overload as the flexible uncached
-path; do not infer cacheability from delegate identity.
+Potential parameterized built-ins such as namespace, assembly, or attribute filters should be
+implemented as immutable `RuntimeTypeFilterRule` records rather than expanding the flag set.
 
 The mixed-coverage benchmark is deliberately retained: it compares `ReflectionFullRebuild` and
 `GeneratedFullRebuild` after `RuntimeTypeCache.Clear()`. Do not advertise an aggregate speedup

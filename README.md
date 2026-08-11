@@ -589,8 +589,9 @@ The `HCommons.Reflection` namespace provides cached runtime type discovery witho
 using HCommons.Reflection;
 
 IReadOnlyList<Type> handlers = RuntimeTypeCache.TypesDerivedFrom<IHandler>();
-IReadOnlyList<Type> concreteHandlers = RuntimeTypeCache.TypesDerivedFrom<IHandler>(
-    type => !type.IsAbstract && !type.IsInterface);
+RuntimeTypeFilter concreteFilter = RuntimeTypeFilters.Concrete();
+IReadOnlyList<Type> concreteHandlers =
+    RuntimeTypeCache.TypesDerivedFrom<IHandler>(concreteFilter);
 
 using IDisposable binding = RuntimeTypeCache.Bind<IHandler>(updatedHandlers => {
     // The first snapshot is delivered immediately. Later snapshots are delivered
@@ -598,8 +599,10 @@ using IDisposable binding = RuntimeTypeCache.Bind<IHandler>(updatedHandlers => {
 });
 ```
 
-Predicate overloads are also available for `Bind` and runtime-selected `Type` queries. Filtering
-reuses the shared base-type cache and is applied equally to generated and reflection-backed results.
+Reusable filters support built-in conditions, immutable record rules, Boolean composition, direct
+`Matches(Type)` evaluation, and explicit filtered-snapshot caching through `.Cached()`. Delegate
+predicate overloads remain available for one-off uncached filtering. All filter forms work with
+`Bind`, runtime-selected `Type` queries, generated catalogs, and reflection-backed results.
 
 `HCommons.Reflection` includes a source generator. Concrete generic calls and direct
 `typeof(...)` calls automatically emit per-assembly type catalogs:
