@@ -7,4 +7,11 @@
         <RootNamespace>HCommons.Reflection.Tests.Fixture</RootNamespace>
     </PropertyGroup>
 
+    <ItemGroup>
+        <ProjectReference Include="..\HCommons.Reflection\HCommons.Reflection.csproj" />
+        <ProjectReference Include="..\HCommons.Reflection.SourceGeneration\HCommons.Reflection.SourceGeneration.csproj"
+                          OutputItemType="Analyzer"
+                          ReferenceOutputAssembly="false" />
+    </ItemGroup>
+
 </Project>

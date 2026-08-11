@@ -117,6 +117,18 @@ public sealed class RuntimeTypeCacheTests {
         snapshots.ShouldAllBe(snapshot => ReferenceEquals(snapshot, expected));
     }
 
+    [Fact]
+    public void LateLoadedFixture_ContainsACompleteGeneratedDisposableCatalog() {
+        var fixturePath = Path.Combine(AppContext.BaseDirectory, "HCommons.Reflection.Tests.Fixture.dll");
+        var fixtureAssembly = Assembly.Load(File.ReadAllBytes(fixturePath));
+
+        var catalog = fixtureAssembly
+            .GetCustomAttributes<RuntimeTypeCacheGeneratedTypesAttribute>()
+            .Single(attribute => attribute.BaseType == typeof(IDisposable));
+
+        catalog.IsComplete.ShouldBeTrue();
+    }
+
     interface ITestMarker;
 
     interface IDerivedTestMarker : ITestMarker;

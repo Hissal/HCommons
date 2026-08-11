@@ -18,6 +18,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HCommons.Void", "src\HCommo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HCommons.Reflection", "src\HCommons.Reflection\HCommons.Reflection.csproj", "{1BA9DFA3-99F1-41DF-9A8B-95A3CFB3596C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HCommons.Reflection.SourceGeneration", "src\HCommons.Reflection.SourceGeneration\HCommons.Reflection.SourceGeneration.csproj", "{B6D3C56D-37BA-4D26-A8D4-8B70FA6EA594}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HCommons.Reflection.Tests.Fixture", "src\HCommons.Reflection.Tests.Fixture\HCommons.Reflection.Tests.Fixture.csproj", "{D76B62F5-E4D2-4E43-A270-766362B6D730}"
 EndProject
 Global
@@ -62,6 +64,10 @@ Global
 		{1BA9DFA3-99F1-41DF-9A8B-95A3CFB3596C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1BA9DFA3-99F1-41DF-9A8B-95A3CFB3596C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1BA9DFA3-99F1-41DF-9A8B-95A3CFB3596C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B6D3C56D-37BA-4D26-A8D4-8B70FA6EA594}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B6D3C56D-37BA-4D26-A8D4-8B70FA6EA594}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B6D3C56D-37BA-4D26-A8D4-8B70FA6EA594}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B6D3C56D-37BA-4D26-A8D4-8B70FA6EA594}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D76B62F5-E4D2-4E43-A270-766362B6D730}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D76B62F5-E4D2-4E43-A270-766362B6D730}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D76B62F5-E4D2-4E43-A270-766362B6D730}.Release|Any CPU.ActiveCfg = Release|Any CPU

@@ -6,6 +6,7 @@
         <Title>HCommons.Reflection</Title>
         <Description>Runtime type discovery and reflection utilities.</Description>
         <PackageTags>Types Reflection</PackageTags>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
 
         <!-- Override Directory.Build.props to allow Nuget generation -->
         <IsPackable>true</IsPackable>
@@ -18,6 +19,20 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <!-- Replace the repository README inherited from Directory.Build.props with package documentation. -->
+        <None Remove="$(MSBuildProjectDirectory)\..\..\README.md" />
+        <None Include="README.md" Pack="true" PackagePath="\" />
+
+        <ProjectReference Include="..\HCommons.Reflection.SourceGeneration\HCommons.Reflection.SourceGeneration.csproj"
+                          OutputItemType="Analyzer"
+                          ReferenceOutputAssembly="false" />
+        <None Include="..\HCommons.Reflection.SourceGeneration\bin\$(Configuration)\netstandard2.0\HCommons.Reflection.SourceGeneration.dll"
+              Pack="true"
+              PackagePath="analyzers/dotnet/cs"
+              Visible="false" />
     </ItemGroup>
 
 </Project>

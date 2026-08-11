@@ -8,11 +8,13 @@ namespace HCommons.Reflection;
 /// </summary>
 /// <remarks>
 /// Results are cached per assembly. Assemblies loaded after the first query are scanned
-/// incrementally and merged into existing query results.
+/// incrementally and merged into existing query results. When the bundled source generator
+/// supplies a complete catalog for an assembly and base type, that catalog is used instead
+/// of enumerating the assembly's types.
 /// </remarks>
 public static class RuntimeTypeCache {
     static readonly object s_gate = new();
-    static readonly Dictionary<Assembly, Type[]> s_assemblyTypes = new();
+    static readonly Dictionary<Assembly, AssemblyEntry> s_assemblies = new();
     static readonly Dictionary<Type, QueryEntry> s_queries = new();
     static readonly HashSet<Assembly> s_pendingAssemblies = new();
 
@@ -34,6 +36,7 @@ public static class RuntimeTypeCache {
     [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(
         "Runtime type discovery cannot guarantee that types have been preserved by trimming.")]
 #endif
+    [RuntimeTypeCacheSourceGenerationTarget(RuntimeTypeCacheQuerySource.GenericTypeArgument, 0)]
     public static IReadOnlyList<Type> TypesDerivedFrom<TBase>() => TypesDerivedFrom(typeof(TBase));
 
     /// <summary>
@@ -47,6 +50,7 @@ public static class RuntimeTypeCache {
     [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(
         "Runtime type discovery cannot guarantee that types have been preserved by trimming.")]
 #endif
+    [RuntimeTypeCacheSourceGenerationTarget(RuntimeTypeCacheQuerySource.MethodArgument, 0)]
     public static IReadOnlyList<Type> TypesDerivedFrom(Type baseType) {
         if (baseType is null) {
             throw new ArgumentNullException(nameof(baseType));
@@ -76,6 +80,7 @@ public static class RuntimeTypeCache {
     [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(
         "Runtime type discovery cannot guarantee that types have been preserved by trimming.")]
 #endif
+    [RuntimeTypeCacheSourceGenerationTarget(RuntimeTypeCacheQuerySource.GenericTypeArgument, 0)]
     public static IDisposable Bind<TBase>(Action<IReadOnlyList<Type>> onChanged) =>
         Bind(typeof(TBase), onChanged, SynchronizationContext.Current);
 
@@ -93,6 +98,7 @@ public static class RuntimeTypeCache {
     [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(
         "Runtime type discovery cannot guarantee that types have been preserved by trimming.")]
 #endif
+    [RuntimeTypeCacheSourceGenerationTarget(RuntimeTypeCacheQuerySource.GenericTypeArgument, 0)]
     public static IDisposable Bind<TBase>(
         Action<IReadOnlyList<Type>> onChanged,
         SynchronizationContext? synchronizationContext) =>
@@ -110,6 +116,7 @@ public static class RuntimeTypeCache {
     [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(
         "Runtime type discovery cannot guarantee that types have been preserved by trimming.")]
 #endif
+    [RuntimeTypeCacheSourceGenerationTarget(RuntimeTypeCacheQuerySource.MethodArgument, 0)]
     public static IDisposable Bind(Type baseType, Action<IReadOnlyList<Type>> onChanged) =>
         Bind(baseType, onChanged, SynchronizationContext.Current);
 
@@ -131,6 +138,7 @@ public static class RuntimeTypeCache {
     [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(
         "Runtime type discovery cannot guarantee that types have been preserved by trimming.")]
 #endif
+    [RuntimeTypeCacheSourceGenerationTarget(RuntimeTypeCacheQuerySource.MethodArgument, 0)]
     public static IDisposable Bind(
         Type baseType,
         Action<IReadOnlyList<Type>> onChanged,
@@ -170,7 +178,7 @@ public static class RuntimeTypeCache {
     /// </remarks>
     public static void Clear() {
         lock (s_gate) {
-            s_assemblyTypes.Clear();
+            s_assemblies.Clear();
             s_pendingAssemblies.Clear();
 
             foreach (var query in s_queries.Values) {
@@ -190,7 +198,7 @@ public static class RuntimeTypeCache {
 
     static void OnAssemblyLoad(object? sender, AssemblyLoadEventArgs args) {
         lock (s_gate) {
-            if (!s_assemblyTypes.ContainsKey(args.LoadedAssembly)) {
+            if (!s_assemblies.ContainsKey(args.LoadedAssembly)) {
                 s_pendingAssemblies.Add(args.LoadedAssembly);
             }
 
@@ -211,7 +219,7 @@ public static class RuntimeTypeCache {
 
     static void QueueCurrentAssemblies() {
         foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies()) {
-            if (!s_assemblyTypes.ContainsKey(assembly)) {
+            if (!s_assemblies.ContainsKey(assembly)) {
                 s_pendingAssemblies.Add(assembly);
             }
         }
@@ -231,15 +239,15 @@ public static class RuntimeTypeCache {
             enumerator.Dispose();
             s_pendingAssemblies.Remove(assembly);
 
-            if (s_assemblyTypes.ContainsKey(assembly)) {
+            if (s_assemblies.ContainsKey(assembly)) {
                 continue;
             }
 
-            var assemblyTypes = GetLoadableTypes(assembly);
-            s_assemblyTypes.Add(assembly, assemblyTypes);
+            var assemblyEntry = new AssemblyEntry(assembly);
+            s_assemblies.Add(assembly, assemblyEntry);
 
             foreach (var query in s_queries.Values) {
-                if (query.AddMatches(assemblyTypes)) {
+                if (query.AddMatches(assemblyEntry.GetTypesFor(query.BaseType))) {
                     changedQueries.Add(query);
                 }
             }
@@ -276,8 +284,8 @@ public static class RuntimeTypeCache {
         }
 
         query = new QueryEntry(baseType);
-        foreach (var assemblyTypes in s_assemblyTypes.Values) {
-            query.AddMatches(assemblyTypes);
+        foreach (var assemblyEntry in s_assemblies.Values) {
+            query.AddMatches(assemblyEntry.GetTypesFor(baseType));
         }
 
         query.PublishInitialSnapshot();
@@ -370,6 +378,8 @@ public static class RuntimeTypeCache {
             _baseType = baseType;
         }
 
+        public Type BaseType => _baseType;
+
         public HashSet<Type> Types { get; } = new();
 
         public IReadOnlyList<Type> Snapshot { get; private set; } = Array.AsReadOnly(Array.Empty<Type>());
@@ -408,6 +418,87 @@ public static class RuntimeTypeCache {
 
         IReadOnlyList<Type> CreateSnapshot() => Array.AsReadOnly(Types.ToArray());
     }
+
+    sealed class AssemblyEntry {
+        readonly Assembly _assembly;
+        readonly Dictionary<Type, GeneratedQuery> _generatedQueries;
+
+        Type[]? _reflectedTypes;
+
+        public AssemblyEntry(Assembly assembly) {
+            _assembly = assembly;
+            _generatedQueries = ReadGeneratedQueries(assembly);
+        }
+
+        public Type[] GetTypesFor(Type baseType) {
+            if (_generatedQueries.TryGetValue(baseType, out var generatedQuery) && generatedQuery.IsComplete) {
+                return generatedQuery.Types;
+            }
+
+            return _reflectedTypes ??= GetLoadableTypes(_assembly);
+        }
+
+        static Dictionary<Type, GeneratedQuery> ReadGeneratedQueries(Assembly assembly) {
+            object[] attributes;
+
+            try {
+                attributes = assembly.GetCustomAttributes(
+                    typeof(RuntimeTypeCacheGeneratedTypesAttribute),
+                    inherit: false);
+            }
+            catch (Exception exception) when (exception is not OutOfMemoryException) {
+                Trace.TraceWarning(
+                    "Unable to read generated runtime type catalogs from assembly '{0}': {1}",
+                    assembly.FullName,
+                    exception);
+                return new Dictionary<Type, GeneratedQuery>();
+            }
+
+            var builders = new Dictionary<Type, GeneratedQueryBuilder>();
+
+            foreach (var attribute in attributes.Cast<RuntimeTypeCacheGeneratedTypesAttribute>()) {
+                if (attribute.BaseType is null) {
+                    continue;
+                }
+
+                if (!builders.TryGetValue(attribute.BaseType, out var builder)) {
+                    builder = new GeneratedQueryBuilder();
+                    builders.Add(attribute.BaseType, builder);
+                }
+
+                builder.IsComplete &= attribute.IsComplete;
+
+                if (attribute.DerivedTypes is null) {
+                    builder.IsComplete = false;
+                    continue;
+                }
+
+                foreach (var type in attribute.DerivedTypes) {
+                    if (type is null || type == attribute.BaseType || !attribute.BaseType.IsAssignableFrom(type)) {
+                        builder.IsComplete = false;
+                        continue;
+                    }
+
+                    builder.Types.Add(type);
+                }
+            }
+
+            var queries = new Dictionary<Type, GeneratedQuery>(builders.Count);
+            foreach (var pair in builders) {
+                queries.Add(pair.Key, new GeneratedQuery(pair.Value.IsComplete, pair.Value.Types.ToArray()));
+            }
+
+            return queries;
+        }
+    }
+
+    sealed class GeneratedQueryBuilder {
+        public bool IsComplete { get; set; } = true;
+
+        public HashSet<Type> Types { get; } = new();
+    }
+
+    readonly record struct GeneratedQuery(bool IsComplete, Type[] Types);
 
     readonly record struct Notification(Binding Binding, IReadOnlyList<Type> Snapshot);
 
