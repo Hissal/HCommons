@@ -14,7 +14,7 @@ using HCommons.Disposables;
 using HCommons.Reflection;
 using Perfolizer.Horology;
 
-BenchmarkSwitcher.FromAssembly(Assembly.GetExecutingAssembly()).Run(args: null, new AccurateConfig());
+BenchmarkSwitcher.FromAssembly(Assembly.GetExecutingAssembly()).Run(args, new AccurateConfig());
 
 public sealed class QuickConfig : ManualConfig {
     public QuickConfig() {
@@ -86,17 +86,35 @@ public class RuntimeTypeCacheBench {
     public void GlobalSetup() {
         RuntimeTypeCache.Clear();
         RuntimeTypeCache.TypesDerivedFrom<IDisposable>();
+        RuntimeTypeCache.TypesDerivedFrom<IGeneratedRuntimeTypeCacheBenchmark>();
     }
 
     [Benchmark(Baseline = true)]
     public IReadOnlyList<Type> CachedQuery() => RuntimeTypeCache.TypesDerivedFrom<IDisposable>();
 
     [Benchmark]
-    public IReadOnlyList<Type> FullRebuild() {
+    public IReadOnlyList<Type> ReflectionFullRebuild() {
         RuntimeTypeCache.Clear();
         return RuntimeTypeCache.TypesDerivedFrom<IDisposable>();
     }
+
+    [Benchmark]
+    public IReadOnlyList<Type> CachedGeneratedQuery() =>
+        RuntimeTypeCache.TypesDerivedFrom<IGeneratedRuntimeTypeCacheBenchmark>();
+
+    [Benchmark]
+    public IReadOnlyList<Type> GeneratedFullRebuild() {
+        RuntimeTypeCache.Clear();
+        return RuntimeTypeCache.TypesDerivedFrom<IGeneratedRuntimeTypeCacheBenchmark>();
+    }
 }
+
+[GenerateRuntimeTypeCache]
+public interface IGeneratedRuntimeTypeCacheBenchmark;
+
+public abstract class GeneratedRuntimeTypeCacheBenchmarkBase : IGeneratedRuntimeTypeCacheBenchmark;
+
+internal sealed class GeneratedRuntimeTypeCacheBenchmarkImplementation : GeneratedRuntimeTypeCacheBenchmarkBase;
 
 // [MemoryDiagnoser]
 // public class BagAddBench {

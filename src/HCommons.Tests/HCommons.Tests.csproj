@@ -49,6 +49,14 @@
         </PackageReference>
         <PackageReference Include="Shouldly" Version="4.3.0"/>
         <PackageReference Include="NSubstitute" Version="5.3.0"/>
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.3.1" PrivateAssets="all" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Reference Include="HCommons.Reflection.SourceGeneration">
+            <HintPath>..\HCommons.Reflection.SourceGeneration\bin\$(Configuration)\netstandard2.0\HCommons.Reflection.SourceGeneration.dll</HintPath>
+            <Private>true</Private>
+        </Reference>
     </ItemGroup>
 
     <ItemGroup>
@@ -58,6 +66,9 @@
         <ProjectReference Include="..\HCommons.Math\HCommons.Math.csproj"/>
         <ProjectReference Include="..\HCommons.Disposables\HCommons.Disposables.csproj"/>
         <ProjectReference Include="..\HCommons.Reflection\HCommons.Reflection.csproj"/>
+        <ProjectReference Include="..\HCommons.Reflection.SourceGeneration\HCommons.Reflection.SourceGeneration.csproj"
+                          OutputItemType="Analyzer"
+                          ReferenceOutputAssembly="false" />
         <ProjectReference Include="..\HCommons.Reflection.Tests.Fixture\HCommons.Reflection.Tests.Fixture.csproj"
                           ReferenceOutputAssembly="false"
                           AdditionalProperties="Configuration=$(Configuration)"/>

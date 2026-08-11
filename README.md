@@ -596,6 +596,32 @@ using IDisposable binding = RuntimeTypeCache.Bind<IHandler>(updatedHandlers => {
 });
 ```
 
+`HCommons.Reflection` includes a source generator. Concrete generic calls and direct
+`typeof(...)` calls automatically emit per-assembly type catalogs:
+
+```csharp
+IReadOnlyList<Type> genericHandlers = RuntimeTypeCache.TypesDerivedFrom<IHandler>();
+IReadOnlyList<Type> typedHandlers = RuntimeTypeCache.TypesDerivedFrom(typeof(IHandler));
+```
+
+Mark shared contracts when implementations can be compiled in other assemblies:
+
+```csharp
+[GenerateRuntimeTypeCache]
+public interface IHandler { }
+```
+
+Complete generated catalogs avoid `Assembly.GetTypes()` for their assembly and base type.
+Runtime `Type` variables, open generic queries, private/file-local implementations, assemblies
+built without the generator, and dynamically loaded code retain the reflection fallback. The
+same generated catalogs are used by `Bind`, including updates from later loaded assemblies.
+
+The generator is packaged under `analyzers/dotnet/cs` and targets the Unity 6-compatible
+Roslyn 4.3 / .NET Standard 2.0 toolchain. NuGetForUnity recognizes analyzers in this layout,
+but Unity must ultimately import the DLL with plugin platforms disabled and the exact
+`RoslynAnalyzer` asset label. Verify those importer settings when using an older
+NuGetForUnity release or if the generator does not run on the first package refresh.
+
 Reflection metadata can be removed by .NET trimming and Unity managed code stripping. Applications must preserve types that are discovered only through this API. In Unity, use a `link.xml` file, `[Preserve]`, or an equivalent linker annotation. `UnityEditor.TypeCache` is faster for editor-only discovery; `RuntimeTypeCache` is intended for player/runtime and shared-library code.
 
 Assemblies loaded after the first query are scanned incrementally. Runtime-emitted types added after their assembly has loaded are not detectable automatically; call `RuntimeTypeCache.Clear()` to force a complete rescan.
