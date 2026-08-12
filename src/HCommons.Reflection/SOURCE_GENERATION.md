@@ -12,7 +12,8 @@ Every public `RuntimeTypeCache` method that establishes a base-type query must c
 - Use `GenericTypeArgument` and the generic argument index for APIs such as
   `TypesDerivedFrom<TBase>()`, their filtered overloads, and `Bind<TBase>(...)`.
 - Use `MethodArgument` and the parameter index for APIs accepting `Type`. Generation occurs
-  only when the corresponding argument is a direct `typeof(...)` operation.
+  only when the corresponding argument is a direct `typeof(...)` operation. Its operand can be a
+  wrapper type parameter that becomes concrete through source-visible calls.
 
 The generator discovers methods through this metadata rather than method names. When adding
 or changing a query API, update its marker, XML documentation, generator tests, architecture
@@ -21,6 +22,13 @@ test, consumer README examples, and benchmarks together.
 Predicate overloads still establish only a base-type query. Catalogs must contain the complete
 assignable set; runtime filtering is deliberately applied after generated or reflected discovery.
 Never specialize catalog contents based on a predicate expression.
+
+The generator records open query templates inside source-declared wrapper methods and resolves them
+from wrapper invocation sites in the same compilation. Resolution follows transitive method calls,
+substitutes method and containing-type parameters, and supports constructed query types. A method
+definition is visited at most once along a traversal so recursive generic call graphs cannot expand
+without bound. Wrapper bodies available only as referenced metadata, delegate or method-group
+dispatch, and templates that never resolve to a closed named type retain reflection fallback.
 
 This includes `RuntimeTypeFilter` descriptor overloads. Every new query overload must retain the
 source-generation target marker even when its filter could theoretically be interpreted at compile
@@ -36,8 +44,9 @@ Catalogs contain only types declared by that compilation.
 - An empty complete catalog is meaningful: the assembly contains no matches.
 - Private nested and file-local types cannot be referenced by assembly-level generated code.
   Their catalog is marked incomplete and the runtime scans that assembly instead.
-- Generic type parameters, open generic queries, and runtime `Type` variables are not
-  compile-time queries and retain reflection behavior.
+- Generic type parameters and open generic queries that cannot be closed through source-visible
+  wrapper invocations, along with runtime `Type` variables, are not compile-time queries and retain
+  reflection behavior.
 - Result order remains unspecified, the queried base is excluded, and indirect classes,
   interfaces, abstract types, value types, and delegates must follow `Type.IsAssignableFrom`
   semantics.

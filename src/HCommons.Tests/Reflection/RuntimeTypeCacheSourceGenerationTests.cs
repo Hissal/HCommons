@@ -25,6 +25,16 @@ public sealed class RuntimeTypeCacheSourceGenerationTests {
     }
 
     [Fact]
+    public void GenericWrapperCall_EmitsACompleteCatalog() {
+        _ = QueryThroughWrapper<IGeneratedWrapperCallMarker>();
+
+        var catalog = GetCatalog(typeof(IGeneratedWrapperCallMarker));
+
+        catalog.IsComplete.ShouldBeTrue();
+        catalog.DerivedTypes.ShouldContain(typeof(GeneratedWrapperCallMarkerImplementation));
+    }
+
+    [Fact]
     public void TypeOfCall_UsesTheGeneratedCatalog() {
         RuntimeTypeCache.Clear();
 
@@ -83,6 +93,9 @@ public sealed class RuntimeTypeCacheSourceGenerationTests {
         typeof(RuntimeTypeCacheSourceGenerationTests).Assembly
             .GetCustomAttributes<RuntimeTypeCacheGeneratedTypesAttribute>()
             .Single(attribute => attribute.BaseType == baseType);
+
+    static IReadOnlyList<Type> QueryThroughWrapper<T>() =>
+        RuntimeTypeCache.TypesDerivedFrom<T>();
 
     static bool HasValidTarget(MethodInfo method) {
         var targets = method.GetCustomAttributes<RuntimeTypeCacheSourceGenerationTargetAttribute>().ToArray();

@@ -47,6 +47,203 @@ public sealed class RuntimeTypeCacheGeneratorTests {
     }
 
     [Fact]
+    public void Generator_DiscoversQueriesThroughGenericWrapperCalls() {
+        const string source = """
+            using HCommons.Reflection;
+
+            public interface IFirstMarker { }
+            public interface ISecondMarker { }
+            public sealed class FirstMarker : IFirstMarker { }
+            public sealed class SecondMarker : ISecondMarker { }
+
+            public static class Queries {
+                public static void Run() {
+                    RegisterAll<IFirstMarker>();
+                    RegisterAll<ISecondMarker>();
+                }
+
+                private static void RegisterAll<TContract>() {
+                    _ = RuntimeTypeCache.TypesDerivedFrom<TContract>(
+                        RuntimeTypeFilters.Instantiable().Cached());
+                }
+            }
+            """;
+
+        var result = RunGenerator(source);
+
+        var generatedSource = result.GeneratedSource!;
+        generatedSource.ShouldContain("typeof(global::IFirstMarker), true");
+        generatedSource.ShouldContain("typeof(global::FirstMarker)");
+        generatedSource.ShouldContain("typeof(global::ISecondMarker), true");
+        generatedSource.ShouldContain("typeof(global::SecondMarker)");
+    }
+
+    [Fact]
+    public void Generator_DiscoversQueriesThroughTransitiveGenericWrappers() {
+        const string source = """
+            using HCommons.Reflection;
+
+            public interface IMarker { }
+            public sealed class Marker : IMarker { }
+
+            public static class Queries {
+                public static void Run() => First<IMarker>();
+
+                private static void First<T>() => Second<T>();
+
+                private static void Second<T>() => Third<T>();
+
+                private static void Third<T>() {
+                    _ = RuntimeTypeCache.TypesDerivedFrom<T>();
+                }
+            }
+            """;
+
+        var result = RunGenerator(source);
+
+        var generatedSource = result.GeneratedSource!;
+        generatedSource.ShouldContain("typeof(global::IMarker), true");
+        generatedSource.ShouldContain("typeof(global::Marker)");
+    }
+
+    [Fact]
+    public void Generator_SubstitutesConstructedQueriesAndContainingTypeParameters() {
+        const string source = """
+            using HCommons.Reflection;
+
+            public interface IHandler<T> { }
+            public sealed class IntHandler : IHandler<int> { }
+
+            public sealed class Registrar<T> {
+                public void Run() {
+                    _ = RuntimeTypeCache.TypesDerivedFrom<IHandler<T>>();
+                }
+            }
+
+            public static class Queries {
+                public static void Run() => new Registrar<int>().Run();
+            }
+            """;
+
+        var result = RunGenerator(source);
+
+        var generatedSource = result.GeneratedSource!;
+        generatedSource.ShouldContain("typeof(global::IHandler<int>), true");
+        generatedSource.ShouldContain("typeof(global::IntHandler)");
+    }
+
+    [Fact]
+    public void Generator_DiscoversTypeOfQueriesThroughGenericWrappers() {
+        const string source = """
+            using HCommons.Reflection;
+
+            public interface IMarker { }
+            public sealed class Marker : IMarker { }
+
+            public sealed class Contract<T> { }
+
+            public static class Queries {
+                public static void Run() => Register(new Contract<IMarker>());
+
+                private static void Register<T>(Contract<T> contract) {
+                    _ = RuntimeTypeCache.TypesDerivedFrom(typeof(T));
+                }
+            }
+            """;
+
+        var result = RunGenerator(source);
+
+        var generatedSource = result.GeneratedSource!;
+        generatedSource.ShouldContain("typeof(global::IMarker), true");
+        generatedSource.ShouldContain("typeof(global::Marker)");
+    }
+
+    [Fact]
+    public void Generator_RecursiveWrapperChainTerminatesAndDeduplicatesQueries() {
+        const string source = """
+            using HCommons.Reflection;
+
+            public interface IMarker { }
+            public sealed class Marker : IMarker { }
+
+            public static class Queries {
+                public static void Run() => First<IMarker>();
+
+                private static void First<T>() {
+                    _ = RuntimeTypeCache.TypesDerivedFrom<T>();
+                    Second<T>();
+                }
+
+                private static void Second<T>() => First<T>();
+            }
+            """;
+
+        var result = RunGenerator(source);
+
+        const string catalog = "typeof(global::IMarker), true";
+        result.GeneratedSource!.IndexOf(catalog, StringComparison.Ordinal).ShouldBeGreaterThanOrEqualTo(0);
+        result.GeneratedSource.IndexOf(catalog, StringComparison.Ordinal).ShouldBe(
+            result.GeneratedSource.LastIndexOf(catalog, StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Generator_UninstantiatedGenericWrapperDoesNotCreateACompileTimeQuery() {
+        const string source = """
+            using HCommons.Reflection;
+
+            public interface IMarker { }
+            public sealed class Marker : IMarker { }
+
+            public static class Queries {
+                private static void Register<T>() {
+                    _ = RuntimeTypeCache.TypesDerivedFrom<T>();
+                }
+            }
+            """;
+
+        var result = RunGenerator(source);
+
+        result.GeneratedSource.ShouldBeNull();
+    }
+
+    [Fact]
+    public void Generator_ExternalGenericWrapperDoesNotCreateACompileTimeQuery() {
+        const string wrapperSource = """
+            using HCommons.Reflection;
+
+            public static class ExternalQueries {
+                public static void Register<T>() {
+                    _ = RuntimeTypeCache.TypesDerivedFrom<T>();
+                }
+            }
+            """;
+        const string consumerSource = """
+            public interface IMarker { }
+            public sealed class Marker : IMarker { }
+
+            public static class Queries {
+                public static void Run() => ExternalQueries.Register<IMarker>();
+            }
+            """;
+        var wrapper = CreateCompilation(wrapperSource, "ExternalWrapper");
+        using var wrapperAssembly = new MemoryStream();
+        var emitResult = wrapper.Emit(
+            wrapperAssembly,
+            cancellationToken: TestContext.Current.CancellationToken);
+        emitResult.Success.ShouldBeTrue(string.Join(Environment.NewLine, emitResult.Diagnostics));
+        wrapperAssembly.Position = 0;
+        var wrapperReference = MetadataReference.CreateFromStream(wrapperAssembly);
+        var consumer = CreateCompilation(
+            consumerSource,
+            "ExternalWrapperConsumer",
+            wrapperReference);
+
+        var result = RunGenerator(consumer);
+
+        result.GeneratedSource.ShouldBeNull();
+    }
+
+    [Fact]
     public void Generator_TypeVariableDoesNotCreateACompileTimeQuery() {
         const string source = """
             using System;
