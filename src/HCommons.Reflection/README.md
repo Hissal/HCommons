@@ -299,6 +299,30 @@ RuntimeTypeCache.Bind(typeof(IHandler), type => !type.IsAbstract, OnHandlersChan
 Aliases and fully qualified method calls are supported because discovery uses Roslyn symbols, not
 method-name text.
 
+Queries routed through source-visible generic wrapper methods are also recognized when their type
+arguments become concrete at a call site:
+
+```csharp
+static void RegisterHandlers() {
+    RegisterAll<ICommandHandler>();
+    RegisterAll<IEventHandler>();
+}
+
+static void RegisterAll<TContract>() {
+    _ = RuntimeTypeCache.TypesDerivedFrom<TContract>(
+        RuntimeTypeFilters.Instantiable().Cached());
+}
+```
+
+Wrapper inference follows transitive method calls within the current compilation. It substitutes
+method and containing-type parameters, including constructed query types such as `IHandler<T>` and
+both generic and `typeof(T)` cache overloads. Recursive wrapper chains are bounded; any query that
+does not become a closed type keeps the normal reflection fallback.
+
+The generator cannot inspect wrapper bodies that exist only in referenced assemblies, and it does
+not infer calls made indirectly through delegates or method groups. Use `[GenerateRuntimeTypeCache]`
+on the shared base contract when query propagation across assembly boundaries is required.
+
 Predicates do not change catalog completeness. The generator records every assignable type for the
 base query, and the runtime applies the predicate to that complete snapshot. The predicate itself
 is not analyzed or executed at compile time.
@@ -310,7 +334,8 @@ Type contract = SelectContract();
 RuntimeTypeCache.TypesDerivedFrom(contract);
 ```
 
-Open generic base queries and base types containing type parameters are also left to reflection.
+Open generic base queries and base types that remain parameterized after wrapper inference are also
+left to reflection.
 
 ### Queries shared across assemblies
 

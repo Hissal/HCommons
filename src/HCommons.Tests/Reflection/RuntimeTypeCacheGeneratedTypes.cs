@@ -12,3 +12,7 @@ internal sealed class GeneratedAttributeMarkerImplementation : GeneratedAttribut
 public interface IGeneratedCallMarker;
 
 internal sealed class GeneratedCallMarkerImplementation : IGeneratedCallMarker;
+
+public interface IGeneratedWrapperCallMarker;
+
+internal sealed class GeneratedWrapperCallMarkerImplementation : IGeneratedWrapperCallMarker;

@@ -144,6 +144,9 @@ public sealed class RuntimeTypeCacheGenerator : IIncrementalGenerator {
         INamedTypeSymbol targetAttribute,
         HashSet<INamedTypeSymbol> queries,
         CancellationToken cancellationToken) {
+        var methodBodies = new Dictionary<IMethodSymbol, MethodBodyInfo>(SymbolEqualityComparer.Default);
+        var sourceInvocations = new HashSet<IMethodSymbol>(SymbolEqualityComparer.Default);
+
         foreach (var syntaxTree in compilation.SyntaxTrees.OrderBy(tree => tree.FilePath, StringComparer.Ordinal)) {
             cancellationToken.ThrowIfCancellationRequested();
             var semanticModel = compilation.GetSemanticModel(syntaxTree);
@@ -155,30 +158,297 @@ public sealed class RuntimeTypeCacheGenerator : IIncrementalGenerator {
                     continue;
                 }
 
+                var containingMethod = semanticModel.GetEnclosingSymbol(
+                    invocation.SpanStart,
+                    cancellationToken) as IMethodSymbol;
+                var containingDefinition = containingMethod is null
+                    ? null
+                    : GetMethodDefinition(containingMethod);
                 var marker = operation.TargetMethod.GetAttributes().FirstOrDefault(attribute =>
                     SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, targetAttribute));
-                if (marker is null || marker.ConstructorArguments.Length != 2) {
+                if (TryGetQueryType(operation, marker) is { } queryType) {
+                    if (queryType is INamedTypeSymbol namedType && IsConcreteQueryType(namedType)) {
+                        queries.Add(namedType);
+                    }
+
+                    if (containingDefinition is not null) {
+                        GetOrCreateMethodBody(methodBodies, containingDefinition)
+                            .QueryTypes.Add(queryType);
+                    }
+                }
+
+                var targetDefinition = GetMethodDefinition(operation.TargetMethod);
+                if (!IsSourceMethod(targetDefinition)) {
                     continue;
                 }
 
-                var sourceValue = marker.ConstructorArguments[0].Value as int?;
-                var indexValue = marker.ConstructorArguments[1].Value as int?;
-                if (sourceValue is null || indexValue is null || indexValue < 0) {
-                    continue;
-                }
-
-                ITypeSymbol? queryType = sourceValue.Value switch {
-                    0 => GetGenericQueryType(operation.TargetMethod, indexValue.Value),
-                    1 => GetMethodArgumentQueryType(operation, indexValue.Value),
-                    _ => null,
-                };
-
-                if (queryType is INamedTypeSymbol namedType && IsConcreteQueryType(namedType)) {
-                    queries.Add(namedType);
+                sourceInvocations.Add(operation.TargetMethod);
+                if (containingDefinition is not null) {
+                    GetOrCreateMethodBody(methodBodies, containingDefinition)
+                        .Invocations.Add(operation.TargetMethod);
                 }
             }
         }
+
+        var queryMethods = GetMethodsReachingQuery(methodBodies, cancellationToken);
+        foreach (var invocation in sourceInvocations) {
+            cancellationToken.ThrowIfCancellationRequested();
+            var definition = GetMethodDefinition(invocation);
+            if (!queryMethods.Contains(definition)) {
+                continue;
+            }
+
+            var substitutions = CreateTypeSubstitutions(
+                compilation,
+                invocation,
+                parentSubstitutions: null);
+            CollectMethodQueries(
+                compilation,
+                definition,
+                substitutions,
+                methodBodies,
+                queryMethods,
+                new HashSet<IMethodSymbol>(SymbolEqualityComparer.Default),
+                queries,
+                cancellationToken);
+        }
     }
+
+    static ITypeSymbol? TryGetQueryType(
+        IInvocationOperation operation,
+        AttributeData? marker) {
+        if (marker is null || marker.ConstructorArguments.Length != 2) {
+            return null;
+        }
+
+        var sourceValue = marker.ConstructorArguments[0].Value as int?;
+        var indexValue = marker.ConstructorArguments[1].Value as int?;
+        if (sourceValue is null || indexValue is null || indexValue < 0) {
+            return null;
+        }
+
+        return sourceValue.Value switch {
+            0 => GetGenericQueryType(operation.TargetMethod, indexValue.Value),
+            1 => GetMethodArgumentQueryType(operation, indexValue.Value),
+            _ => null,
+        };
+    }
+
+    static MethodBodyInfo GetOrCreateMethodBody(
+        Dictionary<IMethodSymbol, MethodBodyInfo> methodBodies,
+        IMethodSymbol method) {
+        if (!methodBodies.TryGetValue(method, out var methodBody)) {
+            methodBody = new MethodBodyInfo();
+            methodBodies.Add(method, methodBody);
+        }
+
+        return methodBody;
+    }
+
+    static HashSet<IMethodSymbol> GetMethodsReachingQuery(
+        IReadOnlyDictionary<IMethodSymbol, MethodBodyInfo> methodBodies,
+        CancellationToken cancellationToken) {
+        var callers = new Dictionary<IMethodSymbol, HashSet<IMethodSymbol>>(SymbolEqualityComparer.Default);
+        var queryMethods = new HashSet<IMethodSymbol>(SymbolEqualityComparer.Default);
+        var pending = new Queue<IMethodSymbol>();
+
+        foreach (var pair in methodBodies) {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (pair.Value.QueryTypes.Count > 0 && queryMethods.Add(pair.Key)) {
+                pending.Enqueue(pair.Key);
+            }
+
+            foreach (var invocation in pair.Value.Invocations) {
+                var target = GetMethodDefinition(invocation);
+                if (!callers.TryGetValue(target, out var targetCallers)) {
+                    targetCallers = new HashSet<IMethodSymbol>(SymbolEqualityComparer.Default);
+                    callers.Add(target, targetCallers);
+                }
+
+                targetCallers.Add(pair.Key);
+            }
+        }
+
+        while (pending.Count > 0) {
+            cancellationToken.ThrowIfCancellationRequested();
+            var target = pending.Dequeue();
+            if (!callers.TryGetValue(target, out var targetCallers)) {
+                continue;
+            }
+
+            foreach (var caller in targetCallers) {
+                if (queryMethods.Add(caller)) {
+                    pending.Enqueue(caller);
+                }
+            }
+        }
+
+        return queryMethods;
+    }
+
+    static void CollectMethodQueries(
+        Compilation compilation,
+        IMethodSymbol method,
+        IReadOnlyDictionary<ITypeParameterSymbol, ITypeSymbol> substitutions,
+        IReadOnlyDictionary<IMethodSymbol, MethodBodyInfo> methodBodies,
+        HashSet<IMethodSymbol> queryMethods,
+        HashSet<IMethodSymbol> activeMethods,
+        HashSet<INamedTypeSymbol> queries,
+        CancellationToken cancellationToken) {
+        cancellationToken.ThrowIfCancellationRequested();
+        if (!activeMethods.Add(method)) {
+            return;
+        }
+
+        try {
+            if (!methodBodies.TryGetValue(method, out var methodBody)) {
+                return;
+            }
+
+            foreach (var queryType in methodBody.QueryTypes) {
+                var substitutedType = SubstituteType(compilation, queryType, substitutions);
+                if (substitutedType is INamedTypeSymbol namedType && IsConcreteQueryType(namedType)) {
+                    queries.Add(namedType);
+                }
+            }
+
+            foreach (var invocation in methodBody.Invocations) {
+                var target = GetMethodDefinition(invocation);
+                if (!queryMethods.Contains(target)) {
+                    continue;
+                }
+
+                var targetSubstitutions = CreateTypeSubstitutions(
+                    compilation,
+                    invocation,
+                    substitutions);
+                CollectMethodQueries(
+                    compilation,
+                    target,
+                    targetSubstitutions,
+                    methodBodies,
+                    queryMethods,
+                    activeMethods,
+                    queries,
+                    cancellationToken);
+            }
+        }
+        finally {
+            activeMethods.Remove(method);
+        }
+    }
+
+    static Dictionary<ITypeParameterSymbol, ITypeSymbol> CreateTypeSubstitutions(
+        Compilation compilation,
+        IMethodSymbol method,
+        IReadOnlyDictionary<ITypeParameterSymbol, ITypeSymbol>? parentSubstitutions) {
+        var definition = GetMethodDefinition(method);
+        var substitutions = new Dictionary<ITypeParameterSymbol, ITypeSymbol>(SymbolEqualityComparer.Default);
+
+        AddContainingTypeSubstitutions(
+            compilation,
+            definition.ContainingType,
+            method.ContainingType,
+            parentSubstitutions,
+            substitutions);
+        AddTypeParameterSubstitutions(
+            compilation,
+            definition.TypeParameters,
+            method.TypeArguments,
+            parentSubstitutions,
+            substitutions);
+
+        return substitutions;
+    }
+
+    static void AddContainingTypeSubstitutions(
+        Compilation compilation,
+        INamedTypeSymbol? definition,
+        INamedTypeSymbol? constructedType,
+        IReadOnlyDictionary<ITypeParameterSymbol, ITypeSymbol>? parentSubstitutions,
+        Dictionary<ITypeParameterSymbol, ITypeSymbol> substitutions) {
+        if (definition is null || constructedType is null) {
+            return;
+        }
+
+        AddContainingTypeSubstitutions(
+            compilation,
+            definition.ContainingType,
+            constructedType.ContainingType,
+            parentSubstitutions,
+            substitutions);
+        AddTypeParameterSubstitutions(
+            compilation,
+            definition.TypeParameters,
+            constructedType.TypeArguments,
+            parentSubstitutions,
+            substitutions);
+    }
+
+    static void AddTypeParameterSubstitutions(
+        Compilation compilation,
+        ImmutableArray<ITypeParameterSymbol> parameters,
+        ImmutableArray<ITypeSymbol> arguments,
+        IReadOnlyDictionary<ITypeParameterSymbol, ITypeSymbol>? parentSubstitutions,
+        Dictionary<ITypeParameterSymbol, ITypeSymbol> substitutions) {
+        var count = Math.Min(parameters.Length, arguments.Length);
+        for (var index = 0; index < count; index++) {
+            substitutions[parameters[index]] = parentSubstitutions is null
+                ? arguments[index]
+                : SubstituteType(compilation, arguments[index], parentSubstitutions);
+        }
+    }
+
+    static ITypeSymbol SubstituteType(
+        Compilation compilation,
+        ITypeSymbol type,
+        IReadOnlyDictionary<ITypeParameterSymbol, ITypeSymbol> substitutions) {
+        if (type is ITypeParameterSymbol typeParameter &&
+            substitutions.TryGetValue(typeParameter, out var substitution)) {
+            return SymbolEqualityComparer.Default.Equals(type, substitution)
+                ? substitution
+                : SubstituteType(compilation, substitution, substitutions);
+        }
+
+        return type switch {
+            INamedTypeSymbol namedType => SubstituteNamedType(compilation, namedType, substitutions),
+            IArrayTypeSymbol arrayType => compilation.CreateArrayTypeSymbol(
+                SubstituteType(compilation, arrayType.ElementType, substitutions),
+                arrayType.Rank),
+            IPointerTypeSymbol pointerType => compilation.CreatePointerTypeSymbol(
+                SubstituteType(compilation, pointerType.PointedAtType, substitutions)),
+            _ => type,
+        };
+    }
+
+    static INamedTypeSymbol SubstituteNamedType(
+        Compilation compilation,
+        INamedTypeSymbol type,
+        IReadOnlyDictionary<ITypeParameterSymbol, ITypeSymbol> substitutions) {
+        var definition = type.OriginalDefinition;
+        if (type.ContainingType is not null) {
+            var containingType = SubstituteNamedType(compilation, type.ContainingType, substitutions);
+            definition = containingType
+                .GetTypeMembers(type.Name, type.Arity)
+                .FirstOrDefault(candidate => SymbolEqualityComparer.Default.Equals(
+                    candidate.OriginalDefinition,
+                    type.OriginalDefinition)) ?? definition;
+        }
+
+        if (type.Arity == 0) {
+            return definition;
+        }
+
+        var typeArguments = type.TypeArguments
+            .Select(argument => SubstituteType(compilation, argument, substitutions))
+            .ToArray();
+        return definition.Construct(typeArguments);
+    }
+
+    static IMethodSymbol GetMethodDefinition(IMethodSymbol method) =>
+        (method.ReducedFrom ?? method).OriginalDefinition;
+
+    static bool IsSourceMethod(IMethodSymbol method) => method.DeclaringSyntaxReferences.Length > 0;
 
     static ITypeSymbol? GetGenericQueryType(IMethodSymbol method, int index) =>
         index < method.TypeArguments.Length ? method.TypeArguments[index] : null;
@@ -382,6 +652,12 @@ public sealed class RuntimeTypeCacheGenerator : IIncrementalGenerator {
 
     static Location GetLocation(INamedTypeSymbol type) =>
         type.Locations.FirstOrDefault(location => location.IsInSource) ?? Location.None;
+
+    sealed class MethodBodyInfo {
+        public HashSet<ITypeSymbol> QueryTypes { get; } = new(SymbolEqualityComparer.Default);
+
+        public HashSet<IMethodSymbol> Invocations { get; } = new(SymbolEqualityComparer.Default);
+    }
 
     sealed class GenerationResult {
         public GenerationResult(string? source, ImmutableArray<Diagnostic> diagnostics) {
